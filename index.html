@@ -606,7 +606,7 @@ body.dark button[onclick="lockSyncUrl()"] { background: var(--vault); color: #ff
         <div class="field-money"><input type="number" id="weeklyGoalInput" placeholder="0,00" inputmode="decimal" onchange="updateWeeklyGoal(this.value)" /></div>
       </div>
       <div class="section-sub" style="margin-top:-8px; margin-bottom:6px; font-size:11px; line-height:1.5;">
-        Comparado com o lucro líquido do mês/semana em curso. Deixe em branco (ou 0) para não mostrar o gráfico dessa meta.
+        Comparado com o lucro líquido do mês/semana em curso. Deixe em branco (ou 0) para usar as despesas fixas do período como meta mínima (cobrir os custos fixos).
       </div>
     </div>
 
@@ -876,7 +876,7 @@ body.dark button[onclick="lockSyncUrl()"] { background: var(--vault); color: #ff
 // Corrida+ — lógica do app.
 // Documentação detalhada de arquitetura, sincronização, encriptação e
 // easter eggs: ver corridaplus-docs.md (ficheiro separado).
-const APP_VERSION = '3.4.1';
+const APP_VERSION = '3.5.0';
 // Mostra o número da versão na tela de carregamento imediatamente (sem
 // esperar por loadAll/qualquer coisa assíncrona) — sempre visível,
 // independente da mensagem dinâmica ("A carregar…", "A sincronizar…",
@@ -2153,7 +2153,20 @@ function renderStatsWeek(){
 
   let html = '';
   if(profile.goalsEnabled){
-    html += goalProgressHTML(lucro, profile.weeklyGoal, 'Meta semanal');
+    // Sem meta semanal definida, a meta mínima passa a ser as despesas
+    // fixas do mês em que a semana começa, divididas pelo nº de semanas
+    // desse mês — mesma lógica de rateio usada nos outros gráficos
+    // "por semana" da app (ver weeksInMonth/fixasPorSemana).
+    const hasCustomGoal = profile.weeklyGoal && profile.weeklyGoal > 0;
+    let weeklyGoalValue = profile.weeklyGoal;
+    let weeklyGoalLabel = 'Meta semanal';
+    if(!hasCustomGoal){
+      const weekMonthKey = monthKeyFor(start);
+      const weekMonthEntry = ensureMonthEntry(weekMonthKey);
+      weeklyGoalValue = totalFixedBills(weekMonthEntry, weekMonthKey) / weeksInMonth(weekMonthKey);
+      weeklyGoalLabel = 'Meta semanal (mínimo — despesas fixas)';
+    }
+    html += goalProgressHTML(lucro, weeklyGoalValue, weeklyGoalLabel);
   }
   html += `<div class="stat-cards">
     ${brutoTVDE>0?`<div class="stat-card"><div class="stat-card-label">🚖 Bruto TVDE</div><div class="stat-card-value">${fmt(brutoTVDE)}</div></div>`:''}
@@ -2238,7 +2251,12 @@ function renderStatsMonth(){
   }
   let html = '';
   if(profile.goalsEnabled){
-    html += goalProgressHTML(lucroMes, profile.monthlyGoal, 'Meta mensal');
+    // Sem meta mensal definida, a meta mínima passa a ser as despesas fixas
+    // do mês — cobrir os custos fixos é o objetivo mais básico possível.
+    const hasCustomGoal = profile.monthlyGoal && profile.monthlyGoal > 0;
+    const monthlyGoalValue = hasCustomGoal ? profile.monthlyGoal : fixasMes;
+    const monthlyGoalLabel = hasCustomGoal ? 'Meta mensal' : 'Meta mensal (mínimo — despesas fixas)';
+    html += goalProgressHTML(lucroMes, monthlyGoalValue, monthlyGoalLabel);
   }
   html += `
   <div class="chart-box" style="margin-bottom:14px;">
@@ -3233,17 +3251,22 @@ function totalEarningsByPlatform(entry, platform){ return entry.earnings.filter(
 function totalKm(entry){ return entry.earnings.reduce((s,e)=>s+(e.km||0),0); }
 function totalVariableExpenses(entry){ return entry.variableExpenses.reduce((s,e)=>s+(e.amount||0),0); }
 
-function totalFixedBills(entry){
-  const relevantBills = bills.filter(b => (!b.createdMonthKey || b.createdMonthKey <= currentMonthKey) && !entry.hiddenBills[b.id]);
+// monthKeyOverride é opcional — sem ele, usa currentMonthKey (comportamento
+// original, para todos os chamadores existentes). É usado com um mês
+// explícito pelo fallback de "meta mínima = despesas" em Estatísticas →
+// Semana, onde a semana em exibição pode não coincidir com currentMonthKey.
+function totalFixedBills(entry, monthKeyOverride){
+  const mKey = monthKeyOverride || currentMonthKey;
+  const relevantBills = bills.filter(b => (!b.createdMonthKey || b.createdMonthKey <= mKey) && !entry.hiddenBills[b.id]);
   return relevantBills.reduce((s, b) => {
     const amount = billAmount(entry, b);
     const freq = b.frequency || 'mensal';
     if(freq === 'diaria'){
-      const [y, m] = currentMonthKey.split('-').map(Number);
+      const [y, m] = mKey.split('-').map(Number);
       const daysInMonth = new Date(y, m, 0).getDate();
       return s + amount * daysInMonth;
     } else if(freq === 'semanal'){
-      const [y, m] = currentMonthKey.split('-').map(Number);
+      const [y, m] = mKey.split('-').map(Number);
       const daysInMonth = new Date(y, m, 0).getDate();
       const weeks = Math.ceil(daysInMonth / 7);
       return s + amount * weeks;
