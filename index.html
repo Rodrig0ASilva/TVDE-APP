@@ -588,6 +588,28 @@ body.dark button[onclick="lockSyncUrl()"] { background: var(--vault); color: #ff
       Descontada após o IVA. Cobrada pela Uber/Bolt sobre o valor bruto.
     </div>
 
+    <div class="section-head" style="margin-top:20px;"><div class="section-title">Meta</div></div>
+    <div class="switch-row">
+      <div class="switch-row-text">
+        <div class="switch-row-title">Ativar metas</div>
+        <div class="switch-row-sub">Define um objetivo de lucro por semana e/ou por mês. Quando ativo, aparece um gráfico de progresso em Estatísticas.</div>
+      </div>
+      <div class="switch" id="goalsEnabledSwitch" onclick="toggleGoalsEnabled()"></div>
+    </div>
+    <div id="goalsFieldsRow" style="display:none;">
+      <div class="field" style="margin-top:8px;">
+        <label>Meta mensal (€)</label>
+        <div class="field-money"><input type="number" id="monthlyGoalInput" placeholder="0,00" inputmode="decimal" onchange="updateMonthlyGoal(this.value)" /></div>
+      </div>
+      <div class="field">
+        <label>Meta semanal (€)</label>
+        <div class="field-money"><input type="number" id="weeklyGoalInput" placeholder="0,00" inputmode="decimal" onchange="updateWeeklyGoal(this.value)" /></div>
+      </div>
+      <div class="section-sub" style="margin-top:-8px; margin-bottom:6px; font-size:11px; line-height:1.5;">
+        Comparado com o lucro líquido do mês/semana em curso. Deixe em branco (ou 0) para não mostrar o gráfico dessa meta.
+      </div>
+    </div>
+
     <div class="section-head" style="margin-top:20px;"><div class="section-title">Sincronização</div></div>
     <div id="syncUrlLockedView" style="background:rgba(31,58,46,0.06);border-radius:var(--r-md);padding:14px;margin-top:8px;display:flex;align-items:center;gap:12px;">
       <div style="font-size:22px;">🔒</div>
@@ -854,7 +876,7 @@ body.dark button[onclick="lockSyncUrl()"] { background: var(--vault); color: #ff
 // Corrida+ — lógica do app.
 // Documentação detalhada de arquitetura, sincronização, encriptação e
 // easter eggs: ver corridaplus-docs.md (ficheiro separado).
-const APP_VERSION = '3.3.3';
+const APP_VERSION = '3.4.1';
 // Mostra o número da versão na tela de carregamento imediatamente (sem
 // esperar por loadAll/qualquer coisa assíncrona) — sempre visível,
 // independente da mensagem dinâmica ("A carregar…", "A sincronizar…",
@@ -1620,6 +1642,15 @@ function renderSettings(){
   const comEl = document.getElementById('comissaoRate');
   if(comEl) comEl.value = profile.comissaoRate || '';
 
+  const goalsSw = document.getElementById('goalsEnabledSwitch');
+  if(goalsSw) goalsSw.className = 'switch' + (profile.goalsEnabled ? ' on' : '');
+  const goalsFieldsRow = document.getElementById('goalsFieldsRow');
+  if(goalsFieldsRow) goalsFieldsRow.style.display = profile.goalsEnabled ? 'block' : 'none';
+  const monthlyGoalEl = document.getElementById('monthlyGoalInput');
+  if(monthlyGoalEl) monthlyGoalEl.value = profile.monthlyGoal || '';
+  const weeklyGoalEl = document.getElementById('weeklyGoalInput');
+  if(weeklyGoalEl) weeklyGoalEl.value = profile.weeklyGoal || '';
+
   const devPanel = document.getElementById('devPanel');
   if(devPanel){
     devPanel.style.display = devMode ? 'block' : 'none';
@@ -1668,6 +1699,49 @@ function updateComissaoRate(value){
   persistProfile();
   renderGanhos(); renderDespesas();
   showToast(`Comissão ${profile.comissaoRate > 0 ? profile.comissaoRate + '%' : 'desativada'}`);
+}
+
+// --- METAS (semanal/mensal) — configuráveis em "Você", exibidas como
+// gráfico de progresso em Estatísticas (ver renderStatsMonth/renderStatsWeek
+// e goalProgressHTML). Guardadas em profile, sincronizadas normalmente.
+async function toggleGoalsEnabled(){
+  profile.goalsEnabled = !profile.goalsEnabled;
+  await persistProfile();
+  renderSettings();
+  showToast(profile.goalsEnabled ? '🎯 Metas ativadas' : 'Metas desativadas');
+}
+async function updateMonthlyGoal(value){
+  profile.monthlyGoal = parseFloat(value) || 0;
+  await persistProfile();
+  showToast(profile.monthlyGoal > 0 ? `Meta mensal: ${fmt(profile.monthlyGoal)}` : 'Meta mensal removida');
+}
+async function updateWeeklyGoal(value){
+  profile.weeklyGoal = parseFloat(value) || 0;
+  await persistProfile();
+  showToast(profile.weeklyGoal > 0 ? `Meta semanal: ${fmt(profile.weeklyGoal)}` : 'Meta semanal removida');
+}
+// Card de progresso reutilizável — usado em Estatísticas (visão Mês e
+// Semana) quando profile.goalsEnabled e a respetiva meta > 0. Compara o
+// lucro líquido do período em curso com a meta definida.
+function goalProgressHTML(current, goal, label){
+  if(!goal || goal <= 0) return '';
+  const pct = Math.max(0, Math.min(100, Math.round((current / goal) * 100)));
+  const reached = current >= goal;
+  const remaining = Math.max(0, goal - current);
+  const barColor = reached ? 'var(--vault-light)' : 'var(--brass)';
+  return `
+  <div class="chart-box" style="margin-bottom:14px;">
+    <div class="chart-box-title">🎯 ${escapeHtml(label)}</div>
+    <div class="chart-box-sub">${reached ? 'Meta atingida! 🎉' : `Faltam ${fmt(remaining)} para a meta`}</div>
+    <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px;">
+      <span style="font-family:'JetBrains Mono',monospace;font-weight:700;font-size:20px;">${fmt(current)}</span>
+      <span style="font-size:12px;color:var(--text-muted);">meta: ${fmt(goal)}</span>
+    </div>
+    <div class="goal-bar-bg" style="background:var(--cream-2);border-radius:100px;height:14px;overflow:hidden;">
+      <div style="width:${pct}%;height:100%;border-radius:100px;background:${barColor};transition:width 0.3s ease;"></div>
+    </div>
+    <div style="text-align:right;margin-top:6px;font-size:12px;font-weight:700;color:${reached?'var(--vault-light)':'var(--text-muted)'};">${pct}%</div>
+  </div>`;
 }
 
 let profileNameTimer = null;
@@ -2077,7 +2151,11 @@ function renderStatsWeek(){
   const totalUber = sumByPlatform(items,'uber'), totalBolt = sumByPlatform(items,'bolt');
   const totalPart = sumByPlatform(items,'particular'), totalOut = sumByPlatform(items,'outros');
 
-  let html = `<div class="stat-cards">
+  let html = '';
+  if(profile.goalsEnabled){
+    html += goalProgressHTML(lucro, profile.weeklyGoal, 'Meta semanal');
+  }
+  html += `<div class="stat-cards">
     ${brutoTVDE>0?`<div class="stat-card"><div class="stat-card-label">🚖 Bruto TVDE</div><div class="stat-card-value">${fmt(brutoTVDE)}</div></div>`:''}
     ${comb>0?`<div class="stat-card"><div class="stat-card-label">⛽ Combustível</div><div class="stat-card-value negative">− ${fmt(comb)}</div></div>`:''}
     ${ivaVal>0&&brutoTVDE>0?`<div class="stat-card"><div class="stat-card-label">IVA (${ivaVal}%)</div><div class="stat-card-value negative">− ${fmt(iva)}</div></div>`:''}
@@ -2158,7 +2236,11 @@ function renderStatsMonth(){
   if(tvdeCardsArr.length % 2 === 1){
     tvdeCardsArr[tvdeCardsArr.length-1] = tvdeCardsArr[tvdeCardsArr.length-1].replace('class="stat-card"', 'class="stat-card" style="grid-column:1/-1;"');
   }
-  let html = `
+  let html = '';
+  if(profile.goalsEnabled){
+    html += goalProgressHTML(lucroMes, profile.monthlyGoal, 'Meta mensal');
+  }
+  html += `
   <div class="chart-box" style="margin-bottom:14px;">
     <div class="chart-box-title">🚖 TVDE — Uber &amp; Bolt</div>
     <div class="chart-box-sub">${monthNameYear}</div>
