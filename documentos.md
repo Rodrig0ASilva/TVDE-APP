@@ -294,7 +294,7 @@ para vX.X.X", fica visível mais 1.1s, e só depois começa a desvanecer —
 garantindo que o aviso é sempre visto, porque não há mais duas telas
 disputando o mesmo espaço e o mesmo instante.
 
-## 10. Alterações desta versão (v3.1.0 → v3.3.2)
+## 10. Alterações desta versão (v3.1.0 → v3.4.1)
 
 - **Logo da tela de carregamento**: corrigido para ser byte-idêntico ao
   ícone real do app (favicon/manifest/apple-touch-icon) — antes usava uma
@@ -341,3 +341,21 @@ disputando o mesmo espaço e o mesmo instante.
   disparado. As duas telas foram unificadas — a splash agora mostra
   diretamente "✅ Atualizado para vX.X.X" antes de desaparecer, em vez de
   um toast concorrente. Ver secção 9.1.
+- **Número da versão sempre visível na splash**: adicionado um elemento
+  fixo (`#splashVersion`) abaixo da mensagem de estado, mostrando sempre
+  `vX.X.X` — independente do texto dinâmico ("A carregar…", "A
+  sincronizar…", "Atualizado…") que ocupa `#splashMsg`. É definido de
+  forma síncrona logo após a declaração de `APP_VERSION`, sem esperar por
+  `loadAll()`, para aparecer desde o primeiro instante.
+- **Metas semanal/mensal**: nova secção "Meta" em Você → interruptor
+  "Ativar metas" + campos de meta mensal e meta semanal (€), guardados em
+  `profile.goalsEnabled`/`monthlyGoal`/`weeklyGoal` (sincronizados). Quando
+  ativo, Estatísticas → Mês e Estatísticas → Semana passam a mostrar um
+  cartão de progresso (`goalProgressHTML()`) comparando o lucro líquido do
+  período em curso com a meta definida — barra de progresso, percentagem,
+  e quanto falta (ou "Meta atingida! 🎉"). Uma meta em branco/0 simplesmente
+  não mostra o respetivo gráfico, mesmo com as metas ativadas.
+- **Meta movida para o topo de Estatísticas**: o cartão de progresso da
+  meta (mensal e semanal) agora aparece em primeiro lugar em
+  `renderStatsMonth()`/`renderStatsWeek()`, antes dos cartões TVDE/Resumo,
+  em vez de depois deles.
