@@ -294,7 +294,7 @@ para vX.X.X", fica visível mais 1.1s, e só depois começa a desvanecer —
 garantindo que o aviso é sempre visto, porque não há mais duas telas
 disputando o mesmo espaço e o mesmo instante.
 
-## 10. Alterações desta versão (v3.1.0 → v3.4.1)
+## 10. Alterações desta versão (v3.1.0 → v3.6.0)
 
 - **Logo da tela de carregamento**: corrigido para ser byte-idêntico ao
   ícone real do app (favicon/manifest/apple-touch-icon) — antes usava uma
@@ -359,3 +359,125 @@ disputando o mesmo espaço e o mesmo instante.
   meta (mensal e semanal) agora aparece em primeiro lugar em
   `renderStatsMonth()`/`renderStatsWeek()`, antes dos cartões TVDE/Resumo,
   em vez de depois deles.
+- **Meta mínima = despesas fixas, quando nenhuma meta é definida**: se
+  `profile.monthlyGoal`/`weeklyGoal` estiver vazio ou 0, o gráfico de meta
+  passa a usar as despesas fixas do período como meta mínima (cobrir os
+  custos fixos), em vez de simplesmente não mostrar nada. O rótulo muda
+  para "Meta mensal/semanal (mínimo — despesas fixas)" para deixar claro
+  que não é uma meta definida manualmente. Para a visão Semana, isto exigiu
+  que `totalFixedBills(entry)` passasse a aceitar um segundo parâmetro
+  opcional `monthKeyOverride` — sem ele, continua a usar `currentMonthKey`
+  como sempre (nenhum chamador existente precisou de mudar); com ele,
+  calcula despesas fixas para o mês em que a semana em exibição começa
+  (que pode não ser o mesmo mês de `currentMonthKey`), dividido pelo nº de
+  semanas desse mês. Se não houver despesas fixas cadastradas, a meta
+  mínima é 0 e o gráfico simplesmente não aparece (mesma regra de sempre
+  em `goalProgressHTML()`).
+- **Correção: despesas fixas não entravam no lucro semanal**:
+  `renderStatsWeek()` (Estatísticas → Semana) e `renderLucroWeek()` (Lucro
+  → Semana) calculavam o lucro da semana sem descontar nenhuma parcela das
+  despesas fixas (bills são mensais, e as visões semanais simplesmente as
+  ignoravam) — ao contrário das visões Mês, que sempre descontaram. Agora
+  ambas calculam `fixasSemana` = despesas fixas do mês em que a semana
+  começa, dividido pelo nº de semanas desse mês (mesmo rateio já usado nos
+  gráficos "por semana" dentro da visão Mês) e descontam esse valor do
+  lucro. Também passou a aparecer como item de lista ("🏠 Despesas fixas
+  (rateio)") no card de Estatísticas → Semana. Isto também corrigiu uma
+  inconsistência: antes, "Lucro da semana" podia mostrar valores
+  diferentes em Estatísticas vs. Lucro para a mesma semana.
+- **Metas renomeadas para "meta de lucro"**: título da secção nas
+  Configurações, título do interruptor, rótulos dos campos, e os títulos
+  dos cartões de progresso em Estatísticas passaram a dizer explicitamente
+  "meta de lucro" (mensal/semanal), em vez de só "meta" — para não dar a
+  entender que se trata de uma meta de faturamento bruto.
+- **Formato de armazenamento alternativo ("schema v1"), opt-in no Modo
+  Dev**: novo interruptor "Gravar no formato novo" que reestrutura o JSON
+  enviado à planilha (separar configurações/brincadeiras do perfil,
+  achatar ganhos/despesas em listas simples). Ver secção 11 para a
+  arquitetura completa. Desativado por padrão — nada muda até o
+  utilizador ativar explicitamente.
+
+## 11. Formato de armazenamento alternativo (schema v1)
+
+A partir da v3.6.0, existe um formato de armazenamento alternativo,
+opt-in, ativável em Modo Dev → "Formato de armazenamento". Resolve as
+críticas estruturais ao formato clássico (ver nota histórica abaixo) **sem
+tocar em nenhuma outra parte da app** — a conversão acontece só na
+fronteira da sincronização.
+
+### 11.1 Nota histórica — críticas ao formato clássico
+
+O formato original (`{bills, monthData, profile}`) tem três problemas
+estruturais:
+1. `profile` mistura identidade (nome/foto), configuração financeira
+   (IVA/comissão/metas) e brincadeiras (easter egg/aniversário) no mesmo
+   objeto plano, sem separação de responsabilidades.
+2. `monthData` particiona ganhos/despesas por mês usando um objeto
+   aninhado — mas a app já precisa achatar tudo de volta constantemente
+   (`allEarnings()`, `earningsInRange()`) sempre que quer ver dados fora
+   de um mês, então a partição não poupa trabalho, só acrescenta
+   aninhamento.
+3. Sem `schemaVersion` nem `updatedAt` — migrações são feitas com
+   checagens ad-hoc espalhadas pelo código (`if(!earning.platform)
+   earning.platform = 'uber'`), em vez de um número de versão central.
+
+### 11.2 O formato novo (schema v1)
+
+```json
+{
+  "schemaVersion": 1,
+  "updatedAt": "2026-08-15T10:42:00Z",
+  "profile": { "name": "...", "photo": "data:..." },
+  "settings": {
+    "ivaRate": 6, "comissaoRate": 4,
+    "goals": { "enabled": true, "monthly": 1200, "weekly": 300 }
+  },
+  "features": {
+    "easterEgg": { "disabled": true, "rate": 0.03 },
+    "birthday": { "date": "19-10" }
+  },
+  "bills": [ { "id": "...", "name": "Água/Luz", "defaultAmount": 60, "frequency": "mensal", "createdMonthKey": "2026-07" } ],
+  "earnings": [ { "id": "...", "date": "2026-07-28", "platform": "uber", "amount": 47.8 } ],
+  "expenses": [ { "id": "...", "category": "combustivel", "amount": 30, "date": "2026-07-28" } ],
+  "billOverrides": [ { "billId": "...", "month": "2026-07", "amount": 55 } ],
+  "billsPaid": [ { "billId": "...", "month": "2026-07", "amount": 55, "paidAt": 1234567890 } ],
+  "hiddenBills": [ { "billId": "...", "month": "2026-07" } ]
+}
+```
+
+`earnings`/`expenses` deixam de estar aninhados por mês — passam a ser
+duas listas simples com campo `date`; o agrupamento por mês/semana
+continua a ser feito só no cliente (exatamente como já era, via
+`earningsInRange()`). `profile`/`settings`/`features` ficam separados por
+responsabilidade.
+
+### 11.3 Como funciona por baixo dos panos
+
+A **totalidade do resto da app continua a trabalhar só com o formato
+clássico** (`bills`, `monthData`, `profile`) — nenhuma função de
+renderização, cálculo, ou edição foi alterada. A conversão acontece só em
+dois pontos:
+
+- **`normalizeToSchemaV1(payload)`** — clássico → schema v1. Usado em
+  `pushToCloud()` só quando `useNormalizedSchema` (device-local, Modo Dev)
+  está ativo.
+- **`denormalizeFromSchemaV1(data)`** — schema v1 → clássico. Usado em
+  `resolveIncomingPayload(raw)`, um ponto único de deteção de formato
+  (`raw.schemaVersion === 1` → converte; senão devolve como veio) chamado
+  em **todos** os pontos onde dados entram na app: `finishCloudSync()`
+  (cobre sincronização normal, decifrada automaticamente, e desbloqueio
+  manual — os três convergem nessa função), `pullLatestAndMergeBeforePush()`,
+  e `importFromJson()`.
+
+Como a leitura entende os dois formatos **sempre, em qualquer
+dispositivo**, é seguro ativar o interruptor num dispositivo só, sem
+coordenar com os outros — cada dispositivo decide sozinho em que formato
+escreve, e todos conseguem ler o que os outros escreverem. A conversão é
+comprovadamente sem perdas (testada com round-trip: clássico → schema v1
+→ clássico produz um objeto idêntico ao original).
+
+### 11.4 Botão "Converter e enviar agora"
+
+Além do interruptor (que só afeta gravações futuras), há um botão que
+ativa o formato novo e força um envio imediato — útil para quem quer ver
+o resultado na planilha sem esperar pela próxima edição.
