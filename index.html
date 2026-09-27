@@ -588,25 +588,25 @@ body.dark button[onclick="lockSyncUrl()"] { background: var(--vault); color: #ff
       Descontada após o IVA. Cobrada pela Uber/Bolt sobre o valor bruto.
     </div>
 
-    <div class="section-head" style="margin-top:20px;"><div class="section-title">Meta</div></div>
+    <div class="section-head" style="margin-top:20px;"><div class="section-title">Meta de lucro</div></div>
     <div class="switch-row">
       <div class="switch-row-text">
-        <div class="switch-row-title">Ativar metas</div>
-        <div class="switch-row-sub">Define um objetivo de lucro por semana e/ou por mês. Quando ativo, aparece um gráfico de progresso em Estatísticas.</div>
+        <div class="switch-row-title">Ativar metas de lucro</div>
+        <div class="switch-row-sub">Define um objetivo de LUCRO (não faturamento) por semana e/ou por mês. Quando ativo, aparece um gráfico de progresso no topo de Estatísticas.</div>
       </div>
       <div class="switch" id="goalsEnabledSwitch" onclick="toggleGoalsEnabled()"></div>
     </div>
     <div id="goalsFieldsRow" style="display:none;">
       <div class="field" style="margin-top:8px;">
-        <label>Meta mensal (€)</label>
+        <label>Meta de lucro mensal (€)</label>
         <div class="field-money"><input type="number" id="monthlyGoalInput" placeholder="0,00" inputmode="decimal" onchange="updateMonthlyGoal(this.value)" /></div>
       </div>
       <div class="field">
-        <label>Meta semanal (€)</label>
+        <label>Meta de lucro semanal (€)</label>
         <div class="field-money"><input type="number" id="weeklyGoalInput" placeholder="0,00" inputmode="decimal" onchange="updateWeeklyGoal(this.value)" /></div>
       </div>
       <div class="section-sub" style="margin-top:-8px; margin-bottom:6px; font-size:11px; line-height:1.5;">
-        Comparado com o lucro líquido do mês/semana em curso. Deixe em branco (ou 0) para usar as despesas fixas do período como meta mínima (cobrir os custos fixos).
+        Comparado com o lucro líquido (já com todas as despesas descontadas) do mês/semana em curso. Deixe em branco (ou 0) para usar as despesas fixas do período como meta mínima (cobrir os custos fixos).
       </div>
     </div>
 
@@ -661,6 +661,17 @@ body.dark button[onclick="lockSyncUrl()"] { background: var(--vault); color: #ff
       <div class="section-sub" style="margin-bottom:10px;">Versão atual: <strong id="devVersionLabel"></strong></div>
       <button onclick="checkForUpdates()" id="checkUpdateBtn" style="width:100%;padding:13px;border-radius:var(--r-md);border:1.5px solid var(--line);background:transparent;color:var(--ink);font-weight:700;font-size:14px;cursor:pointer;">🔍 Procurar atualização</button>
       <div id="updateResult" style="margin-top:10px;font-size:13px;text-align:center;color:var(--text-muted);"></div>
+
+      <div class="section-head" style="margin-top:20px;"><div class="section-title">🗂️ Formato de armazenamento</div></div>
+      <div class="section-sub" style="margin-bottom:10px;">Reestrutura o JSON gravado na planilha para um formato mais organizado: separa configurações e brincadeiras do perfil, e transforma ganhos/despesas agrupados por mês em listas simples com campo de data. A leitura entende os dois formatos sempre, em qualquer dispositivo — pode ativar sem pressa, e desativar a qualquer momento sem perder nada.</div>
+      <div class="switch-row" style="margin-bottom:8px;">
+        <div class="switch-row-text">
+          <div class="switch-row-title">Gravar no formato novo (schema v1)</div>
+          <div class="switch-row-sub">Ao ligar, os próximos envios já usam o formato novo. Nada muda de imediato — só quando houver a próxima gravação.</div>
+        </div>
+        <div class="switch" id="normalizedSchemaSwitch" onclick="toggleNormalizedSchema()"></div>
+      </div>
+      <button onclick="migrateNowToNormalizedSchema()" style="width:100%;padding:13px;border-radius:var(--r-md);border:1.5px solid var(--line);background:transparent;color:var(--ink);font-weight:700;font-size:14px;cursor:pointer;">🔄 Converter e enviar agora</button>
 
       <div class="section-head" style="margin-top:20px;"><div class="section-title">🔒 Encriptação dos dados sincronizados</div></div>
       <div class="switch-row" style="margin-bottom:8px;">
@@ -876,7 +887,7 @@ body.dark button[onclick="lockSyncUrl()"] { background: var(--vault); color: #ff
 // Corrida+ — lógica do app.
 // Documentação detalhada de arquitetura, sincronização, encriptação e
 // easter eggs: ver corridaplus-docs.md (ficheiro separado).
-const APP_VERSION = '3.5.0';
+const APP_VERSION = '3.6.0';
 // Mostra o número da versão na tela de carregamento imediatamente (sem
 // esperar por loadAll/qualquer coisa assíncrona) — sempre visível,
 // independente da mensagem dinâmica ("A carregar…", "A sincronizar…",
@@ -1046,6 +1057,7 @@ async function loadLocalOnlySettings(){
   try{ const bu = await window.storage.get('biometricUnlockEnabled'); biometricUnlockEnabled = bu.value === 'true' || bu.value === true; }catch(e){ biometricUnlockEnabled = false; }
   try{ const ru = await window.storage.get('requireUnlockEachSync'); requireUnlockEachSync = ru.value === 'true' || ru.value === true; }catch(e){ requireUnlockEachSync = false; }
   try{ const sl = await window.storage.get('syncLog'); syncLog = JSON.parse(sl.value) || []; }catch(e){ syncLog = []; }
+  try{ const ns = await window.storage.get('useNormalizedSchema'); useNormalizedSchema = ns.value === 'true' || ns.value === true; }catch(e){ useNormalizedSchema = false; }
   try{
     const ls = await window.storage.get('localSettings');
     const parsed = JSON.parse(ls.value);
@@ -1201,8 +1213,121 @@ function refreshActiveScreen(){
   else renderGanhos();
 }
 
+// ---------------------------------------------------------------
+// FORMATO DE ARMAZENAMENTO ALTERNATIVO ("schema v1") — Modo Dev
+// Por padrão a app grava/lê o formato "clássico" (bills/monthData/profile,
+// com monthData particionado por mês e ganhos/despesas aninhados lá
+// dentro). Esse formato funciona mas está longe de normalizado — ver
+// docs para a crítica completa. Este bloco implementa um formato
+// alternativo mais limpo (schemaVersion, ganhos/despesas em listas planas
+// com campo `date`, configurações separadas do perfil) SEM tocar em
+// nenhuma outra parte da app: internamente, a app continua a trabalhar
+// só com bills/monthData/profile, como sempre — a conversão acontece só
+// na fronteira da sincronização (aqui) e é sempre reversível sem perdas.
+//
+// - normalizeToSchemaV1(payload): bills/monthData/profile → schema v1
+// - denormalizeFromSchemaV1(data): schema v1 → bills/monthData/profile
+//
+// `useNormalizedSchema` (device-local, Modo Dev) decide se ESTE
+// dispositivo grava no formato novo. A LEITURA entende os dois formatos
+// sempre, em qualquer dispositivo — por isso é seguro ativar num
+// dispositivo só, sem coordenar com os outros: cada um decide sozinho em
+// que formato escreve, e todos conseguem ler o que os outros escreverem.
+// ---------------------------------------------------------------
+let useNormalizedSchema = false;
+
+function normalizeToSchemaV1(payload){
+  const oldBills     = payload.bills || [];
+  const oldMonthData = payload.monthData || {};
+  const oldProfile   = payload.profile || {};
+
+  const earnings = [], expenses = [], billOverrides = [], billsPaid = [], hiddenBills = [];
+  Object.keys(oldMonthData).forEach(monthKey => {
+    const e = oldMonthData[monthKey] || {};
+    (e.earnings || []).forEach(x => earnings.push(x));
+    (e.variableExpenses || []).forEach(x => expenses.push(x));
+    Object.keys(e.billOverrides || {}).forEach(billId => {
+      billOverrides.push({ billId, month: monthKey, amount: e.billOverrides[billId] });
+    });
+    Object.keys(e.billsPaid || {}).forEach(billId => {
+      const p = e.billsPaid[billId] || {};
+      billsPaid.push({ billId, month: monthKey, amount: p.amount, paidAt: p.ts });
+    });
+    Object.keys(e.hiddenBills || {}).forEach(billId => {
+      hiddenBills.push({ billId, month: monthKey });
+    });
+  });
+
+  const {
+    name, photo, ivaRate, comissaoRate,
+    goalsEnabled, monthlyGoal, weeklyGoal,
+    easterEggDisabled, easterEggRate, birthdayDate,
+    ...restProfile
+  } = oldProfile;
+
+  return {
+    schemaVersion: 1,
+    updatedAt: new Date().toISOString(),
+    profile: { name: name || '', photo: photo || null, ...restProfile },
+    settings: {
+      ivaRate: ivaRate || 0,
+      comissaoRate: comissaoRate || 0,
+      goals: { enabled: !!goalsEnabled, monthly: monthlyGoal || 0, weekly: weeklyGoal || 0 }
+    },
+    features: {
+      easterEgg: { disabled: easterEggDisabled === false ? false : true, rate: typeof easterEggRate === 'number' ? easterEggRate : 0.03 },
+      birthday: { date: birthdayDate || '' }
+    },
+    bills: oldBills,
+    earnings, expenses, billOverrides, billsPaid, hiddenBills
+  };
+}
+
+function denormalizeFromSchemaV1(data){
+  const bills = Array.isArray(data.bills) ? data.bills : [];
+  const monthData = {};
+  function entryFor(monthKey){
+    const k = monthKey || defaultReferenceMonthKey();
+    if(!monthData[k]) monthData[k] = { earnings: [], variableExpenses: [], billOverrides: {}, billsPaid: {}, hiddenBills: {} };
+    return monthData[k];
+  }
+  (data.earnings || []).forEach(e => { entryFor((e.date||'').slice(0,7)).earnings.push(e); });
+  (data.expenses || []).forEach(e => { entryFor((e.date||'').slice(0,7)).variableExpenses.push(e); });
+  (data.billOverrides || []).forEach(o => { entryFor(o.month).billOverrides[o.billId] = o.amount; });
+  (data.billsPaid || []).forEach(p => { entryFor(p.month).billsPaid[p.billId] = { amount: p.amount, ts: p.paidAt }; });
+  (data.hiddenBills || []).forEach(h => { entryFor(h.month).hiddenBills[h.billId] = true; });
+
+  const s = data.settings || {};
+  const f = data.features || {};
+  const goals = s.goals || {};
+  const eggF = f.easterEgg || {};
+  const bdayF = f.birthday || {};
+  const profile = {
+    ...(data.profile || {}),
+    ivaRate: s.ivaRate || 0,
+    comissaoRate: s.comissaoRate || 0,
+    goalsEnabled: !!goals.enabled,
+    monthlyGoal: goals.monthly || 0,
+    weeklyGoal: goals.weekly || 0,
+    easterEggDisabled: eggF.disabled === false ? false : true,
+    easterEggRate: typeof eggF.rate === 'number' ? eggF.rate : 0.03,
+    birthdayDate: bdayF.date || ''
+  };
+
+  return { bills, monthData, profile };
+}
+
+// Ponto único de deteção de formato — se `raw` tiver schemaVersion, converte
+// para o formato clássico antes de seguir; senão devolve como veio. Usado
+// em todos os pontos onde dados vindos da nuvem (ou de um JSON colado
+// manualmente) entram na app.
+function resolveIncomingPayload(raw){
+  if(raw && raw.schemaVersion === 1) return denormalizeFromSchemaV1(raw);
+  return raw;
+}
+
 async function finishCloudSync(decoded){
-  applyCloudData(decoded);
+  applyCloudData(resolveIncomingPayload(decoded));
   await persistLocalOnlySilently();
   setSyncStatus('synced');
   showToast('✅ Sincronizado com sucesso');
@@ -1442,7 +1567,7 @@ async function pullLatestAndMergeBeforePush(){
     // enviar uma edição; nesses casos o push local segue normalmente.
     if(data && data.encrypted === true) return;
     if(data && typeof data.syncUrl === 'string' && data.syncUrl.trim()) return;
-    mergeRemoteIntoLocal(data);
+    mergeRemoteIntoLocal(resolveIncomingPayload(data));
     logSyncEvent('info', 'Sincronizado com a nuvem antes de enviar (merge)', 'pull-then-push');
     refreshActiveScreen();
   }catch(e){
@@ -1462,7 +1587,11 @@ async function pushToCloud(migrationUrl, skipMerge){
   // "mesclar de volta" dados que o utilizador acabou de mandar apagar.
   if(!skipMerge){ await pullLatestAndMergeBeforePush(); }
 
-  const payload = { bills, monthData: pruneEmptyMonths(monthData), profile };
+  const rawPayload = { bills, monthData: pruneEmptyMonths(monthData), profile };
+  // Se ativado no Modo Dev, grava no formato normalizado (schema v1) em vez
+  // do formato clássico. A leitura entende os dois formatos sempre, então
+  // isto é seguro de ligar/desligar a qualquer momento.
+  const payload = useNormalizedSchema ? normalizeToSchemaV1(rawPayload) : rawPayload;
   if(migrationUrl){ payload.syncUrl = migrationUrl; }
   let body;
   try{
@@ -1660,6 +1789,8 @@ function renderSettings(){
     if(sw) sw.className = 'switch' + (showHiddenData ? ' on' : '');
     const container = document.getElementById('hiddenDataContainer');
     if(container) container.innerHTML = showHiddenData ? renderHiddenDataList() : '';
+    const schemaSw = document.getElementById('normalizedSchemaSwitch');
+    if(schemaSw) schemaSw.className = 'switch' + (useNormalizedSchema ? ' on' : '');
     const encSw = document.getElementById('encryptionSwitch');
     if(encSw) encSw.className = 'switch' + (encryptionEnabled ? ' on' : '');
     const encRow = document.getElementById('encryptionPasswordRow');
@@ -1891,8 +2022,8 @@ async function importFromJson(){
     try{ data = JSON.parse(cleaned); }
     catch(e2){ showToast('❌ JSON inválido — verifique o texto colado'); return; }
   }
-  if(!data || typeof data !== 'object' || (!data.bills && !data.monthData)){ showToast('❌ Formato não reconhecido'); return; }
-  applyCloudData(data);
+  if(!data || typeof data !== 'object' || (!data.bills && !data.monthData && !data.earnings)){ showToast('❌ Formato não reconhecido'); return; }
+  applyCloudData(resolveIncomingPayload(data));
   await persistLocalOnlySilently();
   showToast('✅ Dados importados com sucesso!');
   const el = document.getElementById('importJsonInput');
@@ -2147,25 +2278,25 @@ function renderStatsWeek(){
   const com       = comissaoAmount(brutoTVDE);
   const comVal    = comissaoRate();
   const liquido   = (brutoTVDE - iva - com) - comb + brutoPart;
-  const lucro     = liquido - varOther;
+  // Despesas fixas rateadas para esta semana (mês em que a semana começa,
+  // dividido pelo nº de semanas desse mês) — antes esquecidas aqui, embora
+  // já fossem consideradas nos gráficos "por semana" dentro da visão Mês.
+  // Sem isto, o lucro semanal ficava sempre maior do que devia.
+  const weekMonthKey   = monthKeyFor(start);
+  const weekMonthEntry = ensureMonthEntry(weekMonthKey);
+  const fixasSemana    = totalFixedBills(weekMonthEntry, weekMonthKey) / weeksInMonth(weekMonthKey);
+  const lucro     = liquido - varOther - fixasSemana;
   const totalUber = sumByPlatform(items,'uber'), totalBolt = sumByPlatform(items,'bolt');
   const totalPart = sumByPlatform(items,'particular'), totalOut = sumByPlatform(items,'outros');
 
   let html = '';
   if(profile.goalsEnabled){
-    // Sem meta semanal definida, a meta mínima passa a ser as despesas
-    // fixas do mês em que a semana começa, divididas pelo nº de semanas
-    // desse mês — mesma lógica de rateio usada nos outros gráficos
-    // "por semana" da app (ver weeksInMonth/fixasPorSemana).
+    // Sem meta semanal definida, a meta mínima passa a ser as próprias
+    // despesas fixas rateadas da semana (mesmo valor já subtraído do lucro
+    // acima) — o lucro precisa de, no mínimo, cobrir esse valor.
     const hasCustomGoal = profile.weeklyGoal && profile.weeklyGoal > 0;
-    let weeklyGoalValue = profile.weeklyGoal;
-    let weeklyGoalLabel = 'Meta semanal';
-    if(!hasCustomGoal){
-      const weekMonthKey = monthKeyFor(start);
-      const weekMonthEntry = ensureMonthEntry(weekMonthKey);
-      weeklyGoalValue = totalFixedBills(weekMonthEntry, weekMonthKey) / weeksInMonth(weekMonthKey);
-      weeklyGoalLabel = 'Meta semanal (mínimo — despesas fixas)';
-    }
+    const weeklyGoalValue = hasCustomGoal ? profile.weeklyGoal : fixasSemana;
+    const weeklyGoalLabel = hasCustomGoal ? 'Meta de lucro semanal' : 'Meta de lucro semanal (mínimo — despesas fixas)';
     html += goalProgressHTML(lucro, weeklyGoalValue, weeklyGoalLabel);
   }
   html += `<div class="stat-cards">
@@ -2176,6 +2307,7 @@ function renderStatsWeek(){
     ${brutoPart>0?`<div class="stat-card"><div class="stat-card-label">🚘 Pessoal</div><div class="stat-card-value">${fmt(brutoPart)}</div></div>`:''}
     <div class="stat-card"><div class="stat-card-label">💧 Líquido</div><div class="stat-card-value">${fmt(liquido)}</div></div>
     ${varOther>0?`<div class="stat-card"><div class="stat-card-label">Outras despesas</div><div class="stat-card-value negative">− ${fmt(varOther)}</div></div>`:''}
+    ${fixasSemana>0?`<div class="stat-card"><div class="stat-card-label">🏠 Despesas fixas (rateio)</div><div class="stat-card-value negative">− ${fmt(fixasSemana)}</div></div>`:''}
     <div class="stat-card" style="border-color:var(--vault);"><div class="stat-card-label">💰 Lucro da semana</div><div class="stat-card-value ${lucro<0?'negative':''}">${fmt(lucro)}</div></div>
   </div>`;
 
@@ -2255,7 +2387,7 @@ function renderStatsMonth(){
     // do mês — cobrir os custos fixos é o objetivo mais básico possível.
     const hasCustomGoal = profile.monthlyGoal && profile.monthlyGoal > 0;
     const monthlyGoalValue = hasCustomGoal ? profile.monthlyGoal : fixasMes;
-    const monthlyGoalLabel = hasCustomGoal ? 'Meta mensal' : 'Meta mensal (mínimo — despesas fixas)';
+    const monthlyGoalLabel = hasCustomGoal ? 'Meta de lucro mensal' : 'Meta de lucro mensal (mínimo — despesas fixas)';
     html += goalProgressHTML(lucroMes, monthlyGoalValue, monthlyGoalLabel);
   }
   html += `
@@ -2614,7 +2746,13 @@ function renderLucroWeek(){
   const wComb    = combustivelAmount(expenses);
   const wVarOther = expenses.filter(e=>e.category!=='combustivel').reduce((s,e)=>s+(e.amount||0),0);
   const km = sumKm(items), hours = sumHours(items);
-  let html = lucroBreakdownHTML(wApps, wComb, wPart, 0, wVarOther, km, hours, 'Esta semana');
+  // Despesas fixas rateadas desta semana — antes ficavam de fora (passadas
+  // como 0), fazendo a "Lucro da semana" aqui divergir do valor mostrado
+  // em Estatísticas → Semana para o mesmo período.
+  const weekMonthKey   = monthKeyFor(start);
+  const weekMonthEntry = ensureMonthEntry(weekMonthKey);
+  const wFixas = totalFixedBills(weekMonthEntry, weekMonthKey) / weeksInMonth(weekMonthKey);
+  let html = lucroBreakdownHTML(wApps, wComb, wPart, wFixas, wVarOther, km, hours, 'Esta semana');
 
   const dayLabels=[], lucroVals=[];
   for(let i=0;i<7;i++){
@@ -3719,6 +3857,29 @@ async function checkForUpdates(){
   } finally {
     if(btn) btn.disabled = false;
   }
+}
+
+// Liga/desliga se ESTE dispositivo grava no formato novo (schema v1) a
+// partir de agora — não força nenhuma conversão imediata, só muda o
+// formato dos PRÓXIMOS envios. Ver migrateNowToNormalizedSchema() para
+// converter e enviar já.
+async function toggleNormalizedSchema(){
+  useNormalizedSchema = !useNormalizedSchema;
+  try{ await window.storage.set('useNormalizedSchema', useNormalizedSchema); }catch(e){}
+  renderSettings();
+  showToast(useNormalizedSchema ? '🗂️ A gravar no formato novo a partir de agora' : '🗂️ A gravar no formato antigo a partir de agora');
+}
+// Ativa o formato novo e força um envio imediato, convertendo os dados
+// atuais e gravando-os já na planilha nesse formato.
+async function migrateNowToNormalizedSchema(){
+  if(!syncUrl){ showToast('Configure a sincronização primeiro'); return; }
+  if(!confirm('Converter os dados atuais para o novo formato e enviar já para a planilha?')) return;
+  useNormalizedSchema = true;
+  try{ await window.storage.set('useNormalizedSchema', true); }catch(e){}
+  renderSettings();
+  showToast('🔄 A converter e enviar…');
+  await pushToCloud();
+  showToast('✅ Convertido e enviado no formato novo');
 }
 // ---------------------------------------------------------------
 // ATUALIZAÇÃO AUTOMÁTICA E SILENCIOSA (na abertura do app)
