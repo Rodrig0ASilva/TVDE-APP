@@ -606,7 +606,7 @@ body.dark button[onclick="lockSyncUrl()"] { background: var(--vault); color: #ff
         <div class="field-money"><input type="number" id="weeklyGoalInput" placeholder="0,00" inputmode="decimal" onchange="updateWeeklyGoal(this.value)" /></div>
       </div>
       <div class="section-sub" style="margin-top:-8px; margin-bottom:6px; font-size:11px; line-height:1.5;">
-        Comparado com o lucro líquido do mês/semana em curso. Meta mensal em branco (ou 0) usa as despesas fixas do mês como mínimo (cobrir os custos fixos). A meta semanal não tem mínimo automático — a semana só mostra despesas reais dela, sem ratear despesas fixas mensais.
+        Comparado com o lucro líquido (já com todas as despesas descontadas) do mês/semana em curso. Deixe em branco (ou 0) para usar as despesas fixas do período como meta mínima (cobrir os custos fixos).
       </div>
     </div>
 
@@ -887,7 +887,7 @@ body.dark button[onclick="lockSyncUrl()"] { background: var(--vault); color: #ff
 // Corrida+ — lógica do app.
 // Documentação detalhada de arquitetura, sincronização, encriptação e
 // easter eggs: ver corridaplus-docs.md (ficheiro separado).
-const APP_VERSION = '3.6.1';
+const APP_VERSION = '3.6.0';
 // Mostra o número da versão na tela de carregamento imediatamente (sem
 // esperar por loadAll/qualquer coisa assíncrona) — sempre visível,
 // independente da mensagem dinâmica ("A carregar…", "A sincronizar…",
@@ -2278,18 +2278,26 @@ function renderStatsWeek(){
   const com       = comissaoAmount(brutoTVDE);
   const comVal    = comissaoRate();
   const liquido   = (brutoTVDE - iva - com) - comb + brutoPart;
-  const lucro     = liquido - varOther;
+  // Despesas fixas rateadas para esta semana (mês em que a semana começa,
+  // dividido pelo nº de semanas desse mês) — antes esquecidas aqui, embora
+  // já fossem consideradas nos gráficos "por semana" dentro da visão Mês.
+  // Sem isto, o lucro semanal ficava sempre maior do que devia.
+  const weekMonthKey   = monthKeyFor(start);
+  const weekMonthEntry = ensureMonthEntry(weekMonthKey);
+  const fixasSemana    = totalFixedBills(weekMonthEntry, weekMonthKey) / weeksInMonth(weekMonthKey);
+  const lucro     = liquido - varOther - fixasSemana;
   const totalUber = sumByPlatform(items,'uber'), totalBolt = sumByPlatform(items,'bolt');
   const totalPart = sumByPlatform(items,'particular'), totalOut = sumByPlatform(items,'outros');
 
   let html = '';
-  if(profile.goalsEnabled && profile.weeklyGoal && profile.weeklyGoal > 0){
-    // A visão Semana mostra só o que aconteceu de facto nessa semana — sem
-    // despesas fixas rateadas do mês. Por isso, sem uma meta semanal
-    // definida explicitamente, não há um "mínimo" automático para a
-    // semana (ao contrário do mês, que tem despesas fixas reais e
-    // completas para o próprio período).
-    html += goalProgressHTML(lucro, profile.weeklyGoal, 'Meta de lucro semanal');
+  if(profile.goalsEnabled){
+    // Sem meta semanal definida, a meta mínima passa a ser as próprias
+    // despesas fixas rateadas da semana (mesmo valor já subtraído do lucro
+    // acima) — o lucro precisa de, no mínimo, cobrir esse valor.
+    const hasCustomGoal = profile.weeklyGoal && profile.weeklyGoal > 0;
+    const weeklyGoalValue = hasCustomGoal ? profile.weeklyGoal : fixasSemana;
+    const weeklyGoalLabel = hasCustomGoal ? 'Meta de lucro semanal' : 'Meta de lucro semanal (mínimo — despesas fixas)';
+    html += goalProgressHTML(lucro, weeklyGoalValue, weeklyGoalLabel);
   }
   html += `<div class="stat-cards">
     ${brutoTVDE>0?`<div class="stat-card"><div class="stat-card-label">🚖 Bruto TVDE</div><div class="stat-card-value">${fmt(brutoTVDE)}</div></div>`:''}
@@ -2299,6 +2307,7 @@ function renderStatsWeek(){
     ${brutoPart>0?`<div class="stat-card"><div class="stat-card-label">🚘 Pessoal</div><div class="stat-card-value">${fmt(brutoPart)}</div></div>`:''}
     <div class="stat-card"><div class="stat-card-label">💧 Líquido</div><div class="stat-card-value">${fmt(liquido)}</div></div>
     ${varOther>0?`<div class="stat-card"><div class="stat-card-label">Outras despesas</div><div class="stat-card-value negative">− ${fmt(varOther)}</div></div>`:''}
+    ${fixasSemana>0?`<div class="stat-card"><div class="stat-card-label">🏠 Despesas fixas (rateio)</div><div class="stat-card-value negative">− ${fmt(fixasSemana)}</div></div>`:''}
     <div class="stat-card" style="border-color:var(--vault);"><div class="stat-card-label">💰 Lucro da semana</div><div class="stat-card-value ${lucro<0?'negative':''}">${fmt(lucro)}</div></div>
   </div>`;
 
@@ -2737,7 +2746,13 @@ function renderLucroWeek(){
   const wComb    = combustivelAmount(expenses);
   const wVarOther = expenses.filter(e=>e.category!=='combustivel').reduce((s,e)=>s+(e.amount||0),0);
   const km = sumKm(items), hours = sumHours(items);
-  let html = lucroBreakdownHTML(wApps, wComb, wPart, 0, wVarOther, km, hours, 'Esta semana');
+  // Despesas fixas rateadas desta semana — antes ficavam de fora (passadas
+  // como 0), fazendo a "Lucro da semana" aqui divergir do valor mostrado
+  // em Estatísticas → Semana para o mesmo período.
+  const weekMonthKey   = monthKeyFor(start);
+  const weekMonthEntry = ensureMonthEntry(weekMonthKey);
+  const wFixas = totalFixedBills(weekMonthEntry, weekMonthKey) / weeksInMonth(weekMonthKey);
+  let html = lucroBreakdownHTML(wApps, wComb, wPart, wFixas, wVarOther, km, hours, 'Esta semana');
 
   const dayLabels=[], lucroVals=[];
   for(let i=0;i<7;i++){
