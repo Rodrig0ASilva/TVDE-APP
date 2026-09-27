@@ -2,7 +2,7 @@
 
 O **Corrida+** é um aplicativo web focado na gestão financeira de motoristas de aplicativo (Uber, Bolt e corridas particulares). Projetado com foco na experiência mobile, ele funciona como uma SPA (*Single Page Application*) com visual nativo de aplicativo (estilo iOS). 
 
-O grande diferencial do projeto é sua arquitetura híbrida: ele roda de forma 100% instantânea salvando os dados no dispositivo através do `localStorage` e utiliza uma planilha do **Google Sheets** como banco de dados em nuvem gratuito e sem servidor (Serverless), permitindo sincronizar os seus dados entre vários aparelhos (ex: celular e tablet) em tempo real.
+O grande diferencial do projeto é sua arquitetura híbrida: ele roda de forma 100% instantânea salvando os dados no dispositivo através do `localStorage` e utiliza **Google Drive** como banco de dados em nuvem ¨gratuito¨ e sem servidor (Serverless), permitindo sincronizar os seus dados entre vários aparelhos (ex: celular e tablet) em tempo real.
 
 ---
 
@@ -35,41 +35,133 @@ O grande diferencial do projeto é sua arquitetura híbrida: ele roda de forma 1
 
 ---
 
-## 🚀 Como Configurar o Banco de Dados (Google Sheets)
+## 🚀 Como Configurar o Banco de Dados (Google Drive)
 
-Para sincronizar os seus dados entre aparelhos, precisamos criar a planilha e **gerar o link de sincronização**. Siga o passo a passo com atenção:
+Para sincronizar os seus dados entre aparelhos e garantir a segurança com backups, precisamos criar o script no Google Drive e **gerar o link de sincronização**. Siga o passo a passo com atenção:
 
-### Passo 1: Criar a Planilha e Inserir o Código
-1. Acesse o [Google Sheets](https://sheets.google.com) e crie uma planilha em branco (ex: `BD_CorridaPlus`).
-2. No menu superior da planilha, clique em **Extensões** > **Apps Script**.
-3. Apague todo o código que estiver na tela e cole este bloco abaixo:
+### Passo 1: Criar o Script e Inserir o Código
+
+1. Acesse o [App Script](https://script.google.com/) e crie um **Novo projeto** em branco (ex: `BD_CorridaPlus`).
+2. Apague todo o código que estiver na tela e cole este bloco abaixo:
 
 ```javascript
+const FILE_NAME = "tvde_dados_sync.json"; // Nome do ficheiro da app TVDE
+const FOLDER_NAME = "cofre"; // Pasta principal
+const BACKUP_FOLDER_NAME = "cofre/cofre_backups"; // Caminho para a subpasta de backups
+
+// ==========================================
+// 1. Função Auxiliar (Lida com subpastas corretamente)
+// ==========================================
+function getOrCreateFolder(folderPath) {
+  const parts = folderPath.split('/');
+  let currentFolder = DriveApp.getRootFolder();
+  
+  for (let i = 0; i < parts.length; i++) {
+    let folderName = parts[i];
+    let folders = currentFolder.getFoldersByName(folderName);
+    
+    if (folders.hasNext()) {
+      currentFolder = folders.next(); // Entra na pasta se ela existir
+    } else {
+      currentFolder = currentFolder.createFolder(folderName); // Cria a pasta se não existir
+    }
+  }
+  return currentFolder;
+}
+
+// ==========================================
+// 2. Função POST (Salvar dados)
+// ==========================================
 function doPost(e) {
   try {
-    var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
-    var data = e.postData.contents; 
+    const data = e.postData.contents;
+    const folder = getOrCreateFolder(FOLDER_NAME);
+    let files = folder.getFilesByName(FILE_NAME);
+    let file;
     
-    sheet.getRange('A1').setValue(data);
-    sheet.getRange('B1').setValue("Última sincronização: " + new Date().toLocaleString("pt-BR"));
+    if (files.hasNext()) {
+      file = files.next();
+      file.setContent(data);
+    } else {
+      file = folder.createFile(FILE_NAME, data, MimeType.PLAIN_TEXT);
+    }
     
-    return ContentService.createTextOutput(JSON.stringify({"status": "sucesso"})).setMimeType(ContentService.MimeType.JSON);
-  } catch (error) {
-    return ContentService.createTextOutput(JSON.stringify({"erro": error.toString()})).setMimeType(ContentService.MimeType.JSON);
+    return ContentService.createTextOutput(JSON.stringify({status: "success"}))
+      .setMimeType(ContentService.MimeType.JSON);
+      
+  } catch(err) {
+    return ContentService.createTextOutput(JSON.stringify({error: err.message}))
+      .setMimeType(ContentService.MimeType.JSON);
   }
 }
 
+// ==========================================
+// 3. Função GET (Ler dados)
+// ==========================================
 function doGet(e) {
-  var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
-  var data = sheet.getRange('A1').getValue(); 
-  if (!data) { data = "{}"; }
-  return ContentService.createTextOutput(data).setMimeType(ContentService.MimeType.JSON);
+  try {
+    const folder = getOrCreateFolder(FOLDER_NAME);
+    let files = folder.getFilesByName(FILE_NAME);
+    
+    if (files.hasNext()) {
+      let file = files.next();
+      let content = file.getBlob().getDataAsString();
+      return ContentService.createTextOutput(content)
+        .setMimeType(ContentService.MimeType.JSON);
+    } else {
+      return ContentService.createTextOutput(JSON.stringify({}))
+        .setMimeType(ContentService.MimeType.JSON);
+    }
+    
+  } catch(err) {
+    return ContentService.createTextOutput(JSON.stringify({error: err.message}))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
+}
+
+// ==========================================
+// 4. Função de Backup Diário
+// ==========================================
+function fazerBackupDiario() {
+  const mainFolder = getOrCreateFolder(FOLDER_NAME);
+  let files = mainFolder.getFilesByName(FILE_NAME);
+
+  if (files.hasNext()) {
+    let originalFile = files.next();
+    
+    // Pega a data de hoje no formato YYYY-MM-DD
+    let dataHoje = Utilities.formatDate(new Date(), Session.getScriptTimeZone(), "yyyy-MM-dd");
+    let nomeBackup = "tvde_backup_" + dataHoje + ".json"; 
+
+    // Vai buscar (ou criar) a pasta de destino usando o caminho completo
+    const backupFolder = getOrCreateFolder(BACKUP_FOLDER_NAME);
+    
+    // Verifica se o backup de hoje já existe para evitar cópias duplicadas
+    let existingBackups = backupFolder.getFilesByName(nomeBackup);
+    if (!existingBackups.hasNext()) {
+      // Faz a cópia apenas se não existir um ficheiro com o nome de hoje
+      originalFile.makeCopy(nomeBackup, backupFolder);
+    }
+  }
 }
 ```
 
-4. Clique no ícone de **Salvar** (disquete) no menu superior.
+3. Clique no ícone de **Salvar** (disquete) no menu superior.
 
-### Passo 2: Como Gerar e Pegar o Link (Atenção Aqui!)
+### Passo 2: Configurar o Backup Automático
+
+Para que o sistema faça cópias de segurança sozinho:
+1. No menu lateral esquerdo do Apps Script, clique no ícone de relógio (**Acionadores** ou **Triggers**).
+2. Clique no botão azul **Adicionar acionador**.
+3. Configure da seguinte forma:
+   * **Escolha a função que será executada:** `fazerBackupDiario`
+   * **Selecione a origem do evento:** `Baseado no tempo`
+   * **Selecione o tipo de acionador com base no tempo:** `Temporizador diário`
+   * **Selecione a hora:** Escolha um horário de sua preferência (ex: *Meia-noite a 1h da manhã*).
+4. Clique em **Salvar** (se pedir autorização, permita o acesso à sua conta).
+
+### Passo 3: Como Gerar e Pegar o Link (Atenção Aqui!)
+
 Este é o momento de criar a URL que o seu aplicativo vai usar.
 1. No canto superior direito do Apps Script, clique no botão azul **Implantar** e escolha **Nova implantação**.
 2. Clique no ícone de engrenagem (`⚙️`) ao lado de "Selecione o tipo" e escolha **App da Web**.
@@ -82,11 +174,12 @@ Este é o momento de criar a URL que o seu aplicativo vai usar.
 6. O Google mostrará uma tela dizendo "O Google não verificou este app". Clique na palavra **Avançado** (lá embaixo) e depois clique em **Acessar projeto sem título (não seguro)**. Clique em **Permitir**.
 7. Na última tela que aparecer, você verá escrito "URL do app da Web" e um link gigante embaixo (terminando com `/exec`). **Copie este link gigante.**
 
-### Passo 3: Colar o Link no Aplicativo
-1. Abra o site do seu aplicativo (o link do GitHub Pages) no seu celular.
+### Passo 4: Colar o Link no Aplicativo
+
+1. Abra o site do seu aplicativo no seu celular.
 2. Navegue até a aba inferior direita chamada **Você** (Configurações).
-3. Procure o campo **"URL de Sincronização (Google Sheets)"** e cole o link gigante lá dentro.
-4. Defina a sua taxa de **IVA** e de **Comissão** nas configurações.
+3. Procure o campo **"URL de Sincronização"** e cole o link gigante lá dentro.
+4. Defina a sua taxa de **IVA** e de **Comissão** nas configurações (caso aplicável).
 5. Pronto! Faça o mesmo em outro aparelho com o mesmo link para manter os dados sincronizados.
 
 ---
