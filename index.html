@@ -887,7 +887,7 @@ body.dark button[onclick="lockSyncUrl()"] { background: var(--vault); color: #ff
 // Corrida+ — lógica do app.
 // Documentação detalhada de arquitetura, sincronização, encriptação e
 // easter eggs: ver corridaplus-docs.md (ficheiro separado).
-const APP_VERSION = '3.6.5';
+const APP_VERSION = '3.7.0';
 // Mostra o número da versão na tela de carregamento imediatamente (sem
 // esperar por loadAll/qualquer coisa assíncrona) — sempre visível,
 // independente da mensagem dinâmica ("A carregar…", "A sincronizar…",
@@ -3296,16 +3296,29 @@ function renderBills(entry){
       const amount = billAmount(entry, b);
       const freq = b.frequency || 'mensal';
       const freqLabel = freq === 'diaria' ? 'diária' : freq === 'semanal' ? 'semanal' : 'mensal';
+      const split = b.weeklySplit || 'none';
+      // Seletor de "como aparecer nas semanas" — só para despesas mensais.
+      const weeklySplitRow = (freq === 'mensal') ? `
+        <div style="padding:0 0 10px;">
+          <select onchange="updateBillWeeklySplit('${b.id}', this.value)" style="width:100%;font-size:11px;padding:6px 8px;border-radius:var(--r-sm);border:1.5px solid var(--line);background:#fff;color:var(--text-muted);">
+            <option value="none" ${split==='none'?'selected':''}>Semanas: não aparece (só no mês)</option>
+            <option value="rateio" ${split==='rateio'?'selected':''}>Semanas: dividir pelas semanas do mês</option>
+            <option value="firstWeek" ${split==='firstWeek'?'selected':''}>Semanas: tudo na 1ª semana do mês</option>
+          </select>
+        </div>` : '';
       return `
-      <div class="bill-row">
-        <div class="bill-info">
-          <div class="bill-name">${escapeHtml(b.name)} <span class="bill-tag">${freqLabel}</span></div>
-          <div class="bill-sub">Descontado automaticamente</div>
+      <div class="bill-row" style="flex-direction:column;align-items:stretch;">
+        <div style="display:flex;align-items:center;gap:12px;">
+          <div class="bill-info">
+            <div class="bill-name">${escapeHtml(b.name)} <span class="bill-tag">${freqLabel}</span></div>
+            <div class="bill-sub">Descontado automaticamente</div>
+          </div>
+          <div class="bill-amount-wrap">
+            <div class="bill-amount-edit"><input type="number" class="bill-amount-input" inputmode="decimal" value="${amount}" onchange="updateBillAmount('${b.id}', this.value)" /></div>
+            <div class="bill-delete" onclick="deleteBill('${b.id}')">✕</div>
+          </div>
         </div>
-        <div class="bill-amount-wrap">
-          <div class="bill-amount-edit"><input type="number" class="bill-amount-input" inputmode="decimal" value="${amount}" onchange="updateBillAmount('${b.id}', this.value)" /></div>
-          <div class="bill-delete" onclick="deleteBill('${b.id}')">✕</div>
-        </div>
+        ${weeklySplitRow}
       </div>`;
     }).join('');
   }
@@ -3327,6 +3340,19 @@ async function updateBillAmount(billId, value){
   const entry = ensureMonthEntry(currentMonthKey);
   entry.billOverrides[billId] = parseFloat(value) || 0;
   await persistMonthData(); renderDespesas();
+}
+// Muda como uma despesa fixa MENSAL aparece nas visões por semana: não
+// aparece (padrão), dividida entre as semanas do mês, ou tudo na 1ª
+// semana. Não afeta o total do mês, só como esse total é repartido nos
+// gráficos/cartões "por semana" (ver weekBucketFixedBills/weeklyFixedBills).
+async function updateBillWeeklySplit(billId, value){
+  const bill = bills.find(b => b.id === billId);
+  if(!bill) return;
+  bill.weeklySplit = value;
+  await persistBills();
+  renderDespesas();
+  renderStats();
+  renderLucro();
 }
 async function deleteBill(billId){
   if(!confirm('Apagar esta despesa fixa?')) return;
@@ -3358,26 +3384,44 @@ function openNewBillSheet(){
     </div>
     <div class="field"><label id="newBillAmountLabel">Valor por dia (€)</label><div class="field-money"><input type="number" id="newBillAmount" placeholder="0,00" inputmode="decimal" /></div></div>
     <div id="newBillFreqHint" class="section-sub" style="margin-top:-8px;margin-bottom:12px;font-size:11px;">Conta só nos dias que têm ganho ou despesa registrados.</div>
+    <div class="field" id="newBillWeeklySplitField" style="display:none;">
+      <label>Nas visões por semana, esta despesa deve...</label>
+      <div class="seg" id="newBillWeeklySplitSeg" style="flex-direction:column;height:auto;">
+        <div class="seg-opt active" data-s="none" onclick="pickBillWeeklySplit('none')" style="text-align:left;padding:10px 12px;">Não aparecer nas semanas (só no mês) — padrão</div>
+        <div class="seg-opt" data-s="rateio" onclick="pickBillWeeklySplit('rateio')" style="text-align:left;padding:10px 12px;">Dividir o valor entre as semanas do mês</div>
+        <div class="seg-opt" data-s="firstWeek" onclick="pickBillWeeklySplit('firstWeek')" style="text-align:left;padding:10px 12px;">Colocar o valor inteiro na 1ª semana do mês</div>
+      </div>
+    </div>
     <button class="btn btn-primary" onclick="createBill()">Adicionar despesa fixa</button>
     <button class="btn btn-ghost" onclick="closeSheet()">Cancelar</button>
   `);
   window._pendingBillFreq = 'diaria';
+  window._pendingBillWeeklySplit = 'none';
 }
 function pickBillFreq(f){
   window._pendingBillFreq = f;
   document.querySelectorAll('#newBillFreqSeg .seg-opt').forEach(el => el.classList.toggle('active', el.dataset.f === f));
   const label = document.getElementById('newBillAmountLabel');
   const hint  = document.getElementById('newBillFreqHint');
+  const splitField = document.getElementById('newBillWeeklySplitField');
   if(f === 'diaria'){ label.textContent = 'Valor por dia (€)'; hint.textContent = 'Conta só nos dias que têm ganho ou despesa registrados.'; }
   else if(f === 'semanal'){ label.textContent = 'Valor por semana (€)'; hint.textContent = 'Multiplicado pelas semanas do mês automaticamente.'; }
   else { label.textContent = 'Valor por mês (€)'; hint.textContent = 'Valor fixo mensal.'; }
+  // O seletor de "como aparecer nas semanas" só faz sentido para despesas
+  // mensais — diária e semanal já têm um valor natural por semana.
+  if(splitField) splitField.style.display = (f === 'mensal') ? 'block' : 'none';
+}
+function pickBillWeeklySplit(s){
+  window._pendingBillWeeklySplit = s;
+  document.querySelectorAll('#newBillWeeklySplitSeg .seg-opt').forEach(el => el.classList.toggle('active', el.dataset.s === s));
 }
 async function createBill(){
   const name   = document.getElementById('newBillName').value.trim();
   const amount = parseFloat(document.getElementById('newBillAmount').value) || 0;
   const frequency = window._pendingBillFreq || 'mensal';
+  const weeklySplit = frequency === 'mensal' ? (window._pendingBillWeeklySplit || 'none') : 'none';
   if(!name){ showToast('Dê um nome à despesa'); return; }
-  bills.push({ id: uid(), name, defaultAmount: amount, frequency, createdMonthKey: currentMonthKey });
+  bills.push({ id: uid(), name, defaultAmount: amount, frequency, weeklySplit, createdMonthKey: currentMonthKey });
   await persistBills(); closeSheet(); showToast('Adicionado com sucesso'); renderDespesas();
 }
 function importPreviousMonthBills(){
@@ -3458,13 +3502,26 @@ function weekBucketFixedBills(monthKey, weekIdx){
     const freq = b.frequency || 'mensal';
     if(freq === 'semanal') return s + amount;
     if(freq === 'diaria') return s + amount * daysWithRecord;
+    // mensal: só entra se a própria despesa pedir explicitamente (ver
+    // campo weeklySplit, configurável na criação/edição da despesa fixa).
+    if(freq === 'mensal'){
+      const split = b.weeklySplit || 'none';
+      if(split === 'rateio'){
+        const [y, m] = monthKey.split('-').map(Number);
+        const daysInMonth = new Date(y, m, 0).getDate();
+        return s + amount / Math.ceil(daysInMonth / 7);
+      }
+      if(split === 'firstWeek' && weekIdx === 0) return s + amount;
+    }
     return s;
   }, 0);
 }
 
 // Semana real (segunda a domingo): olha cada um dos 7 dias, no mês a que
 // esse dia pertence. Bill diária conta nos dias com registro; semanal conta
-// uma vez (mês em que a semana começa); mensal fica de fora.
+// uma vez (mês em que a semana começa); mensal só entra se weeklySplit
+// pedir (rateio ou 1ª semana) — ver weekBucketFixedBills acima para a
+// mesma regra aplicada aos blocos de dia-do-mês usados dentro da visão Mês.
 function weeklyFixedBills(weekStart){
   let total = 0;
   for(let i = 0; i < 7; i++){
@@ -3476,7 +3533,15 @@ function weeklyFixedBills(weekStart){
   const startKey = monthKeyFor(weekStart);
   const startEntry = ensureMonthEntry(startKey);
   relevantBillsFor(startEntry, startKey).forEach(b => {
-    if(b.frequency === 'semanal') total += billAmount(startEntry, b);
+    if(b.frequency === 'semanal'){ total += billAmount(startEntry, b); return; }
+    if(b.frequency === 'mensal'){
+      const split = b.weeklySplit || 'none';
+      const amount = billAmount(startEntry, b);
+      if(split === 'rateio'){ total += amount / weeksInMonth(startKey); return; }
+      // "1ª semana do mês" = a semana cujo início cai nos primeiros 7 dias
+      // do mês (mesmo critério usado nos blocos de weekBucketFixedBills).
+      if(split === 'firstWeek' && weekStart.getDate() <= 7){ total += amount; return; }
+    }
   });
   return total;
 }
