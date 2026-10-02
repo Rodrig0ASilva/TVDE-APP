@@ -15,73 +15,6 @@
 <meta name="theme-color" content="#16161B" id="themeColorMetaDark" media="(prefers-color-scheme: dark)" />
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
-<script type="module">
-  // Firebase (Auth + Firestore) — SDK modular via CDN, sem bundler/npm.
-  // Este bloco corre num escopo de módulo próprio (import/export), por
-  // isso tudo o que o resto da app (script clássico, mais abaixo) precisa
-  // chamar é exposto explicitamente em `window.fb*`. Scripts type="module"
-  // são sempre adiados (como "defer"), então podem terminar de inicializar
-  // DEPOIS do script clássico já ter corrido até ao fim — por isso o fim
-  // deste bloco dispara o evento "firebase-ready", que o script principal
-  // espera antes de chamar loadAll() (ver o fim do ficheiro).
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-app.js";
-  import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged }
-    from "https://www.gstatic.com/firebasejs/12.19.0/firebase-auth.js";
-  import { getFirestore, doc, getDoc, setDoc, onSnapshot }
-    from "https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js";
-
-  const firebaseConfig = {
-    apiKey: "AIzaSyBp1CvFgAwUAMW_FTz5TqkeKhG1smf2SCc",
-    authDomain: "tvdecorridas.firebaseapp.com",
-    projectId: "tvdecorridas",
-    storageBucket: "tvdecorridas.firebasestorage.app",
-    messagingSenderId: "167564712491",
-    appId: "1:167564712491:web:936fde470ec1172c4fa86e",
-    measurementId: "G-YCRTB7WFQ4"
-  };
-
-  const fbApp = initializeApp(firebaseConfig);
-  const fbAuth = getAuth(fbApp);
-  const fbDb   = getFirestore(fbApp);
-  const googleProvider = new GoogleAuthProvider();
-
-  // Resolve com o utilizador (ou null) assim que o Firebase souber se há
-  // sessão guardada — loadAll() espera por isto antes de decidir entre
-  // mostrar o ecrã de login ou carregar a app.
-  window.fbAuthReadyPromise = new Promise((resolve) => {
-    const unsubscribe = onAuthStateChanged(fbAuth, (user) => { unsubscribe(); resolve(user); });
-  });
-  // Mantém window.__fbUser atualizado também depois da primeira resolução
-  // (login/logout noutra aba, expiração de sessão, etc.).
-  onAuthStateChanged(fbAuth, (user) => { window.__fbUser = user || null; });
-
-  window.fbSignInWithGoogle = async () => {
-    await signInWithPopup(fbAuth, googleProvider);
-    location.reload();
-  };
-  window.fbSignOut = () => signOut(fbAuth);
-
-  // Armazenamento: um documento por utilizador (users/{uid}), com o MESMO
-  // formato do "schema v1" já usado para a sincronização via Apps Script
-  // (normalizeToSchemaV1/denormalizeFromSchemaV1) — reaproveitado tal e
-  // qual, só muda o destino de onde esse objeto é lido/escrito.
-  window.fbSaveUserData = async (uid, dataObj) => {
-    await setDoc(doc(fbDb, 'users', uid), dataObj);
-  };
-  window.fbLoadUserData = async (uid) => {
-    const snap = await getDoc(doc(fbDb, 'users', uid));
-    return snap.exists() ? snap.data() : null;
-  };
-  // Tempo real: chama o callback sempre que o documento mudar (incluindo
-  // já na primeira vez, com o valor atual) — é o que faz os dispositivos
-  // atualizarem-se sozinhos sem precisar de puxar manualmente.
-  window.fbListenUserData = (uid, callback) => {
-    return onSnapshot(doc(fbDb, 'users', uid), (snap) => { if(snap.exists()) callback(snap.data()); });
-  };
-
-  window.__fbReady = true;
-  window.dispatchEvent(new Event('firebase-ready'));
-</script>
 <style>
 :root {
   --cream:          #F6EFE2;
@@ -453,40 +386,6 @@ body.dark button[onclick="lockSyncUrl()"] { background: var(--vault); color: #ff
   <div id="splashVersion" class="splash-msg" style="font-size:10px;margin-top:14px;font-weight:600;opacity:0.65;letter-spacing:0.04em;text-transform:uppercase;"></div>
 </div>
 
-<div id="loginGate" style="
-  position:fixed;inset:0;
-  background:var(--vault);
-  display:none;
-  flex-direction:column;align-items:center;justify-content:center;
-  z-index:998;
-  padding:24px;
-  text-align:center;
-">
-  <svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" style="width:72px;height:72px;margin-bottom:20px;">
-    <rect width="64" height="64" rx="14" fill="#1F3A2E"/>
-    <g transform="translate(8,18)">
-      <path d="M6 16 L10 6 Q12 3 16 3 L32 3 Q36 3 38 6 L42 16" fill="none" stroke="#D9A949" stroke-width="3" stroke-linecap="round"/>
-      <rect x="2" y="15" width="44" height="14" rx="5" fill="#D9A949"/>
-      <circle cx="12" cy="31" r="6" fill="#1F3A2E" stroke="#D9A949" stroke-width="2.5"/>
-      <circle cx="36" cy="31" r="6" fill="#1F3A2E" stroke="#D9A949" stroke-width="2.5"/>
-      <rect x="2" y="20" width="11" height="6" rx="2" fill="#1F3A2E" opacity="0.5"/>
-      <rect x="35" y="20" width="11" height="6" rx="2" fill="#1F3A2E" opacity="0.5"/>
-    </g>
-  </svg>
-  <div style="font-family:'Fraunces',serif;font-weight:600;font-size:28px;letter-spacing:-0.01em;color:#F6EFE2;">Corrida+</div>
-  <div style="font-size:13px;color:rgba(246,239,226,0.65);margin:10px 0 30px;max-width:280px;line-height:1.5;">Entra com a tua conta Google para aceder aos teus dados.</div>
-  <button id="loginGateBtn" onclick="handleGoogleSignIn()" style="display:flex;align-items:center;gap:10px;background:#fff;color:#2A2420;border:none;padding:14px 26px;border-radius:100px;font-weight:700;font-size:15px;cursor:pointer;box-shadow:0 2px 10px rgba(0,0,0,0.25);">
-    <svg width="18" height="18" viewBox="0 0 48 48">
-      <path fill="#FFC107" d="M43.611 20.083H42V20H24v8h11.303c-1.649 4.657-6.08 8-11.303 8-6.627 0-12-5.373-12-12s5.373-12 12-12c3.059 0 5.842 1.154 7.961 3.039l5.657-5.657C34.046 6.053 29.268 4 24 4 12.955 4 4 12.955 4 24s8.955 20 20 20 20-8.955 20-20c0-1.341-.138-2.65-.389-3.917z"/>
-      <path fill="#FF3D00" d="M6.306 14.691l6.571 4.819C14.655 15.108 18.961 12 24 12c3.059 0 5.842 1.154 7.961 3.039l5.657-5.657C34.046 6.053 29.268 4 24 4 16.318 4 9.656 8.337 6.306 14.691z"/>
-      <path fill="#4CAF50" d="M24 44c5.166 0 9.86-1.977 13.409-5.192l-6.19-5.238A11.91 11.91 0 0 1 24 36c-5.202 0-9.619-3.317-11.283-7.946l-6.522 5.025C9.505 39.556 16.227 44 24 44z"/>
-      <path fill="#1976D2" d="M43.611 20.083H42V20H24v8h11.303a12.04 12.04 0 0 1-4.087 5.571l.003-.002 6.19 5.238C36.971 39.205 44 34 44 24c0-1.341-.138-2.65-.389-3.917z"/>
-    </svg>
-    Continuar com Google
-  </button>
-  <div id="loginGateError" style="font-size:12px;color:#F0AC9A;margin-top:18px;max-width:280px;"></div>
-</div>
-
 <div id="hackScreen" style="
   position:fixed;inset:0;
   background:#000;
@@ -644,16 +543,6 @@ body.dark button[onclick="lockSyncUrl()"] { background: var(--vault); color: #ff
         <span class="sync-dot" id="syncDot-settings"></span>
         <span id="syncStatus-settings">sincronizando</span>
       </div>
-    </div>
-
-    <div class="section-head" style="margin-top:6px;"><div class="section-title">Conta</div></div>
-    <div id="accountCard" style="background:rgba(31,58,46,0.06);border-radius:var(--r-md);padding:14px;margin-bottom:12px;display:flex;align-items:center;gap:12px;">
-      <div id="accountAvatar" style="width:40px;height:40px;min-width:40px;border-radius:50%;background:var(--vault-light);background-size:cover;background-position:center;"></div>
-      <div style="flex:1;min-width:0;">
-        <div id="accountEmail" style="font-weight:700;font-size:var(--text-sm);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">—</div>
-        <div style="font-size:11px;color:var(--text-muted);">Conta Google</div>
-      </div>
-      <button onclick="fbDoSignOut()" style="font-size:11px;padding:7px 14px;border-radius:var(--r-full);border:1.5px solid var(--line);background:#fff;cursor:pointer;color:var(--terracotta);font-weight:700;white-space:nowrap;">Sair</button>
     </div>
 
     <div class="section-head" style="margin-top:6px;"><div class="section-title">Perfis</div></div>
@@ -998,7 +887,7 @@ body.dark button[onclick="lockSyncUrl()"] { background: var(--vault); color: #ff
 // Corrida+ — lógica do app.
 // Documentação detalhada de arquitetura, sincronização, encriptação e
 // easter eggs: ver corridaplus-docs.md (ficheiro separado).
-const APP_VERSION = '4.0.0';
+const APP_VERSION = '3.7.0';
 // Mostra o número da versão na tela de carregamento imediatamente (sem
 // esperar por loadAll/qualquer coisa assíncrona) — sempre visível,
 // independente da mensagem dinâmica ("A carregar…", "A sincronizar…",
@@ -1508,37 +1397,6 @@ async function unlockWithPassword(){
   }
 }
 
-// Mostra o ecrã de login (conta Google obrigatória) por cima da splash.
-function showLoginGate(){
-  hideLoadingState();
-  const splash = document.getElementById('splashScreen');
-  if(splash) splash.style.display = 'none';
-  const gate = document.getElementById('loginGate');
-  if(gate) gate.style.display = 'flex';
-}
-// Chamada pelo botão "Continuar com Google" no ecrã de login. A função do
-// módulo Firebase (window.fbSignInWithGoogle) já recarrega a página em
-// caso de sucesso; aqui só trata do estado visual do botão e do erro.
-async function handleGoogleSignIn(){
-  const btn = document.getElementById('loginGateBtn');
-  const errEl = document.getElementById('loginGateError');
-  if(errEl) errEl.textContent = '';
-  if(btn) btn.disabled = true;
-  try{
-    if(window.fbSignInWithGoogle) await window.fbSignInWithGoogle();
-  }catch(e){
-    console.error('Login com Google falhou:', e);
-    if(errEl) errEl.textContent = 'Não foi possível entrar. Tenta novamente.';
-  }finally{
-    if(btn) btn.disabled = false;
-  }
-}
-async function fbDoSignOut(){
-  if(!confirm('Sair da tua conta Google?')) return;
-  try{ if(window.fbSignOut) await window.fbSignOut(); }catch(e){}
-  location.reload();
-}
-
 async function loadAll(){
   const splashMsg = document.getElementById('splashMsg');
   const splash    = document.getElementById('splashScreen');
@@ -1546,14 +1404,6 @@ async function loadAll(){
   function hideSplash(){
     if(splash){ splash.style.opacity = '0'; setTimeout(()=>{ splash.style.display='none'; }, 400); }
   }
-
-  // Conta Google obrigatória: espera a primeira resposta do Firebase sobre
-  // se há sessão guardada. Sem sessão, mostra o ecrã de login e para aqui
-  // — o resto da app só carrega depois de autenticado (o login bem
-  // sucedido recarrega a página, voltando a chamar loadAll() do zero).
-  const fbUser = await (window.fbAuthReadyPromise || Promise.resolve(null));
-  if(!fbUser){ showLoginGate(); return; }
-  window.__fbUser = fbUser;
 
   await loadLocalOnlySettings();
   await loadDeletedIdsFromStorage();
@@ -1564,34 +1414,7 @@ async function loadAll(){
   hideLoadingState();
   renderLucro();
 
-  if(window.__fbUser){
-    // Firebase é a sincronização principal quando há sessão: primeira
-    // vez nesta conta sem dados na nuvem → migra o que já está local (se
-    // houver); havendo dados na nuvem, esses é que mandam. onSnapshot
-    // depois mantém tudo atualizado sozinho entre dispositivos.
-    setSplash('A sincronizar…');
-    setSyncStatus('saving');
-    try{
-      const remote = await window.fbLoadUserData(window.__fbUser.uid);
-      if(remote){
-        applyCloudData(resolveIncomingPayload(remote));
-        await persistLocalOnlySilently();
-      } else if(bills.length || Object.keys(monthData).length){
-        await pushToFirestore();
-      }
-      setSyncStatus('synced');
-      window.fbListenUserData(window.__fbUser.uid, (remoteData) => {
-        applyCloudData(resolveIncomingPayload(remoteData));
-        persistLocalOnlySilently();
-        refreshActiveScreen();
-      });
-    }catch(e){
-      console.warn('Falha na sincronização com o Firestore:', e);
-      setSyncStatus('nolink');
-    }
-  } else if(syncUrl){
-    // Reserva: só chega aqui se por algum motivo não houver utilizador
-    // Firebase (não deveria acontecer, já que loadAll() exige sessão).
+  if(syncUrl){
     setSplash('A sincronizar…');
     setSyncStatus('saving');
     await _doCloudSync();
@@ -1641,34 +1464,10 @@ async function safeSet(key, value){
 }
 
 function scheduleCloudPush(){
-  if(window.__fbUser){ scheduleFirestorePush(); return; }
   if(!syncUrl){ setSyncStatus('nolink'); return; }
   setSyncStatus('saving');
   clearTimeout(syncPushTimer);
   syncPushTimer = setTimeout(pushToCloud, SYNC_DEBOUNCE_MS);
-}
-
-let firestorePushTimer = null;
-function scheduleFirestorePush(){
-  setSyncStatus('saving');
-  clearTimeout(firestorePushTimer);
-  firestorePushTimer = setTimeout(pushToFirestore, SYNC_DEBOUNCE_MS);
-}
-// Grava o estado atual (bills/monthData/profile) no documento Firestore
-// do utilizador autenticado, no mesmo formato "schema v1" já usado para a
-// sincronização via Apps Script — reaproveita normalizeToSchemaV1() tal
-// e qual, só muda o destino (Firestore em vez da planilha).
-async function pushToFirestore(){
-  if(!window.__fbUser) return;
-  try{
-    const payload = normalizeToSchemaV1({ bills, monthData: pruneEmptyMonths(monthData), profile });
-    await window.fbSaveUserData(window.__fbUser.uid, payload);
-    setSyncStatus('synced');
-    await persistLocalOnlySilently();
-  }catch(e){
-    console.warn('Falha ao gravar no Firestore:', e);
-    setSyncStatus('nolink');
-  }
 }
 
 function pruneEmptyMonths(source){
@@ -1930,13 +1729,6 @@ function renderSettings(){
   const vEl = document.getElementById('appVersionDisplay');
   if(vEl) vEl.textContent = APP_VERSION;
   renderSyncUrlUI();
-
-  if(window.__fbUser){
-    const emailEl = document.getElementById('accountEmail');
-    if(emailEl) emailEl.textContent = window.__fbUser.email || window.__fbUser.displayName || 'Conta ligada';
-    const avEl = document.getElementById('accountAvatar');
-    if(avEl && window.__fbUser.photoURL) avEl.style.backgroundImage = `url(${window.__fbUser.photoURL})`;
-  }
 
   const avatarBg = profile.photo ? `url(${profile.photo})` : '';
   const avatarText = profile.photo ? '' : ((profile.name||'').trim().charAt(0) || '?').toUpperCase();
@@ -2249,11 +2041,9 @@ async function confirmResetAll(){
   // voltariam da nuvem antes do envio). Cancela também qualquer push
   // debounced pendente para não haver uma segunda gravação por cima.
   clearTimeout(syncPushTimer);
-  clearTimeout(firestorePushTimer);
   deletedIds = new Set();
   try{ await window.storage.set('deletedIds', JSON.stringify([])); }catch(e){}
-  if(window.__fbUser){ setSyncStatus('saving'); await pushToFirestore(); }
-  else if(syncUrl){ setSyncStatus('saving'); await pushToCloud(undefined, true); }
+  if(syncUrl){ setSyncStatus('saving'); await pushToCloud(undefined, true); }
   showToast('Tudo apagado'); goGanhos();
 }
 
@@ -4357,12 +4147,7 @@ if(window.matchMedia){
   });
 }
 
-// O script do Firebase (type="module", mais acima) é sempre adiado — pode
-// terminar de inicializar antes OU depois deste script clássico chegar
-// até aqui. Cobre os dois casos: se já estiver pronto, arranca já; senão,
-// espera pelo evento que esse módulo dispara ao terminar.
-if(window.__fbReady){ loadAll(); }
-else { window.addEventListener('firebase-ready', loadAll, { once:true }); }
+loadAll();
 </script>
 </body>
 </html>
