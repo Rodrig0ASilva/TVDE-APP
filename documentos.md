@@ -294,7 +294,7 @@ para vX.X.X", fica visível mais 1.1s, e só depois começa a desvanecer —
 garantindo que o aviso é sempre visto, porque não há mais duas telas
 disputando o mesmo espaço e o mesmo instante.
 
-## 10. Alterações desta versão (v3.1.0 → v3.6.0)
+## 10. Alterações desta versão (v3.1.0 → v4.0.0)
 
 - **Logo da tela de carregamento**: corrigido para ser byte-idêntico ao
   ícone real do app (favicon/manifest/apple-touch-icon) — antes usava uma
@@ -481,3 +481,158 @@ comprovadamente sem perdas (testada com round-trip: clássico → schema v1
 Além do interruptor (que só afeta gravações futuras), há um botão que
 ativa o formato novo e força um envio imediato — útil para quem quer ver
 o resultado na planilha sem esperar pela próxima edição.
+
+## 12. Revertido: rateio de despesas fixas na visão Semana (v3.6.1)
+
+A v3.5.1 tinha introduzido um rateio das despesas fixas mensais nas visões
+Semana (Estatísticas e Lucro), dividindo o total do mês pelo nº de
+semanas e descontando essa fatia do lucro semanal — para a semana nunca
+mostrar um lucro "artificialmente alto" por ignorar despesas fixas por
+completo.
+
+Essa decisão foi revertida a pedido: a visão Semana volta a mostrar **só
+o que aconteceu de facto nela** — sem inventar/dividir despesas de um
+período diferente (o mês). `renderStatsWeek()` e `renderLucroWeek()`
+voltaram ao cálculo original (fixas = 0 nas visões semanais). A meta
+semanal também deixou de ter um "mínimo automático" baseado em despesas
+fixas (que dependia do mesmo rateio) — sem uma meta semanal definida
+explicitamente nas Configurações, o gráfico de meta semanal simplesmente
+não aparece. A meta **mensal** mantém o seu mínimo automático (despesas
+fixas do mês), porque aí não há rateio nenhum — é o valor real e completo
+do próprio mês.
+
+## 13. Correção: despesas diárias/semanais devem contar na visão Semana (v3.6.2)
+
+A secção 12 acima foi longe demais: ao remover o *rateio* de despesas
+**mensais**, a v3.6.1 acabou por remover **todas** as despesas fixas da
+visão Semana — incluindo bills com frequência `diaria` e `semanal`, que
+não são inventadas/divididas nenhuma: uma bill diária já tem um valor por
+dia, e uma bill semanal já tem um valor por semana. Contá-las na visão
+Semana não é rateio, é só somar o valor real pelo período certo.
+
+Correção: `weeklyFixedBills(weekStart)` (nova função) calcula despesas
+fixas apropriadas para uma semana, com uma regra clara:
+
+- **`frequência: 'semanal'`** → conta o valor cheio (× 1) — já é o valor
+  da semana.
+- **`frequência: 'diaria'`** → conta o valor × 7 — sete dias de despesa
+  diária real, não uma invenção.
+- **`frequência: 'mensal'`** → **não conta** — incluir aqui exigiria
+  dividir um valor pensado para o mês inteiro (isso sim seria o rateio
+  indesejado). Essas despesas continuam a aparecer normalmente na visão
+  Mês, no valor total.
+
+Usada em `renderStatsWeek()` (mostrada como "🏠 Despesas fixas
+(diárias/semanais)") e em `renderLucroWeek()` (via o parâmetro `fixas` de
+`lucroBreakdownHTML()`). A meta semanal mínima automática também passou a
+usar este valor real (em vez de ficar sem mínimo nenhum, como na v3.6.1).
+
+### 13.1 Visão Mês: mensal e semanais juntos, sem rateio (v3.6.3)
+
+Os gráficos "por semana" dentro de Estatísticas → Mês e Lucro → Mês ainda
+usavam o rateio antigo (`fixasMes / nº de semanas`). Passaram a usar
+`weekBucketFixedBills(mês, semana)`: cada semana do mês (blocos de dias
+1–7, 8–14…) leva só as despesas fixas **diárias** (× dias reais do bloco)
+e **semanais** (× 1). As **mensais** aparecem uma única vez, à parte.
+
+Estatísticas → Mês ganhou o cartão "Lucro por semana e do mês": lucro de
+cada semana, linha "Despesas mensais", e o "Lucro do mês" — as semanas
+mais as despesas mensais somam exatamente o lucro do mês (soma dos blocos
++ mensais = `totalFixedBills()`, verificado).
+
+## 14. Correção: despesa diária conta só nos dias com registro (v3.6.4)
+
+A v3.6.2/3.6.3 multiplicava uma bill `diaria` por 7 (semana) ou pelos dias
+do bloco (mês) — mas uma despesa diária representa o custo **daquele dia
+específico**, não um valor fixo repetido todo santo dia. Se o motorista só
+trabalhou 4 dias numa semana, só esses 4 dias têm a despesa diária.
+
+Correção: `recordDays(entry)` reúne as datas que têm pelo menos um ganho ou
+despesa variável lançados; `dailyBillsPerDay()` soma as bills diárias
+aplicáveis nUM dia; e as três funções de despesas fixas passaram a contar
+a diária **só nos dias com registro**, em vez de multiplicar por um número
+fixo de dias:
+
+- `totalFixedBills()` (mês/ano): diária × nº de dias com registro no mês
+  inteiro.
+- `weekBucketFixedBills()` (semanas dentro do mês, usado nos gráficos de
+  Estatísticas/Lucro → Mês): diária × dias com registro dentro daquele
+  bloco de 7 dias.
+- `weeklyFixedBills()` (visão Semana isolada): olha cada um dos 7 dias da
+  semana, no mês a que cada dia pertence (cobre semanas que atravessam a
+  fronteira de mês), e soma a diária só nos dias com registro nesse mês.
+
+A bill `semanal` continua a contar o valor cheio (× 1 numa semana, × nº de
+semanas no mês) — não muda, porque já era exatamente "o valor da semana",
+sem necessidade de olhar dia a dia. A soma dos blocos semanais + despesas
+mensais continua a bater exatamente com o total do mês (testado).
+
+## 15. Correção: despesa diária conta só em dias com DESPESA, não com ganho (v3.6.5)
+
+A v3.6.4 contava a despesa fixa diária em qualquer dia com "algum
+registro" — ganho OU despesa. Isso incluía dias em que só houve ganho
+(trabalhou, mas não lançou nenhuma despesa variável nesse dia), o que não
+faz sentido: trabalhar 5 dias mas só lançar combustível em 4 deles deve
+gerar despesa diária de 4 dias, não 5.
+
+Correção: `recordDays()` foi substituída por `expenseRecordDays()`, que
+olha **só** `variableExpenses` (nunca `earnings`). As três funções de
+despesas fixas (`totalFixedBills`, `weekBucketFixedBills`,
+`weeklyFixedBills`) passaram a usar essa versão — a despesa diária conta
+exclusivamente nos dias em que há pelo menos uma despesa variável
+lançada nessa data, independente de ter havido ganho ou não nesse dia.
+
+## 16. Opção por despesa: como a despesa MENSAL aparece nas semanas (v3.7.0)
+
+Nova opção, configurável individualmente em cada despesa fixa com
+frequência `mensal` (tanto ao criar quanto depois, editando), controlando
+como ela aparece nas visões "por semana":
+
+- **Não aparecer nas semanas (padrão)** — mantém o modelo anterior: a
+  despesa só é contada na visão Mês, no valor total.
+- **Dividir entre as semanas do mês** — reparte o valor em partes iguais
+  por todas as semanas do mês (o "rateio" que tinha sido removido
+  globalmente antes, agora disponível como escolha explícita por despesa).
+- **Colocar tudo na 1ª semana do mês** — lança o valor inteiro de uma vez
+  na primeira semana (útil para despesas que realmente são pagas logo no
+  início do mês, como um aluguel).
+
+Guardado em `bill.weeklySplit` (`'none'` | `'rateio'` | `'firstWeek'`,
+padrão `'none'` quando ausente, para despesas já existentes continuarem
+com o comportamento de sempre). Só é relevante para `frequency: 'mensal'`
+— despesas diárias/semanais já têm um valor natural por semana e não usam
+este campo.
+
+`totalFixedBills()` (total do mês) nunca muda — a despesa mensal continua
+a valer o valor cheio, uma vez, independente da escolha. O que muda é só
+como `weekBucketFixedBills()` (dentro da visão Mês) e `weeklyFixedBills()`
+(visão Semana isolada) repartem esse mesmo valor: a soma das semanas +
+"despesas mensais" restantes continua sempre a bater com o total do mês,
+qualquer que seja a combinação de escolhas entre as despesas (testado).
+
+UI: seletor no sheet "Nova despesa fixa" (só aparece quando a frequência
+escolhida é Mensal) e um `<select>` inline em cada despesa mensal já
+existente na lista de Despesas fixas.
+
+## 17. Firebase — login Google + Firestore (v4.0.0)
+
+Mudança arquitetural: o app passou a exigir login com conta Google, e a
+sincronização principal passou do Google Apps Script para o Firestore.
+Detalhe técnico completo em `corridaplus-firebase-plan.md`. Resumo:
+
+- `<script type="module">` novo no `<head>` inicializa Firebase Auth +
+  Firestore e expõe `window.fbSignInWithGoogle`, `fbSignOut`,
+  `fbSaveUserData`, `fbLoadUserData`, `fbListenUserData`,
+  `fbAuthReadyPromise` para o script clássico usar.
+- `loadAll()` agora espera por `fbAuthReadyPromise` antes de tudo — sem
+  sessão, mostra `#loginGate` e para; com sessão, continua.
+- Um documento por utilizador (`users/{uid}`), no mesmo formato "schema
+  v1" já existente — reaproveita `normalizeToSchemaV1()`/
+  `resolveIncomingPayload()` sem alterações.
+- Migração automática no primeiro login (envia dados locais existentes
+  se a conta ainda não tiver nada na nuvem) e sincronização em tempo
+  real via `onSnapshot()`.
+- Apps Script mantido no código como reserva (não deve ser alcançado na
+  prática, já que o login passou a ser obrigatório).
+- **Pendente**: regras de segurança do Firestore ainda precisam de ser
+  coladas manualmente no console (sem elas, leitura/escrita falha).
