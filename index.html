@@ -647,13 +647,26 @@ body.dark button[onclick="lockSyncUrl()"] { background: var(--vault); color: #ff
     </div>
 
     <div class="section-head" style="margin-top:6px;"><div class="section-title">Conta</div></div>
-    <div id="accountCard" style="background:rgba(31,58,46,0.06);border-radius:var(--r-md);padding:14px;margin-bottom:12px;display:flex;align-items:center;gap:12px;">
+    <div id="accountCardSignedIn" style="background:rgba(31,58,46,0.06);border-radius:var(--r-md);padding:14px;margin-bottom:6px;display:none;align-items:center;gap:12px;">
       <div id="accountAvatar" style="width:40px;height:40px;min-width:40px;border-radius:50%;background:var(--vault-light);background-size:cover;background-position:center;"></div>
       <div style="flex:1;min-width:0;">
         <div id="accountEmail" style="font-weight:700;font-size:var(--text-sm);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">—</div>
         <div style="font-size:11px;color:var(--text-muted);">Conta Google</div>
       </div>
       <button onclick="fbDoSignOut()" style="font-size:11px;padding:7px 14px;border-radius:var(--r-full);border:1.5px solid var(--line);background:#fff;cursor:pointer;color:var(--terracotta);font-weight:700;white-space:nowrap;">Sair</button>
+    </div>
+    <div id="accountCardSignedOut" style="background:rgba(31,58,46,0.06);border-radius:var(--r-md);padding:14px;margin-bottom:6px;display:flex;flex-direction:column;align-items:center;gap:10px;text-align:center;">
+      <div style="font-size:12px;color:var(--text-muted);line-height:1.5;">Ligar uma conta Google é opcional por agora — sincroniza os teus dados na nuvem via Firestore, além (ou em vez) da sincronização por planilha.</div>
+      <button id="settingsGoogleSignInBtn" onclick="handleGoogleSignIn()" style="display:flex;align-items:center;gap:8px;background:#fff;color:#2A2420;border:1.5px solid var(--line);padding:10px 18px;border-radius:100px;font-weight:700;font-size:13px;cursor:pointer;">
+        <svg width="16" height="16" viewBox="0 0 48 48">
+          <path fill="#FFC107" d="M43.611 20.083H42V20H24v8h11.303c-1.649 4.657-6.08 8-11.303 8-6.627 0-12-5.373-12-12s5.373-12 12-12c3.059 0 5.842 1.154 7.961 3.039l5.657-5.657C34.046 6.053 29.268 4 24 4 12.955 4 4 12.955 4 24s8.955 20 20 20 20-8.955 20-20c0-1.341-.138-2.65-.389-3.917z"/>
+          <path fill="#FF3D00" d="M6.306 14.691l6.571 4.819C14.655 15.108 18.961 12 24 12c3.059 0 5.842 1.154 7.961 3.039l5.657-5.657C34.046 6.053 29.268 4 24 4 16.318 4 9.656 8.337 6.306 14.691z"/>
+          <path fill="#4CAF50" d="M24 44c5.166 0 9.86-1.977 13.409-5.192l-6.19-5.238A11.91 11.91 0 0 1 24 36c-5.202 0-9.619-3.317-11.283-7.946l-6.522 5.025C9.505 39.556 16.227 44 24 44z"/>
+          <path fill="#1976D2" d="M43.611 20.083H42V20H24v8h11.303a12.04 12.04 0 0 1-4.087 5.571l.003-.002 6.19 5.238C36.971 39.205 44 34 44 24c0-1.341-.138-2.65-.389-3.917z"/>
+        </svg>
+        Continuar com Google
+      </button>
+      <div id="settingsGoogleSignInError" style="font-size:11px;color:var(--terracotta);"></div>
     </div>
 
     <div class="section-head" style="margin-top:6px;"><div class="section-title">Perfis</div></div>
@@ -719,6 +732,17 @@ body.dark button[onclick="lockSyncUrl()"] { background: var(--vault); color: #ff
       <div class="section-sub" style="margin-top:-8px; margin-bottom:6px; font-size:11px; line-height:1.5;">
         Comparado com o lucro líquido do mês/semana em curso. Em branco (ou 0) usa as despesas fixas do período como mínimo. Na semana entram despesas fixas semanais (valor cheio) e diárias (só nos dias com registro) — as mensais não são divididas, ficam só na visão Mês.
       </div>
+    </div>
+
+    <div class="section-head" style="margin-top:20px;"><div class="section-title">Outras plataformas</div></div>
+    <div class="section-sub" style="margin-bottom:10px;">Além de Uber e Bolt, podes registar ganhos de outras apps (ex: 99, InDrive, Free Now) se usares mais do que essas duas. Entram sempre no balde "pessoal", sem desconto de IVA/comissão.</div>
+    <div id="customPlatformsList"></div>
+    <div class="field" style="display:flex;gap:8px;align-items:flex-end;margin-top:4px;">
+      <div style="flex:1;">
+        <label>Nome da plataforma</label>
+        <input type="text" id="newCustomPlatformName" placeholder="ex: 99, InDrive" maxlength="20" />
+      </div>
+      <button onclick="addCustomPlatform()" style="padding:13px 16px;border-radius:var(--r-md);border:none;background:var(--vault);color:#fff;font-weight:700;font-size:14px;cursor:pointer;white-space:nowrap;">＋ Adicionar</button>
     </div>
 
     <div class="section-head" style="margin-top:20px;"><div class="section-title">Sincronização</div></div>
@@ -998,7 +1022,10 @@ body.dark button[onclick="lockSyncUrl()"] { background: var(--vault); color: #ff
 // Corrida+ — lógica do app.
 // Documentação detalhada de arquitetura, sincronização, encriptação e
 // easter eggs: ver corridaplus-docs.md (ficheiro separado).
-const APP_VERSION = '0.4.0';
+// Esquema de versão: de volta ao pré-1.0 (0.x.x) — a v1.0.0 fica
+// reservada para o lançamento com assinatura paga completa. A numeração
+// 4.x.x usada temporariamente para a integração Firebase foi abandonada.
+const APP_VERSION = '0.4.2';
 // Mostra o número da versão na tela de carregamento imediatamente (sem
 // esperar por loadAll/qualquer coisa assíncrona) — sempre visível,
 // independente da mensagem dinâmica ("A carregar…", "A sincronizar…",
@@ -1080,6 +1107,15 @@ const EXPENSE_CATEGORIES = [
   { key:'pneu_oleo',    label:'Pneu / Óleo',       emoji:'🛞' },
   { key:'estacionamento', label:'Estacionamento',  emoji:'🅿️' },
   { key:'outro',        label:'Outro',             emoji:'📦' }
+];
+// Turno de trabalho — campo opcional no registo de ganhos. Se o utilizador
+// preencher, passa a aparecer um gráfico "Ganhos por turno" nas
+// Estatísticas, mostrando qual turno rende mais para essa pessoa.
+const TURNOS = [
+  { key:'manha',     label:'Manhã',      emoji:'🌅' },
+  { key:'tarde',     label:'Tarde',      emoji:'☀️' },
+  { key:'noite',     label:'Noite',      emoji:'🌙' },
+  { key:'madrugada', label:'Madrugada',  emoji:'🌃' }
 ];
 const FUEL_TYPES = [
   { key:'gasolina', label:'Gasolina', unit:'km/l',   priceUnit:'R$/litro' },
@@ -1519,18 +1555,21 @@ function showLoginGate(){
 // Chamada pelo botão "Continuar com Google" no ecrã de login. A função do
 // módulo Firebase (window.fbSignInWithGoogle) já recarrega a página em
 // caso de sucesso; aqui só trata do estado visual do botão e do erro.
+// Chamada tanto pelo botão do ecrã de login (não usado automaticamente
+// por agora, login é opcional) quanto pelo botão em Configurações → Conta
+// — atualiza qualquer um dos dois pares botão/erro que existir na página.
 async function handleGoogleSignIn(){
-  const btn = document.getElementById('loginGateBtn');
-  const errEl = document.getElementById('loginGateError');
-  if(errEl) errEl.textContent = '';
-  if(btn) btn.disabled = true;
+  const btns = [document.getElementById('loginGateBtn'), document.getElementById('settingsGoogleSignInBtn')].filter(Boolean);
+  const errs = [document.getElementById('loginGateError'), document.getElementById('settingsGoogleSignInError')].filter(Boolean);
+  errs.forEach(el => { el.textContent = ''; });
+  btns.forEach(b => { b.disabled = true; });
   try{
     if(window.fbSignInWithGoogle) await window.fbSignInWithGoogle();
   }catch(e){
     console.error('Login com Google falhou:', e);
-    if(errEl) errEl.textContent = 'Não foi possível entrar. Tenta novamente.';
+    errs.forEach(el => { el.textContent = 'Não foi possível entrar. Tenta novamente.'; });
   }finally{
-    if(btn) btn.disabled = false;
+    btns.forEach(b => { b.disabled = false; });
   }
 }
 async function fbDoSignOut(){
@@ -1547,13 +1586,12 @@ async function loadAll(){
     if(splash){ splash.style.opacity = '0'; setTimeout(()=>{ splash.style.display='none'; }, 400); }
   }
 
-  // Conta Google obrigatória: espera a primeira resposta do Firebase sobre
-  // se há sessão guardada. Sem sessão, mostra o ecrã de login e para aqui
-  // — o resto da app só carrega depois de autenticado (o login bem
-  // sucedido recarrega a página, voltando a chamar loadAll() do zero).
-  const fbUser = await (window.fbAuthReadyPromise || Promise.resolve(null));
-  if(!fbUser){ showLoginGate(); return; }
-  window.__fbUser = fbUser;
+  // Login Google OPCIONAL por agora (enquanto em teste) — só verifica se
+  // há sessão guardada, sem bloquear o carregamento da app. Sem sessão,
+  // a app segue normalmente com Apps Script/local, como sempre; o botão
+  // "Continuar com Google" fica disponível em Configurações → Conta,
+  // para quem quiser ligar a conta sem que isso seja obrigatório.
+  window.__fbUser = await (window.fbAuthReadyPromise || Promise.resolve(null));
 
   await loadLocalOnlySettings();
   await loadDeletedIdsFromStorage();
@@ -1930,12 +1968,20 @@ function renderSettings(){
   const vEl = document.getElementById('appVersionDisplay');
   if(vEl) vEl.textContent = APP_VERSION;
   renderSyncUrlUI();
+  renderCustomPlatformsList();
 
+  const signedInCard  = document.getElementById('accountCardSignedIn');
+  const signedOutCard = document.getElementById('accountCardSignedOut');
   if(window.__fbUser){
+    if(signedInCard)  signedInCard.style.display  = 'flex';
+    if(signedOutCard) signedOutCard.style.display = 'none';
     const emailEl = document.getElementById('accountEmail');
     if(emailEl) emailEl.textContent = window.__fbUser.email || window.__fbUser.displayName || 'Conta ligada';
     const avEl = document.getElementById('accountAvatar');
     if(avEl && window.__fbUser.photoURL) avEl.style.backgroundImage = `url(${window.__fbUser.photoURL})`;
+  } else {
+    if(signedInCard)  signedInCard.style.display  = 'none';
+    if(signedOutCard) signedOutCard.style.display = 'flex';
   }
 
   const avatarBg = profile.photo ? `url(${profile.photo})` : '';
@@ -2058,6 +2104,42 @@ async function updateWeeklyGoal(value){
   profile.weeklyGoal = parseFloat(value) || 0;
   await persistProfile();
   showToast(profile.weeklyGoal > 0 ? `Meta semanal: ${fmt(profile.weeklyGoal)}` : 'Meta semanal removida');
+}
+
+// --- PLATAFORMAS PERSONALIZADAS — opcional, cada uma entra como mais uma
+// opção de plataforma no sheet de "Novo ganho" (ver openAddIncomeSheet) e
+// no balde "pessoal" dos cálculos (ver isTvdePlatform/findCustomPlatform).
+// Guardadas em profile.customPlatforms: [{ key, label }].
+function renderCustomPlatformsList(){
+  const box = document.getElementById('customPlatformsList');
+  if(!box) return;
+  const list = profile.customPlatforms || [];
+  if(list.length === 0){ box.innerHTML = '<div class="empty-note">Nenhuma plataforma extra adicionada.</div>'; return; }
+  box.innerHTML = list.map(cp => `
+    <div class="income-row-compact" style="margin-bottom:8px;">
+      ${platformBadge(cp.key, 28)}
+      <div style="flex:1;"><div class="income-name">${escapeHtml(cp.label)}</div></div>
+      <div class="bill-delete" onclick="removeCustomPlatform('${cp.key}')" title="Remover">✕</div>
+    </div>`).join('');
+}
+async function addCustomPlatform(){
+  const input = document.getElementById('newCustomPlatformName');
+  const label = (input?.value || '').trim();
+  if(!label){ showToast('Digite o nome da plataforma'); return; }
+  const key = 'custom_' + label.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]+/g,'_').replace(/^_+|_+$/g,'') || uid();
+  profile.customPlatforms = profile.customPlatforms || [];
+  if(profile.customPlatforms.some(cp => cp.key === key)){ showToast('Essa plataforma já existe'); return; }
+  profile.customPlatforms.push({ key, label });
+  await persistProfile();
+  if(input) input.value = '';
+  renderCustomPlatformsList();
+  showToast(`${label} adicionada`);
+}
+async function removeCustomPlatform(key){
+  if(!confirm('Remover esta plataforma? Ganhos já registados com ela continuam guardados, só deixa de aparecer como opção nova.')) return;
+  profile.customPlatforms = (profile.customPlatforms || []).filter(cp => cp.key !== key);
+  await persistProfile();
+  renderCustomPlatformsList();
 }
 // Card de progresso reutilizável — usado em Estatísticas (visão Mês e
 // Semana) quando profile.goalsEnabled e a respetiva meta > 0. Compara o
@@ -2343,6 +2425,21 @@ function horizontalBarsHTML(items){
       </div>`;
   }).join('');
 }
+// Gráfico "Ganhos por turno" — só aparece se pelo menos um ganho do
+// período tiver o campo opcional `turno` preenchido (ver TURNOS e o
+// seletor em openAddIncomeSheet). Destaca qual turno rendeu mais no total.
+function turnoBreakdownHTML(items){
+  const withTurno = items.filter(e => e.turno);
+  if(withTurno.length === 0) return '';
+  const totals = {};
+  withTurno.forEach(e => { totals[e.turno] = (totals[e.turno] || 0) + (e.amount || 0); });
+  const bars = TURNOS
+    .filter(t => totals[t.key] > 0)
+    .map(t => ({ label: `${t.emoji} ${t.label}`, value: totals[t.key], color: '#B8862B' }));
+  if(bars.length === 0) return '';
+  const best = bars.reduce((a, b) => (b.value > a.value ? b : a));
+  return chartBoxWrap('Ganhos por turno', `Melhor turno: ${best.label}`, horizontalBarsHTML(bars));
+}
 function weekOfMonthFromDateStr(dateStr){
   const day = parseInt(dateStr.split('-')[2], 10);
   return Math.min(5, Math.ceil(day / 7));
@@ -2405,7 +2502,7 @@ function computeLiquidoFromEntry(entry){
   const comb = entry.variableExpenses.filter(e=>e.category==='combustivel').reduce((s,e)=>s+(e.amount||0),0);
   const iva  = ivaAmount(apps);
   const com  = comissaoAmount(apps);
-  const part = entry.earnings.filter(e=>e.platform==='particular'||e.platform==='outros').reduce((s,e)=>s+(e.amount||0),0);
+  const part = entry.earnings.filter(e=>!isTvdePlatform(e.platform)).reduce((s,e)=>s+(e.amount||0),0);
   return (apps - iva - com) - comb + part;
 }
 
@@ -2426,7 +2523,7 @@ function renderStatsDay(){
     box.innerHTML = '<div class="stats-empty">Nenhum dado neste dia ainda.</div>'; return;
   }
   const tvde      = items.filter(e=>e.platform==='uber'||e.platform==='bolt');
-  const part      = items.filter(e=>e.platform==='particular'||e.platform==='outros');
+  const part      = items.filter(e=>!isTvdePlatform(e.platform));
   const brutoTVDE = tvde.reduce((s,e)=>s+(e.amount||0),0);
   const brutoPart = part.reduce((s,e)=>s+(e.amount||0),0);
   const comb      = combustivelAmount(expenses);
@@ -2457,6 +2554,7 @@ function renderStatsDay(){
   if(totalPart>0) breakdownBars.push({label:'Particular', value:totalPart, color:'#5A6B8A'});
   if(totalOut>0)  breakdownBars.push({label:'Outros', value:totalOut, color:'#8A6B5A'});
   if(breakdownBars.length > 1){ html += chartBoxWrap('Por plataforma', 'Faturamento bruto hoje', horizontalBarsHTML(breakdownBars)); }
+  html += turnoBreakdownHTML(items);
   box.innerHTML = html;
 }
 
@@ -2478,7 +2576,7 @@ function renderStatsWeek(){
     box.innerHTML = '<div class="stats-empty">Nenhum dado nesta semana ainda.</div>'; return;
   }
   const tvde      = items.filter(e=>e.platform==='uber'||e.platform==='bolt');
-  const part      = items.filter(e=>e.platform==='particular'||e.platform==='outros');
+  const part      = items.filter(e=>!isTvdePlatform(e.platform));
   const brutoTVDE = tvde.reduce((s,e)=>s+(e.amount||0),0);
   const brutoPart = part.reduce((s,e)=>s+(e.amount||0),0);
   const comb      = combustivelAmount(expenses);
@@ -2521,7 +2619,7 @@ function renderStatsWeek(){
   for(let i=0;i<7;i++){
     const d=addDays(start,i); const dIso=isoDate(d);
     const dTVDE = items.filter(x=>x.date===dIso&&(x.platform==='uber'||x.platform==='bolt')).reduce((s,x)=>s+(x.amount||0),0);
-    const dPart = items.filter(x=>x.date===dIso&&(x.platform==='particular'||x.platform==='outros')).reduce((s,x)=>s+(x.amount||0),0);
+    const dPart = items.filter(x=>x.date===dIso&&(!isTvdePlatform(x.platform))).reduce((s,x)=>s+(x.amount||0),0);
     const dComb = expenses.filter(x=>(x.date||isoDateFromTs(x.ts))===dIso&&x.category==='combustivel').reduce((s,x)=>s+(x.amount||0),0);
     const dVar  = expenses.filter(x=>(x.date||isoDateFromTs(x.ts))===dIso&&x.category!=='combustivel').reduce((s,x)=>s+(x.amount||0),0);
     const dDesp = dComb + ivaAmount(dTVDE) + comissaoAmount(dTVDE) + dVar;
@@ -2540,6 +2638,7 @@ function renderStatsWeek(){
   if(totalPart>0) breakdownBars.push({label:'Particular', value:totalPart, color:'#5A6B8A'});
   if(totalOut>0)  breakdownBars.push({label:'Outros', value:totalOut, color:'#8A6B5A'});
   if(breakdownBars.length > 1){ html += chartBoxWrap('Por plataforma', 'Faturamento bruto da semana', horizontalBarsHTML(breakdownBars)); }
+  html += turnoBreakdownHTML(items);
   box.innerHTML = html;
 }
 
@@ -2557,7 +2656,7 @@ function renderStatsMonth(){
   }
 
   const tvdeEarnings  = entry.earnings.filter(e=>e.platform==='uber'||e.platform==='bolt');
-  const partEarnings  = entry.earnings.filter(e=>e.platform==='particular'||e.platform==='outros');
+  const partEarnings  = entry.earnings.filter(e=>!isTvdePlatform(e.platform));
   const brutoTVDE     = tvdeEarnings.reduce((s,e)=>s+(e.amount||0),0);
   const brutoPart     = partEarnings.reduce((s,e)=>s+(e.amount||0),0);
   const bruto         = brutoTVDE + brutoPart;
@@ -2609,13 +2708,17 @@ function renderStatsMonth(){
     const pessoalCardsArr = [];
     if(totalPart>0) pessoalCardsArr.push(`<div class="stat-card"><div class="stat-card-label">Particular</div><div class="stat-card-value">${fmt(totalPart)}</div></div>`);
     if(totalOut>0) pessoalCardsArr.push(`<div class="stat-card"><div class="stat-card-label">Outros</div><div class="stat-card-value">${fmt(totalOut)}</div></div>`);
+    (profile.customPlatforms || []).forEach(cp => {
+      const t = totalEarningsByPlatform(entry, cp.key);
+      if(t > 0) pessoalCardsArr.push(`<div class="stat-card"><div class="stat-card-label">${escapeHtml(cp.label)}</div><div class="stat-card-value">${fmt(t)}</div></div>`);
+    });
     pessoalCardsArr.push(`<div class="stat-card"><div class="stat-card-label">Total pessoal</div><div class="stat-card-value">${fmt(brutoPart)}</div></div>`);
     if(pessoalCardsArr.length % 2 === 1){
       pessoalCardsArr[pessoalCardsArr.length-1] = pessoalCardsArr[pessoalCardsArr.length-1].replace('class="stat-card"', 'class="stat-card" style="grid-column:1/-1;"');
     }
     html += `
   <div class="chart-box" style="margin-bottom:14px;">
-    <div class="chart-box-title">🚘 Pessoal — Particular &amp; Outros</div>
+    <div class="chart-box-title">🚘 Pessoal</div>
     <div class="chart-box-sub">Sem desconto de IVA · ${monthNameYear}</div>
     <div class="stat-cards" style="margin-bottom:0;">
       ${pessoalCardsArr.join('\n      ')}
@@ -2723,6 +2826,7 @@ function renderStatsMonth(){
     return { label: found ? `${found.emoji} ${found.label}` : cat, value: val, color:'#C97259' };
   });
   if(categoryItems.length){ html += chartBoxWrap('Despesas por categoria', 'Totais acumulados', horizontalBarsHTML(categoryItems)); }
+  html += turnoBreakdownHTML(entry.earnings);
 
   box.innerHTML = html;
 }
@@ -2736,18 +2840,21 @@ function renderStatsYear(){
   const hasAnyData = entries.some(e => e.earnings.length > 0 || e.variableExpenses.length > 0);
   if(!hasAnyData){ box.innerHTML = `<div class="stats-empty">Ainda não há dados em ${yearLabel}. 📊</div>`; return; }
 
-  let totalUber=0, totalBolt=0, totalPart=0, totalOut=0, combAno=0, varOtherAno=0, fixasAno=0;
+  let totalUber=0, totalBolt=0, totalPart=0, totalOut=0, totalCustomAno=0, combAno=0, varOtherAno=0, fixasAno=0;
   entries.forEach(e => {
     totalUber += e.earnings.filter(x=>x.platform==='uber').reduce((s,x)=>s+(x.amount||0),0);
     totalBolt += e.earnings.filter(x=>x.platform==='bolt').reduce((s,x)=>s+(x.amount||0),0);
     totalPart += e.earnings.filter(x=>x.platform==='particular').reduce((s,x)=>s+(x.amount||0),0);
     totalOut  += e.earnings.filter(x=>x.platform==='outros').reduce((s,x)=>s+(x.amount||0),0);
+    // Plataformas personalizadas entram no mesmo balde "pessoal" — ver
+    // isTvdePlatform(): só Uber/Bolt ficam de fora desta soma.
+    totalCustomAno += e.earnings.filter(x=>!isTvdePlatform(x.platform) && x.platform!=='particular' && x.platform!=='outros').reduce((s,x)=>s+(x.amount||0),0);
     combAno     += e.variableExpenses.filter(x=>x.category==='combustivel').reduce((s,x)=>s+(x.amount||0),0);
     varOtherAno += e.variableExpenses.filter(x=>x.category!=='combustivel').reduce((s,x)=>s+(x.amount||0),0);
     fixasAno    += totalFixedBills(e);
   });
   const brutoTVDE = totalUber + totalBolt;
-  const brutoPart = totalPart + totalOut;
+  const brutoPart = totalPart + totalOut + totalCustomAno;
   const ivaVal    = ivaRate();
   const comVal    = comissaoRate();
   const iva       = ivaAmount(brutoTVDE);
@@ -2780,13 +2887,14 @@ function renderStatsYear(){
     const pessoalCardsArr = [];
     if(totalPart>0) pessoalCardsArr.push(`<div class="stat-card"><div class="stat-card-label">Particular</div><div class="stat-card-value">${fmt(totalPart)}</div></div>`);
     if(totalOut>0) pessoalCardsArr.push(`<div class="stat-card"><div class="stat-card-label">Outros</div><div class="stat-card-value">${fmt(totalOut)}</div></div>`);
+    if(totalCustomAno>0) pessoalCardsArr.push(`<div class="stat-card"><div class="stat-card-label">Outras plataformas</div><div class="stat-card-value">${fmt(totalCustomAno)}</div></div>`);
     pessoalCardsArr.push(`<div class="stat-card"><div class="stat-card-label">Total pessoal</div><div class="stat-card-value">${fmt(brutoPart)}</div></div>`);
     if(pessoalCardsArr.length % 2 === 1){
       pessoalCardsArr[pessoalCardsArr.length-1] = pessoalCardsArr[pessoalCardsArr.length-1].replace('class="stat-card"', 'class="stat-card" style="grid-column:1/-1;"');
     }
     html += `
   <div class="chart-box" style="margin-bottom:14px;">
-    <div class="chart-box-title">🚘 Pessoal — Particular &amp; Outros</div>
+    <div class="chart-box-title">🚘 Pessoal</div>
     <div class="chart-box-sub">Sem desconto de IVA · ${yearLabel}</div>
     <div class="stat-cards" style="margin-bottom:0;">
       ${pessoalCardsArr.join('\n      ')}
@@ -2839,6 +2947,8 @@ function renderStatsYear(){
     return { label: found ? `${found.emoji} ${found.label}` : cat, value: val, color:'#C97259' };
   });
   if(categoryItems.length){ html += chartBoxWrap('Despesas por categoria', 'Totais acumulados no ano', horizontalBarsHTML(categoryItems)); }
+  const allYearEarnings = entries.reduce((acc, e) => acc.concat(e.earnings), []);
+  html += turnoBreakdownHTML(allYearEarnings);
 
   box.innerHTML = html;
 }
@@ -2895,7 +3005,7 @@ function lucroBreakdownHTML(apps, comb, part, fixas, varOther, km, hours, contex
       <span style="font-family:'JetBrains Mono',monospace;font-weight:700;font-size:13px;">${fmt(apps - iva - com)}</span>
     </div>`;
   }
-  if(part > 0)      html += lucroLineHTML('Particular / Outros', part, false);
+  if(part > 0)      html += lucroLineHTML('Pessoal (Particular/Outros)', part, false);
   if(comb > 0)      html += lucroLineHTML('Combustível', -comb, true);
   if(fixas > 0)     html += lucroLineHTML('Despesas fixas', -fixas, true);
   if(variaveis > 0) html += lucroLineHTML('Outras despesas variáveis', -variaveis, true);
@@ -2927,7 +3037,7 @@ function renderLucroDay(){
   const expenses = variableExpensesInRange(dateIso, dateIso);
   const box = document.getElementById('lucroContent');
   const dApps = items.filter(e=>e.platform==='uber'||e.platform==='bolt').reduce((s,e)=>s+(e.amount||0),0);
-  const dPart = items.filter(e=>e.platform==='particular'||e.platform==='outros').reduce((s,e)=>s+(e.amount||0),0);
+  const dPart = items.filter(e=>!isTvdePlatform(e.platform)).reduce((s,e)=>s+(e.amount||0),0);
   if(dApps === 0 && dPart === 0 && expenses.length === 0){
     box.innerHTML = '<div class="stats-empty">Nenhum ganho registado neste dia.</div>'; return;
   }
@@ -2960,7 +3070,7 @@ function renderLucroWeek(){
   const expenses = variableExpensesInRange(startIso, endIso);
   const box      = document.getElementById('lucroContent');
   const wApps = items.filter(e=>e.platform==='uber'||e.platform==='bolt').reduce((s,e)=>s+(e.amount||0),0);
-  const wPart = items.filter(e=>e.platform==='particular'||e.platform==='outros').reduce((s,e)=>s+(e.amount||0),0);
+  const wPart = items.filter(e=>!isTvdePlatform(e.platform)).reduce((s,e)=>s+(e.amount||0),0);
   if(wApps === 0 && wPart === 0 && expenses.length === 0){
     box.innerHTML = '<div class="stats-empty">Nenhum dado nesta semana.</div>'; return;
   }
@@ -2979,7 +3089,7 @@ function renderLucroWeek(){
     const dayItems = items.filter(it=>it.date===dIso);
     const dayExp   = expenses.filter(e=>(e.date||isoDateFromTs(e.ts))===dIso);
     const db = dayItems.filter(e=>e.platform==='uber'||e.platform==='bolt').reduce((s,e)=>s+(e.amount||0),0);
-    const dp = dayItems.filter(e=>e.platform==='particular'||e.platform==='outros').reduce((s,e)=>s+(e.amount||0),0);
+    const dp = dayItems.filter(e=>!isTvdePlatform(e.platform)).reduce((s,e)=>s+(e.amount||0),0);
     const dc = dayExp.filter(e=>e.category==='combustivel').reduce((s,e)=>s+(e.amount||0),0);
     const dv = dayExp.filter(e=>e.category!=='combustivel').reduce((s,e)=>s+(e.amount||0),0);
     const dl = (db - dc - ivaAmount(db - dc)) + dp - dv;
@@ -2997,7 +3107,7 @@ function renderLucroMonth(){
   const box   = document.getElementById('lucroContent');
   const entry = ensureMonthEntry(currentMonthKey);
   const mApps = entry.earnings.filter(e=>e.platform==='uber'||e.platform==='bolt').reduce((s,e)=>s+(e.amount||0),0);
-  const mPart = entry.earnings.filter(e=>e.platform==='particular'||e.platform==='outros').reduce((s,e)=>s+(e.amount||0),0);
+  const mPart = entry.earnings.filter(e=>!isTvdePlatform(e.platform)).reduce((s,e)=>s+(e.amount||0),0);
   if(mApps === 0 && mPart === 0){ box.innerHTML = '<div class="stats-empty">Nenhum ganho registado este mês.</div>'; return; }
   const mComb    = entry.variableExpenses.filter(e=>e.category==='combustivel').reduce((s,e)=>s+(e.amount||0),0);
   const mVarOther = entry.variableExpenses.filter(e=>e.category!=='combustivel').reduce((s,e)=>s+(e.amount||0),0);
@@ -3035,7 +3145,7 @@ function renderLucroMonth(){
     const mLucros = monthKeys.map(k=>{
       const e = ensureMonthEntry(k);
       const apps = e.earnings.filter(x=>x.platform==='uber'||x.platform==='bolt').reduce((s,x)=>s+(x.amount||0),0);
-      const part = e.earnings.filter(x=>x.platform==='particular'||x.platform==='outros').reduce((s,x)=>s+(x.amount||0),0);
+      const part = e.earnings.filter(x=>!isTvdePlatform(x.platform)).reduce((s,x)=>s+(x.amount||0),0);
       const comb = e.variableExpenses.filter(x=>x.category==='combustivel').reduce((s,x)=>s+(x.amount||0),0);
       const varO = e.variableExpenses.filter(x=>x.category!=='combustivel').reduce((s,x)=>s+(x.amount||0),0);
       const liq  = (apps - ivaAmount(apps) - comissaoAmount(apps)) - comb + part;
@@ -3113,17 +3223,31 @@ function updateMonthHint(){
   document.getElementById('monthHintMes').textContent = `recebi em ${prevLabel} para usar em ${currLabel}`;
 }
 
+// Só Uber/Bolt são consideradas apps TVDE (sujeitas a IVA/comissão); tudo
+// o resto — Particular, Outros, e qualquer plataforma personalizada criada
+// pelo utilizador — entra no "balde" pessoal, sem esses descontos. Ver
+// docs para a lista completa de sítios que usam esta distinção.
+function isTvdePlatform(platform){ return platform === 'uber' || platform === 'bolt'; }
+function findCustomPlatform(platform){ return (profile.customPlatforms || []).find(cp => cp.key === platform); }
+
 function platformBadge(platform, size){
   size = size || 22;
   if(platform === 'uber'){ return `<div class="platform-badge uber" style="width:${size}px;height:${size}px;font-size:${size*0.55}px;">U</div>`; }
   if(platform === 'bolt'){ return `<div class="platform-badge bolt" style="width:${size}px;height:${size}px;font-size:${size*0.6}px;">⚡</div>`; }
   if(platform === 'particular'){ return `<div class="platform-badge" style="width:${size}px;height:${size}px;font-size:${size*0.55}px;background:#5A6B8A;color:#fff;">P</div>`; }
+  const custom = findCustomPlatform(platform);
+  if(custom){
+    const letter = custom.emoji || (custom.label||'?').trim().charAt(0).toUpperCase();
+    return `<div class="platform-badge" style="width:${size}px;height:${size}px;font-size:${size*0.5}px;background:#6B5A8A;color:#fff;">${letter}</div>`;
+  }
   return `<div class="platform-badge" style="width:${size}px;height:${size}px;font-size:${size*0.55}px;background:#8A6B5A;color:#fff;">O</div>`;
 }
 function platformLabel(platform){
   if(platform === 'uber') return 'Uber';
   if(platform === 'bolt') return 'Bolt';
   if(platform === 'particular') return 'Particular';
+  const custom = findCustomPlatform(platform);
+  if(custom) return custom.label;
   return 'Outros';
 }
 function weekdayLabel(d){ return d.toLocaleDateString('pt-BR', { weekday:'short' }).replace('.',''); }
@@ -3177,8 +3301,13 @@ function renderEarningsCardsAndSummary(items, fixedTotal, expenses){
   const totalBolt = sumByPlatform(items, 'bolt');
   const totalPart = sumByPlatform(items, 'particular');
   const totalOut  = sumByPlatform(items, 'outros');
+  // Plataformas personalizadas: cada uma tem o seu próprio total, mas
+  // todas entram no mesmo balde "pessoal" para efeitos de IVA/líquido.
+  const customPlatforms = profile.customPlatforms || [];
+  const customTotals = customPlatforms.map(cp => ({ cp, total: sumByPlatform(items, cp.key) })).filter(c => c.total > 0);
+  const totalCustom = customTotals.reduce((s,c)=>s+c.total,0);
   const apps      = totalUber + totalBolt;
-  const part      = totalPart + totalOut;
+  const part      = totalPart + totalOut + totalCustom;
   const comb      = (expenses && Array.isArray(expenses)) ? combustivelAmount(expenses) : 0;
   const varOther  = (expenses && Array.isArray(expenses)) ? expenses.filter(e=>e.category!=='combustivel').reduce((s,e)=>s+(e.amount||0),0) : 0;
   const iva       = ivaAmount(apps);
@@ -3194,7 +3323,10 @@ function renderEarningsCardsAndSummary(items, fixedTotal, expenses){
   const outStyle  = (totalOut  > 0 && totalPart === 0) ? 'grid-column:1/-1;' : '';
   if(totalPart > 0) cardsHtml += `<div class="stat-card" style="${partStyle}"><div class="stat-card-label">🚘 Particular</div><div class="stat-card-value" style="font-size:22px;">${fmt(totalPart)}</div></div>`;
   if(totalOut  > 0) cardsHtml += `<div class="stat-card" style="${outStyle}"><div class="stat-card-label">📦 Outros</div><div class="stat-card-value" style="font-size:22px;">${fmt(totalOut)}</div></div>`;
-  const totalGeral = totalUber + totalBolt + totalPart + totalOut;
+  customTotals.forEach(({cp, total}) => {
+    cardsHtml += `<div class="stat-card"><div class="stat-card-label">${platformBadge(cp.key,16)} ${escapeHtml(cp.label)}</div><div class="stat-card-value" style="font-size:22px;">${fmt(total)}</div></div>`;
+  });
+  const totalGeral = totalUber + totalBolt + totalPart + totalOut + totalCustom;
   cardsHtml += `<div class="stat-card" style="border-color:var(--vault);grid-column:1/-1;padding:18px 20px;">
     <div class="stat-card-label" style="font-size:11px;margin-bottom:8px;">💰 Total bruto</div>
     <div style="font-family:'JetBrains Mono',monospace;font-weight:700;font-size:32px;color:var(--ink);letter-spacing:-0.02em;margin-bottom:12px;">${fmt(totalGeral)}</div>
@@ -3203,9 +3335,9 @@ function renderEarningsCardsAndSummary(items, fixedTotal, expenses){
         <span style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;color:var(--text-muted);">TVDE</span>
         <span style="font-family:'JetBrains Mono',monospace;font-weight:700;font-size:16px;color:var(--ink);">${fmt(totalUber + totalBolt)}</span>
       </div>
-      ${(totalPart + totalOut) > 0 ? `<div style="display:flex;flex-direction:column;gap:2px;">
+      ${part > 0 ? `<div style="display:flex;flex-direction:column;gap:2px;">
         <span style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;color:var(--text-muted);">Pessoal</span>
-        <span style="font-family:'JetBrains Mono',monospace;font-weight:700;font-size:16px;color:var(--ink);">${fmt(totalPart + totalOut)}</span>
+        <span style="font-family:'JetBrains Mono',monospace;font-weight:700;font-size:16px;color:var(--ink);">${fmt(part)}</span>
       </div>` : ''}
     </div>
   </div>`;
@@ -3216,7 +3348,7 @@ function renderEarningsCardsAndSummary(items, fixedTotal, expenses){
   let summaryHtml = `<div class="ms-row" style="opacity:0.85;"><div class="ms-label">Faturamento bruto (apps)</div><div class="ms-value">${fmt(apps)}</div></div>`;
   if(ivaRateVal > 0) summaryHtml += `<div class="ms-row"><div class="ms-label">IVA (${ivaRateVal}%)</div><div class="ms-value">− ${fmt(iva)}</div></div>`;
   if(comRateVal > 0) summaryHtml += `<div class="ms-row"><div class="ms-label">Comissão (${comRateVal}%)</div><div class="ms-value">− ${fmt(com)}</div></div>`;
-  if(part > 0) summaryHtml += `<div class="ms-row"><div class="ms-label">Particular / Outros</div><div class="ms-value">+ ${fmt(part)}</div></div>`;
+  if(part > 0) summaryHtml += `<div class="ms-row"><div class="ms-label">Pessoal (Particular/Outros)</div><div class="ms-value">+ ${fmt(part)}</div></div>`;
   if(comb > 0) summaryHtml += `<div class="ms-row"><div class="ms-label">Combustível</div><div class="ms-value">− ${fmt(comb)}</div></div>`;
   summaryHtml += `<div class="ms-row" style="border-top:1px solid rgba(255,255,255,0.12);padding-top:10px;margin-top:4px;"><div class="ms-label">Líquido</div><div class="ms-value">${fmt(liquido)}</div></div>`;
   summaryHtml += `
@@ -3310,6 +3442,14 @@ function openAddIncomeSheet(){
     defaultDate = todayIso.startsWith(monthPrefix) ? todayIso : `${currentMonthKey}-01`;
     sheetSub = 'Escolha o dia deste mês e registe os ganhos.';
   }
+  window._pendingTurno = '';
+  const customPlatforms = profile.customPlatforms || [];
+  const customFieldsHtml = customPlatforms.map(cp => `
+    <div style="margin-bottom:10px;">
+      <div class="section-sub" style="margin-bottom:8px;font-weight:700;">${escapeHtml(cp.emoji||'📍')} ${escapeHtml(cp.label)}</div>
+      <div class="field-money"><input type="number" id="incCustom_${cp.key}" placeholder="0,00" inputmode="decimal"></div>
+      <div class="section-sub" style="font-size:11px;margin-top:4px;">Sem desconto de IVA.</div>
+    </div>`).join('');
   openSheet(`
     <div class="sheet-handle"></div>
     <div class="sheet-header" style="display:flex;align-items:center;gap:12px;margin-bottom:4px;">
@@ -3320,6 +3460,14 @@ function openAddIncomeSheet(){
     </div>
     <div class="sheet-sub" style="margin-left:34px;">${sheetSub}</div>
     <div class="field"><label>Dia do turno</label><input type="date" id="incDate" value="${defaultDate}" /></div>
+    <div class="field">
+      <label>Turno trabalhado (opcional)</label>
+      <div class="seg" id="incTurnoSeg" style="flex-wrap:wrap;height:auto;">
+        <div class="seg-opt active" data-t="" onclick="pickIncomeTurno('')" style="flex:1 1 calc(50% - 4px);margin:2px;">Não dizer</div>
+        ${TURNOS.map(t => `<div class="seg-opt" data-t="${t.key}" onclick="pickIncomeTurno('${t.key}')" style="flex:1 1 calc(50% - 4px);margin:2px;">${t.emoji} ${t.label}</div>`).join('')}
+      </div>
+      <div class="section-sub" style="font-size:11px;margin-top:6px;">Se preencheres, as Estatísticas passam a mostrar qual turno rende mais para ti.</div>
+    </div>
     <div style="margin-bottom:10px;">
       <div class="section-sub" style="margin-bottom:8px;font-weight:700;">Uber</div>
       <div class="field-money"><input type="number" id="incUber" placeholder="0,00" inputmode="decimal"></div>
@@ -3335,11 +3483,12 @@ function openAddIncomeSheet(){
       <div class="field-money"><input type="number" id="incParticular" placeholder="0,00" inputmode="decimal"></div>
       <div class="section-sub" style="font-size:11px;margin-top:4px;">Sem desconto de IVA.</div>
     </div>
-    <div style="margin-bottom:16px;">
+    <div style="margin-bottom:${customFieldsHtml?'10px':'16px'};">
       <div class="section-sub" style="margin-bottom:8px;font-weight:700;">📦 Outros</div>
       <div class="field-money"><input type="number" id="incOutros" placeholder="0,00" inputmode="decimal"></div>
       <div class="section-sub" style="font-size:11px;margin-top:4px;">Sem desconto de IVA.</div>
     </div>
+    ${customFieldsHtml}
     <button class="btn btn-primary" onclick="confirmAddIncome()">Salvar ganhos</button>
     <button class="btn btn-ghost" onclick="closeSheet()">Cancelar</button>
   `);
@@ -3348,20 +3497,36 @@ function pickPlatform(p){
   window._pendingPlatform = p;
   document.querySelectorAll('#platformPick .platform-pick-opt').forEach(el => el.classList.toggle('active', el.dataset.p === p));
 }
+function pickIncomeTurno(t){
+  window._pendingTurno = t;
+  document.querySelectorAll('#incTurnoSeg .seg-opt').forEach(el => el.classList.toggle('active', el.dataset.t === t));
+}
 async function confirmAddIncome(){
   const date = document.getElementById('incDate').value;
   if(!date){ showToast('Selecione a data'); return; }
+  const turno = window._pendingTurno || '';
   const uberAmt   = parseFloat(document.getElementById('incUber').value) || 0;
   const boltAmt   = parseFloat(document.getElementById('incBolt').value) || 0;
   const partAmt   = parseFloat(document.getElementById('incParticular').value) || 0;
   const outrosAmt = parseFloat(document.getElementById('incOutros').value) || 0;
-  if(uberAmt === 0 && boltAmt === 0 && partAmt === 0 && outrosAmt === 0){ showToast('Insira pelo menos um valor'); return; }
+  const customPlatforms = profile.customPlatforms || [];
+  const customAmts = customPlatforms.map(cp => ({
+    cp, amt: parseFloat((document.getElementById(`incCustom_${cp.key}`)||{}).value) || 0
+  }));
+  const anyCustom = customAmts.some(c => c.amt > 0);
+  if(uberAmt === 0 && boltAmt === 0 && partAmt === 0 && outrosAmt === 0 && !anyCustom){ showToast('Insira pelo menos um valor'); return; }
   const monthKeyOfDate = date.slice(0,7);
   const entry = ensureMonthEntry(monthKeyOfDate);
-  if(uberAmt > 0)   entry.earnings.push({ id: uid(), date, platform:'uber',        amount: uberAmt,   km:0, hours:0, ts: Date.now() });
-  if(boltAmt > 0)   entry.earnings.push({ id: uid(), date, platform:'bolt',        amount: boltAmt,   km:0, hours:0, ts: Date.now()+1 });
-  if(partAmt > 0)   entry.earnings.push({ id: uid(), date, platform:'particular', amount: partAmt,   km:0, hours:0, noIva:true, ts: Date.now()+2 });
-  if(outrosAmt > 0) entry.earnings.push({ id: uid(), date, platform:'outros',     amount: outrosAmt, km:0, hours:0, noIva:true, ts: Date.now()+3 });
+  let tsOffset = 0;
+  function pushEarning(platform, amount, extra){
+    entry.earnings.push({ id: uid(), date, platform, amount, km:0, hours:0, ts: Date.now()+tsOffset, ...(turno?{turno}:{}) , ...(extra||{}) });
+    tsOffset++;
+  }
+  if(uberAmt > 0)   pushEarning('uber', uberAmt);
+  if(boltAmt > 0)   pushEarning('bolt', boltAmt);
+  if(partAmt > 0)   pushEarning('particular', partAmt, { noIva:true });
+  if(outrosAmt > 0) pushEarning('outros', outrosAmt, { noIva:true });
+  customAmts.forEach(({cp, amt}) => { if(amt > 0) pushEarning(cp.key, amt, { noIva:true }); });
   await persistMonthData(); closeSheet(); renderGanhos();
 }
 async function removeEarning(id){
@@ -3758,7 +3923,7 @@ function weeklyFixedBills(weekStart){
 
 function renderMonthSummary(entry){
   const apps      = entry.earnings.filter(e=>e.platform==='uber'||e.platform==='bolt').reduce((s,e)=>s+(e.amount||0),0);
-  const part      = entry.earnings.filter(e=>e.platform==='particular'||e.platform==='outros').reduce((s,e)=>s+(e.amount||0),0);
+  const part      = entry.earnings.filter(e=>!isTvdePlatform(e.platform)).reduce((s,e)=>s+(e.amount||0),0);
   const ganhos    = apps + part;
   const comb      = entry.variableExpenses.filter(e=>e.category==='combustivel').reduce((s,e)=>s+(e.amount||0),0);
   const iva       = ivaAmount(apps);
@@ -3773,7 +3938,7 @@ function renderMonthSummary(entry){
     <div class="ms-row" style="opacity:0.85;"><div class="ms-label">Faturamento bruto (apps)</div><div class="ms-value">${fmt(apps)}</div></div>`;
   if(ivaRateVal > 0){ html += `<div class="ms-row"><div class="ms-label">IVA (${ivaRateVal}%)</div><div class="ms-value">− ${fmt(iva)}</div></div>`; }
   if(comRateVal > 0){ html += `<div class="ms-row"><div class="ms-label">Comissão (${comRateVal}%)</div><div class="ms-value">− ${fmt(com)}</div></div>`; }
-  if(part > 0){ html += `<div class="ms-row"><div class="ms-label">Particular / Outros</div><div class="ms-value">+ ${fmt(part)}</div></div>`; }
+  if(part > 0){ html += `<div class="ms-row"><div class="ms-label">Pessoal (Particular/Outros)</div><div class="ms-value">+ ${fmt(part)}</div></div>`; }
   if(comb > 0){ html += `<div class="ms-row"><div class="ms-label">Combustível</div><div class="ms-value">− ${fmt(comb)}</div></div>`; }
   html += `<div class="ms-row" style="border-top:1px solid rgba(255,255,255,0.12);padding-top:10px;margin-top:4px;"><div class="ms-label">Líquido</div><div class="ms-value">${fmt(liquido)}</div></div>`;
   html += `
