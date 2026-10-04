@@ -294,7 +294,7 @@ para vX.X.X", fica visível mais 1.1s, e só depois começa a desvanecer —
 garantindo que o aviso é sempre visto, porque não há mais duas telas
 disputando o mesmo espaço e o mesmo instante.
 
-## 10. Alterações desta versão (v3.1.0 → v4.0.0)
+## 10. Alterações desta versão (até v0.4.2)
 
 - **Logo da tela de carregamento**: corrigido para ser byte-idêntico ao
   ícone real do app (favicon/manifest/apple-touch-icon) — antes usava uma
@@ -636,3 +636,82 @@ Detalhe técnico completo em `corridaplus-firebase-plan.md`. Resumo:
   prática, já que o login passou a ser obrigatório).
 - **Pendente**: regras de segurança do Firestore ainda precisam de ser
   coladas manualmente no console (sem elas, leitura/escrita falha).
+
+## 18. Login Google voltou a ser opcional, por enquanto (v4.0.1)
+
+O login obrigatório da v4.0.0 bloqueava o app inteiro se o
+`signInWithPopup` falhasse (ex: domínio não autorizado nas definições do
+Firebase Auth, popup bloqueado pelo browser) — impossível de testar o
+resto da app enquanto isso não estivesse resolvido.
+
+Mudança: `loadAll()` deixou de esperar/bloquear em
+`window.fbAuthReadyPromise` — só lê o estado (`window.__fbUser`) e segue
+em frente de qualquer forma. `showLoginGate()` continua definida mas já
+não é chamada automaticamente. O botão "Continuar com Google" mudou-se
+para Configurações → Conta (`#accountCardSignedOut`), onde fica
+disponível para quem quiser ligar a conta, sem ser obrigatório. Sem
+sessão, a app funciona exactamente como antes do Firebase (Apps
+Script/local) — a lógica de fallback em `scheduleCloudPush()`/`loadAll()`
+já tratava isto corretamente, só não era alcançada por causa do bloqueio.
+
+`handleGoogleSignIn()` passou a atualizar qualquer um dos dois pares
+botão/erro presentes na página (o do ecrã de login, não usado por
+agora, e o novo em Configurações), para continuar a funcionar nos dois
+sítios sem duplicar código.
+
+Quando o login com Google estiver a funcionar de forma fiável, o bloqueio
+obrigatório pode voltar a ser ligado facilmente — é só restaurar a
+verificação no início de `loadAll()`.
+
+## 19. Esquema de versão voltou a pré-1.0 (v0.4.2)
+
+A numeração 4.x.x usada temporariamente durante a integração Firebase foi
+abandonada. De volta a 0.x.x — a v1.0.0 fica reservada para o lançamento
+com o recurso completo de assinatura paga (ver `corridaplus-firebase-plan.md`,
+Fase 3).
+
+## 20. Turno de trabalho (opcional) + gráfico "Ganhos por turno" (v0.4.2)
+
+Novo campo opcional no sheet "Novo ganho": um seletor de turno (Manhã,
+Tarde, Noite, Madrugada, ou "Não dizer") — `TURNOS` define as opções.
+Guardado como `earning.turno` em cada ganho criado nessa submissão
+(`confirmAddIncome()`), só quando o utilizador escolhe um turno
+explicitamente.
+
+`turnoBreakdownHTML(items)` gera um gráfico de barras "Ganhos por turno"
+com o total ganho em cada turno e destaque do melhor — **só aparece se
+houver pelo menos um ganho com turno preenchido** no período em questão
+(se ninguém preencher, a função devolve string vazia e nada é mostrado).
+Integrado em todas as visões de Estatísticas: Dia, Semana, Mês e Ano.
+
+## 21. Plataformas personalizadas (opcional) (v0.4.2)
+
+Além de Uber e Bolt (TVDE) e Particular/Outros (pessoal), o utilizador
+pode agora adicionar outras plataformas (ex: 99, InDrive, Free Now) em
+Configurações → "Outras plataformas". Guardadas em
+`profile.customPlatforms: [{key, label}]` (sincronizado como parte do
+profile, igual a qualquer outra configuração).
+
+- `addCustomPlatform()` gera uma `key` normalizada a partir do nome (ex:
+  "Free Now" → `custom_free_now`) e adiciona à lista.
+- `removeCustomPlatform(key)` remove da lista de opções futuras — ganhos
+  já registados com essa plataforma continuam guardados e visíveis, só
+  deixa de aparecer como opção ao criar um novo ganho.
+- `openAddIncomeSheet()`/`confirmAddIncome()` passaram a gerar um campo
+  de valor extra por cada plataforma personalizada ativa, dinamicamente.
+- `platformBadge()`/`platformLabel()` generalizados com
+  `findCustomPlatform(platform)` para reconhecer e exibir as plataformas
+  personalizadas (emoji/inicial + nome) em qualquer lista/card existente,
+  sem precisar de tratamento especial em cada sítio.
+- **Regra fiscal**: toda plataforma personalizada é tratada como
+  "pessoal" (mesmo balde que Particular/Outros) — sem desconto de
+  IVA/comissão, porque essa lógica é especificamente modelada para a
+  comissão de apps TVDE (Uber/Bolt) e não generaliza sem pedir ao
+  utilizador plataforma a plataforma. Nova função `isTvdePlatform(platform)`
+  (só verdadeira para `'uber'`/`'bolt'`) substitui, em 11 sítios do
+  código, as antigas verificações explícitas `platform==='particular' ||
+  platform==='outros'` — qualquer plataforma personalizada passa a entrar
+  automaticamente nesse balde sem precisar de mais nenhuma alteração.
+- Cards de "Total bruto"/"Pessoal" em Ganhos, Estatísticas → Mês e
+  Estatísticas → Ano atualizados para incluir e discriminar os totais de
+  cada plataforma personalizada.
