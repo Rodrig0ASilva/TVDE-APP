@@ -29,8 +29,10 @@
   import { initializeApp } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-app.js";
   import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged }
     from "https://www.gstatic.com/firebasejs/12.19.0/firebase-auth.js";
-  import { getFirestore, doc, getDoc, setDoc, onSnapshot }
+  import { getFirestore, doc, getDoc, setDoc, onSnapshot, collection, query, where }
     from "https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js";
+  import { initializeAppCheck, ReCaptchaV3Provider }
+    from "https://www.gstatic.com/firebasejs/12.19.0/firebase-app-check.js";
 
   const firebaseConfig = {
     apiKey: "AIzaSyBp1CvFgAwUAMW_FTz5TqkeKhG1smf2SCc",
@@ -44,6 +46,31 @@
 
   const fbApp = initializeApp(firebaseConfig);
   const fbAuth = getAuth(fbApp);
+
+  // ---------------------------------------------------------------
+  // App Check — reforço real contra "copiarem o site e usarem a minha
+  // base de dados": verifica que cada pedido ao Firestore vem mesmo desta
+  // app, não de um script/clone a imitar os pedidos. Usa reCAPTCHA v3
+  // (invisível, sem fricção para o utilizador) como "atestado".
+  //
+  // SITE_KEY_PLACEHOLDER tem de ser substituído por uma chave real do
+  // reCAPTCHA v3, obtida em: Firebase Console → App Check → Apps → Web
+  // app → Registar → reCAPTCHA v3 (gera a chave automaticamente). Sem
+  // essa troca, este bloco não faz nada — fica desativado em segurança
+  // (não bloqueia a app a funcionar enquanto a chave não é configurada).
+  // Depois de trocar a chave, ainda é preciso ativar a "aplicação"
+  // (enforcement) do App Check para Firestore no mesmo painel — antes
+  // disso, o App Check só regista métricas, não bloqueia nada.
+  // ---------------------------------------------------------------
+  const APP_CHECK_SITE_KEY = 'SITE_KEY_PLACEHOLDER';
+  if(APP_CHECK_SITE_KEY !== 'SITE_KEY_PLACEHOLDER'){
+    try{
+      initializeAppCheck(fbApp, {
+        provider: new ReCaptchaV3Provider(APP_CHECK_SITE_KEY),
+        isTokenAutoRefreshEnabled: true
+      });
+    }catch(e){ console.warn('App Check falhou ao iniciar:', e); }
+  }
   const fbDb   = getFirestore(fbApp);
   const googleProvider = new GoogleAuthProvider();
 
@@ -79,6 +106,28 @@
   // atualizarem-se sozinhos sem precisar de puxar manualmente.
   window.fbListenUserData = (uid, callback) => {
     return onSnapshot(doc(fbDb, 'users', uid), (snap) => { if(snap.exists()) callback(snap.data()); });
+  };
+
+  // Lê o estado da assinatura (Fase 3 — Stripe), assim que essa coleção
+  // existir. A coleção customers/{uid}/subscriptions é escrita SÓ pela
+  // extensão Stripe (via Cloud Functions, que ignoram as regras do
+  // cliente) — nunca por este script. Devolve null se não houver nenhuma
+  // assinatura ativa/em teste, ou se a coleção ainda nem existir (antes
+  // de o Stripe estar configurado) — nesse caso, o app simplesmente
+  // mostra "sem assinatura", sem erro.
+  window.fbListenSubscription = (uid, callback) => {
+    try{
+      const subsRef = collection(fbDb, 'customers', uid, 'subscriptions');
+      const q = query(subsRef, where('status', 'in', ['active', 'trialing']));
+      return onSnapshot(q,
+        (snap) => { callback(snap.empty ? null : snap.docs[0].data()); },
+        (err) => { console.warn('Falha ao ler assinatura (normal se o Stripe ainda não estiver configurado):', err); callback(null); }
+      );
+    }catch(e){
+      console.warn('fbListenSubscription falhou:', e);
+      callback(null);
+      return () => {};
+    }
   };
 
   window.__fbReady = true;
@@ -671,6 +720,12 @@ body.dark button[onclick="lockSyncUrl()"] { background: var(--vault); color: #ff
       <div id="settingsGoogleSignInError" style="font-size:11px;color:var(--terracotta);"></div>
     </div>
 
+    <div class="section-head" style="margin-top:6px;"><div class="section-title">Assinatura</div></div>
+    <div id="subscriptionCard" style="background:rgba(31,58,46,0.06);border-radius:var(--r-md);padding:14px;margin-bottom:12px;">
+      <div id="subscriptionStatus" style="font-weight:700;font-size:var(--text-sm);">—</div>
+      <div id="subscriptionDetail" style="font-size:11px;color:var(--text-muted);margin-top:3px;line-height:1.5;"></div>
+    </div>
+
     <div class="section-head" style="margin-top:6px;"><div class="section-title">Perfis</div></div>
     <div id="profileCardsList"></div>
 
@@ -1034,7 +1089,7 @@ body.dark button[onclick="lockSyncUrl()"] { background: var(--vault); color: #ff
 // Esquema de versão: de volta ao pré-1.0 (0.x.x) — a v1.0.0 fica
 // reservada para o lançamento com assinatura paga completa. A numeração
 // 4.x.x usada temporariamente para a integração Firebase foi abandonada.
-const APP_VERSION = '0.4.3';
+const APP_VERSION = '0.4.5';
 // Mostra o número da versão na tela de carregamento imediatamente (sem
 // esperar por loadAll/qualquer coisa assíncrona) — sempre visível,
 // independente da mensagem dinâmica ("A carregar…", "A sincronizar…",
@@ -1590,6 +1645,52 @@ async function fbDoSignOut(){
   location.reload();
 }
 
+// Mostra o estado da assinatura (Fase 3 — Stripe) em Configurações, com a
+// data até quando está ativa. window.__fbSubscription pode estar em três
+// estados: undefined (login feito, ainda a verificar), null (verificado,
+// sem assinatura ativa/em teste — normal enquanto o Stripe não estiver
+// configurado), ou o documento da assinatura (ver fbListenSubscription).
+function renderSubscriptionCard(){
+  const statusEl = document.getElementById('subscriptionStatus');
+  const detailEl = document.getElementById('subscriptionDetail');
+  if(!statusEl) return;
+
+  if(!window.__fbUser){
+    statusEl.textContent = 'Liga uma conta Google para ver';
+    if(detailEl) detailEl.textContent = '';
+    return;
+  }
+  if(window.__fbSubscription === undefined){
+    statusEl.textContent = 'A verificar…';
+    if(detailEl) detailEl.textContent = '';
+    return;
+  }
+  if(!window.__fbSubscription){
+    statusEl.textContent = '🔓 Sem assinatura ativa';
+    if(detailEl) detailEl.textContent = 'A cobrança ainda não está configurada nesta conta — por agora o acesso é livre.';
+    return;
+  }
+
+  const sub = window.__fbSubscription;
+  // current_period_end vem como Timestamp do Firestore (tem .toDate()) ou,
+  // conforme a versão da extensão Stripe, como string/número — cobre os
+  // dois casos.
+  let endDate = null;
+  const raw = sub.current_period_end;
+  if(raw){
+    if(typeof raw.toDate === 'function') endDate = raw.toDate();
+    else endDate = new Date(raw);
+  }
+  const endStr = (endDate && !isNaN(endDate)) ? endDate.toLocaleDateString('pt-BR', { day:'2-digit', month:'long', year:'numeric' }) : null;
+  const isTrial = sub.status === 'trialing';
+  statusEl.textContent = isTrial ? '🎁 Período de teste' : '✅ Assinatura ativa';
+  if(detailEl){
+    if(!endStr){ detailEl.textContent = ''; }
+    else if(sub.cancel_at_period_end){ detailEl.textContent = `Termina em ${endStr} (cancelamento agendado)`; }
+    else { detailEl.textContent = `${isTrial ? 'Teste termina' : 'Ativa até'} ${endStr}`; }
+  }
+}
+
 async function loadAll(){
   const splashMsg = document.getElementById('splashMsg');
   const splash    = document.getElementById('splashScreen');
@@ -1635,6 +1736,15 @@ async function loadAll(){
         persistLocalOnlySilently();
         refreshActiveScreen();
       });
+      // Assinatura (Fase 3 — Stripe): window.__fbSubscription fica
+      // undefined até a primeira resposta chegar (distingue "ainda a
+      // verificar" de "verificado, sem assinatura" = null).
+      if(window.fbListenSubscription){
+        window.fbListenSubscription(window.__fbUser.uid, (sub) => {
+          window.__fbSubscription = sub;
+          renderSettings();
+        });
+      }
     }catch(e){
       console.warn('Falha na sincronização com o Firestore:', e);
       setSyncStatus('nolink');
@@ -1995,6 +2105,8 @@ function renderSettings(){
     if(signedInCard)  signedInCard.style.display  = 'none';
     if(signedOutCard) signedOutCard.style.display = 'flex';
   }
+
+  renderSubscriptionCard();
 
   const avatarBg = profile.photo ? `url(${profile.photo})` : '';
   const avatarText = profile.photo ? '' : ((profile.name||'').trim().charAt(0) || '?').toUpperCase();
