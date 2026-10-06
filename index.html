@@ -15,6 +15,8 @@
 <meta name="theme-color" content="#16161B" id="themeColorMetaDark" media="(prefers-color-scheme: dark)" />
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<!-- SheetJS — usada só para gerar o ficheiro .xlsx de "Exportar dados" (Configurações → Exportação). -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script type="module">
   // Firebase (Auth + Firestore) — SDK modular via CDN, sem bundler/npm.
   // Este bloco corre num escopo de módulo próprio (import/export), por
@@ -767,6 +769,13 @@ body.dark button[onclick="lockSyncUrl()"] { background: var(--vault); color: #ff
       </div>
     </div>
 
+    <div class="section-head" style="margin-top:20px;"><div class="section-title">Exportação de dados</div></div>
+    <div class="section-sub" style="margin-bottom:10px;">Gera uma planilha Excel (.xlsx) com o detalhamento completo de ganhos, despesas e impostos — útil para a declaração de IRS ou para guardar como backup.</div>
+    <button onclick="exportDataToExcel()" id="exportExcelBtn" style="width:100%;padding:13px;border-radius:var(--r-md);border:1.5px solid var(--line);background:transparent;color:var(--ink);font-weight:700;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;">
+      <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M9 13h1m4 0h1M9 17h1m4 0h1" stroke-linecap="round"/></svg>
+      Exportar para Excel
+    </button>
+
     <button class="delete-all-btn" onclick="confirmResetAll()">Apagar todos os dados</button>
 
     <a href="https://github.com/Rodrig0Almeida" target="_blank" rel="noopener" style="display:flex;align-items:center;justify-content:center;gap:8px;margin-top:18px;padding:13px;border-radius:var(--r-md);border:1.5px solid var(--line);background:transparent;color:var(--ink);font-weight:700;font-size:14px;text-decoration:none;">
@@ -1025,7 +1034,7 @@ body.dark button[onclick="lockSyncUrl()"] { background: var(--vault); color: #ff
 // Esquema de versão: de volta ao pré-1.0 (0.x.x) — a v1.0.0 fica
 // reservada para o lançamento com assinatura paga completa. A numeração
 // 4.x.x usada temporariamente para a integração Firebase foi abandonada.
-const APP_VERSION = '0.4.2';
+const APP_VERSION = '0.4.3';
 // Mostra o número da versão na tela de carregamento imediatamente (sem
 // esperar por loadAll/qualquer coisa assíncrona) — sempre visível,
 // independente da mensagem dinâmica ("A carregar…", "A sincronizar…",
@@ -1204,7 +1213,7 @@ async function loadLocalOnlySettings(){
   try{ const bu = await window.storage.get('biometricUnlockEnabled'); biometricUnlockEnabled = bu.value === 'true' || bu.value === true; }catch(e){ biometricUnlockEnabled = false; }
   try{ const ru = await window.storage.get('requireUnlockEachSync'); requireUnlockEachSync = ru.value === 'true' || ru.value === true; }catch(e){ requireUnlockEachSync = false; }
   try{ const sl = await window.storage.get('syncLog'); syncLog = JSON.parse(sl.value) || []; }catch(e){ syncLog = []; }
-  try{ const ns = await window.storage.get('useNormalizedSchema'); useNormalizedSchema = ns.value === 'true' || ns.value === true; }catch(e){ useNormalizedSchema = false; }
+  try{ const ns = await window.storage.get('useNormalizedSchema'); useNormalizedSchema = ns.value === 'true' || ns.value === true; }catch(e){ useNormalizedSchema = true; }
   try{
     const ls = await window.storage.get('localSettings');
     const parsed = JSON.parse(ls.value);
@@ -1381,7 +1390,10 @@ function refreshActiveScreen(){
 // dispositivo só, sem coordenar com os outros: cada um decide sozinho em
 // que formato escreve, e todos conseguem ler o que os outros escreverem.
 // ---------------------------------------------------------------
-let useNormalizedSchema = false;
+// Schema v1 (formato normalizado) é o padrão a partir de agora — ver
+// loadLocalOnlySettings() para o fallback que preserva esta escolha como
+// 'true' por padrão para quem nunca mexeu no interruptor do Modo Dev.
+let useNormalizedSchema = true;
 
 function normalizeToSchemaV1(payload){
   const oldBills     = payload.bills || [];
@@ -2321,6 +2333,112 @@ async function importFromJson(){
   renderGanhos();
   renderSettings();
 }
+// ---------------------------------------------------------------
+// EXPORTAÇÃO PARA EXCEL — gera um .xlsx com 4 folhas, pensado para servir
+// de base à declaração de IRS (ganhos discriminados, despesas, despesas
+// fixas, e um resumo mensal já com IVA/comissão/lucro calculados). Usa a
+// biblioteca SheetJS (carregada via CDN no <head>) — só gera o ficheiro
+// no próprio dispositivo, nada é enviado para fora.
+// ---------------------------------------------------------------
+function exportDataToExcel(){
+  if(typeof XLSX === 'undefined'){
+    showToast('❌ Biblioteca de exportação não carregou — verifica a ligação à internet');
+    return;
+  }
+  const btn = document.getElementById('exportExcelBtn');
+  if(btn) btn.disabled = true;
+  try{
+    const monthKeys = Object.keys(monthData).sort();
+    if(monthKeys.length === 0){ showToast('Ainda não há dados para exportar'); return; }
+
+    // --- Folha 1: Ganhos (todos, todos os meses) ---
+    const ganhosRows = [];
+    monthKeys.forEach(mKey => {
+      const entry = ensureMonthEntry(mKey);
+      entry.earnings.forEach(e => {
+        const tvde = isTvdePlatform(e.platform);
+        const iva = tvde ? ivaAmount(e.amount) : 0;
+        const com = tvde ? comissaoAmount(e.amount) : 0;
+        ganhosRows.push({
+          'Data': e.date || '',
+          'Plataforma': platformLabel(e.platform),
+          'Turno': e.turno ? (TURNOS.find(t=>t.key===e.turno)?.label || e.turno) : '',
+          'Bruto (€)': Math.round((e.amount||0)*100)/100,
+          'IVA (€)': Math.round(iva*100)/100,
+          'Comissão (€)': Math.round(com*100)/100,
+          'Líquido (€)': Math.round((e.amount - iva - com)*100)/100,
+          'Km': e.km || '',
+          'Horas': e.hours || ''
+        });
+      });
+    });
+
+    // --- Folha 2: Despesas variáveis (todos os meses) ---
+    const despesasRows = [];
+    monthKeys.forEach(mKey => {
+      const entry = ensureMonthEntry(mKey);
+      entry.variableExpenses.forEach(exp => {
+        const cat = EXPENSE_CATEGORIES.find(c => c.key === exp.category);
+        despesasRows.push({
+          'Data': exp.date || isoDateFromTs(exp.ts),
+          'Categoria': cat ? cat.label : exp.category,
+          'Valor (€)': Math.round((exp.amount||0)*100)/100,
+          'Litros': exp.liters || '',
+          'Nota': exp.note || ''
+        });
+      });
+    });
+
+    // --- Folha 3: Despesas fixas (cadastro atual) ---
+    const billsRows = bills.map(b => ({
+      'Nome': b.name,
+      'Frequência': b.frequency === 'diaria' ? 'Diária' : b.frequency === 'semanal' ? 'Semanal' : 'Mensal',
+      'Valor (€)': Math.round((b.defaultAmount||0)*100)/100,
+      'Criada em': b.createdMonthKey || ''
+    }));
+
+    // --- Folha 4: Resumo mensal (IVA, comissão, despesas, lucro) ---
+    const resumoRows = monthKeys.map(mKey => {
+      const entry = ensureMonthEntry(mKey);
+      const apps = entry.earnings.filter(e=>isTvdePlatform(e.platform)).reduce((s,e)=>s+(e.amount||0),0);
+      const pessoal = entry.earnings.filter(e=>!isTvdePlatform(e.platform)).reduce((s,e)=>s+(e.amount||0),0);
+      const iva = ivaAmount(apps);
+      const com = comissaoAmount(apps);
+      const comb = entry.variableExpenses.filter(e=>e.category==='combustivel').reduce((s,e)=>s+(e.amount||0),0);
+      const varOutras = entry.variableExpenses.filter(e=>e.category!=='combustivel').reduce((s,e)=>s+(e.amount||0),0);
+      const fixas = totalFixedBills(entry, mKey);
+      const liquido = (apps - iva - com) - comb + pessoal;
+      const lucro = liquido - fixas - varOutras;
+      return {
+        'Mês': monthLabelFor(mKey),
+        'Bruto TVDE (€)': Math.round(apps*100)/100,
+        'Bruto Pessoal (€)': Math.round(pessoal*100)/100,
+        'IVA (€)': Math.round(iva*100)/100,
+        'Comissão (€)': Math.round(com*100)/100,
+        'Combustível (€)': Math.round(comb*100)/100,
+        'Outras despesas variáveis (€)': Math.round(varOutras*100)/100,
+        'Despesas fixas (€)': Math.round(fixas*100)/100,
+        'Lucro líquido (€)': Math.round(lucro*100)/100
+      };
+    });
+
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(ganhosRows), 'Ganhos');
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(despesasRows), 'Despesas');
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(billsRows), 'Despesas Fixas');
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(resumoRows), 'Resumo Mensal');
+
+    const filename = `corridaplus-dados-${isoDate(new Date())}.xlsx`;
+    XLSX.writeFile(wb, filename);
+    showToast('✅ Ficheiro exportado');
+  }catch(e){
+    console.error('Falha ao exportar para Excel:', e);
+    showToast('❌ Não foi possível gerar o ficheiro');
+  }finally{
+    if(btn) btn.disabled = false;
+  }
+}
+
 async function confirmResetAll(){
   if(!confirm('Isso vai apagar TODOS os dados. Tem certeza?')) return;
   bills = []; monthData = {};
@@ -3268,16 +3386,27 @@ function changeGanhosDayWeek(delta){
 
 function renderEarningsList(items, emptyMsg){
   if(items.length === 0) return `<div class="empty-note">${emptyMsg}</div>`;
-  return items.map(it => `
+  return items.map(it => {
+    // Líquido só é diferente do bruto para apps TVDE (Uber/Bolt), que têm
+    // IVA/comissão descontados — plataformas pessoais (Particular, Outros,
+    // personalizadas) não têm desconto, então líquido === bruto e a linha
+    // extra seria redundante (omitida nesse caso).
+    const showLiquido = isTvdePlatform(it.platform) && (ivaRate() > 0 || comissaoRate() > 0);
+    const liquido = it.amount - ivaAmount(it.amount) - comissaoAmount(it.amount);
+    return `
     <div class="income-row-compact">
       ${platformBadge(it.platform)}
       <div style="flex:1">
         <div class="income-name">${platformLabel(it.platform)}</div>
         <div class="income-sub">${formatDateStr(it.date)}${it.km ? ' · ' + it.km + ' km' : ''}${it.hours ? ' · ' + it.hours + 'h' : ''}</div>
       </div>
-      <div class="bill-amount-edit"><input type="number" class="bill-amount-input" inputmode="decimal" value="${it.amount}" onchange="updateEarningAmount('${it.id}', this.value)" /></div>
+      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:2px;">
+        <div class="bill-amount-edit"><input type="number" class="bill-amount-input" inputmode="decimal" value="${it.amount}" onchange="updateEarningAmount('${it.id}', this.value)" /></div>
+        ${showLiquido ? `<div style="font-size:10px;color:var(--text-muted);font-family:'JetBrains Mono',monospace;">líq. ${fmt(liquido)}</div>` : ''}
+      </div>
       <div class="bill-delete" onclick="removeEarning('${it.id}')">✕</div>
-    </div>`).join('');
+    </div>`;
+  }).join('');
 }
 // Edita o valor de um ganho diretamente na lista (mesmo padrão das
 // despesas fixas: campo inline, sem precisar de abrir sheet). Procura em
@@ -3445,7 +3574,7 @@ function openAddIncomeSheet(){
   window._pendingTurno = '';
   const customPlatforms = profile.customPlatforms || [];
   const customFieldsHtml = customPlatforms.map(cp => `
-    <div style="margin-bottom:10px;">
+    <div class="field" style="margin-bottom:10px;">
       <div class="section-sub" style="margin-bottom:8px;font-weight:700;">${escapeHtml(cp.emoji||'📍')} ${escapeHtml(cp.label)}</div>
       <div class="field-money"><input type="number" id="incCustom_${cp.key}" placeholder="0,00" inputmode="decimal"></div>
       <div class="section-sub" style="font-size:11px;margin-top:4px;">Sem desconto de IVA.</div>
@@ -3468,22 +3597,22 @@ function openAddIncomeSheet(){
       </div>
       <div class="section-sub" style="font-size:11px;margin-top:6px;">Se preencheres, as Estatísticas passam a mostrar qual turno rende mais para ti.</div>
     </div>
-    <div style="margin-bottom:10px;">
+    <div class="field" style="margin-bottom:10px;">
       <div class="section-sub" style="margin-bottom:8px;font-weight:700;">Uber</div>
       <div class="field-money"><input type="number" id="incUber" placeholder="0,00" inputmode="decimal"></div>
       <div class="section-sub" style="font-size:11px;margin-top:4px;">IVA aplicado automaticamente. Combustível descontado nas Despesas.</div>
     </div>
-    <div style="margin-bottom:10px;">
+    <div class="field" style="margin-bottom:10px;">
       <div class="section-sub" style="margin-bottom:8px;font-weight:700;">Bolt</div>
       <div class="field-money"><input type="number" id="incBolt" placeholder="0,00" inputmode="decimal"></div>
       <div class="section-sub" style="font-size:11px;margin-top:4px;">IVA aplicado automaticamente. Combustível descontado nas Despesas.</div>
     </div>
-    <div style="margin-bottom:10px;">
+    <div class="field" style="margin-bottom:10px;">
       <div class="section-sub" style="margin-bottom:8px;font-weight:700;">🚘 Particular</div>
       <div class="field-money"><input type="number" id="incParticular" placeholder="0,00" inputmode="decimal"></div>
       <div class="section-sub" style="font-size:11px;margin-top:4px;">Sem desconto de IVA.</div>
     </div>
-    <div style="margin-bottom:${customFieldsHtml?'10px':'16px'};">
+    <div class="field" style="margin-bottom:${customFieldsHtml?'10px':'16px'};">
       <div class="section-sub" style="margin-bottom:8px;font-weight:700;">📦 Outros</div>
       <div class="field-money"><input type="number" id="incOutros" placeholder="0,00" inputmode="decimal"></div>
       <div class="section-sub" style="font-size:11px;margin-top:4px;">Sem desconto de IVA.</div>
