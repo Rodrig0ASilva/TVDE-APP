@@ -1,35 +1,55 @@
 Corrida+ — Licença de Uso
+Versão do software: 0.79
 
-Copyright (c) 2026 Rodrigo Almeida
+Copyright (c) 2026 Rodrigo Almeida. Todos os direitos reservados, exceto os
+expressamente concedidos abaixo.
 
-Este trabalho está licenciado sob a licença
-Creative Commons Atribuição-NãoComercial 4.0 Internacional (CC BY-NC 4.0).
+1. DIREITOS DO AUTOR
 
-Para ver uma cópia desta licença, visite:
-https://creativecommons.org/licenses/by-nc/4.0/deed.pt
+O Corrida+ (incluindo o código, o design, os textos e a documentação) é
+propriedade intelectual do autor. Só o autor pode explorar o software para
+fins comerciais.
+
+2. USO PERMITIDO (NÃO COMERCIAL)
+
+É concedida permissão gratuita, não exclusiva e revogável, para:
+  • usar o Corrida+ para fins pessoais e não comerciais;
+  • copiar, redistribuir e modificar o código para fins não comerciais,
+    desde que mantenha este aviso de copyright e esta licença, e indique
+    claramente as alterações feitas.
+
+3. USO COMERCIAL RESERVADO
+
+É proibido a qualquer pessoa que não seja o autor, sem autorização expressa
+e por escrito do autor:
+  • vender, licenciar, alugar ou sublicenciar o software ou partes dele;
+  • usá-lo para prestar um serviço pago, ou como parte de um produto ou
+    serviço com fins lucrativos (incluindo subscrições, publicidade ou
+    intermediação);
+  • incorporar o software ou o seu código em produtos comerciais.
+
+O autor é o único titular de quaisquer direitos comerciais sobre o Corrida+,
+incluindo a cobrança de assinaturas.
+
+4. RESTRIÇÕES
+
+  • Não é permitido remover ou alterar os avisos de copyright e de licença.
+  • Não é permitido apresentar uma versão modificada como sendo a versão oficial
+    do Corrida+.
+
+5. AUSÊNCIA DE GARANTIAS
+
+O software é fornecido "como está", sem garantias de qualquer tipo, expressas
+ou implícitas, incluindo adequação a um fim específico. O autor não responde
+por perdas de dados, danos ou decisões financeiras tomadas com base na
+aplicação.
+
+6. TERMINAÇÃO
+
+Esta licença termina automaticamente se alguém violar as condições acima. Ao
+terminar, deve cessar a utilização e apagar as cópias.
 
 ---
 
-RESUMO (não substitui os termos legais completos acima):
-
-Você TEM permissão para:
-  • Compartilhar — copiar e redistribuir o material em qualquer suporte ou formato
-  • Adaptar — remixar, transformar e criar a partir do material
-
-DESDE QUE respeite os seguintes termos:
-  • Atribuição — Você deve dar o crédito apropriado ao autor original,
-    fornecer um link para a licença e indicar se foram feitas alterações.
-  • Não Comercial — Você não pode usar o material para fins comerciais,
-    incluindo venda, sublicenciamento, ou incorporação em produtos ou
-    serviços pagos, sem autorização expressa e por escrito do autor.
-
-Nenhuma garantia é dada. O material é fornecido "como está", sem
-garantias de qualquer tipo.
-
----
-
-Para licenciamento comercial, parcerias ou autorização de uso fora
-destes termos, contacte o autor diretamente.
-
-Texto legal completo (inglês):
-https://creativecommons.org/licenses/by-nc/4.0/legalcode
+Para licenciamento comercial, parcerias ou qualquer uso fora destes termos,
+contacte o autor diretamente.
