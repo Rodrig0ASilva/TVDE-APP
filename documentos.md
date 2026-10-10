@@ -70,6 +70,10 @@ lado do servidor) — por isso a secção seguinte é importante.
 
 ## 3. Pull-antes-de-push (merge)
 
+> **Nota (v0.4.11):** a união por ID e as lápides descritas nas secções 3 e
+> 3.1 foram substituídas pela fusão com base em três vias (ver a entrada da
+> versão 0.4.11 na secção 10). A secção 3 fica como histórico.
+
 **Comportamento a partir da v3.1.0:** antes de qualquer envio à nuvem, o app
 primeiro busca (GET) o estado mais recente da planilha e faz merge com o
 estado local, e só então monta e envia o payload (POST).
@@ -294,7 +298,9 @@ para vX.X.X", fica visível mais 1.1s, e só depois começa a desvanecer —
 garantindo que o aviso é sempre visto, porque não há mais duas telas
 disputando o mesmo espaço e o mesmo instante.
 
-## 10. Alterações desta versão (até v0.4.2)
+> **Numeração:** a partir da versão 0.46, a numeração passa a ser 0.46, 0.47, 0.48, … As entradas anteriores mantêm a numeração 0.4.x.
+
+## 10. Alterações desta versão (até v0.51)
 
 - **Logo da tela de carregamento**: corrigido para ser byte-idêntico ao
   ícone real do app (favicon/manifest/apple-touch-icon) — antes usava uma
@@ -396,6 +402,437 @@ disputando o mesmo espaço e o mesmo instante.
   achatar ganhos/despesas em listas simples). Ver secção 11 para a
   arquitetura completa. Desativado por padrão — nada muda até o
   utilizador ativar explicitamente.
+
+- **Versão 0.4.6 — botão GitHub no Modo Dev**: o link "Ver no GitHub" saiu do
+  ecrã "Você" e foi para o Modo Dev, com o novo endereço
+  `https://github.com/Rodrig0ASilva`.
+- **Versão 0.4.6 — sincronização no Modo Dev**: a secção "Sincronização" (URL do
+  Google Apps Script, bloquear/editar) foi movida do ecrã "Você" para dentro do
+  Modo Dev.
+- **Versão 0.4.6 — conta de suporte no Modo Dev**: mostra o email e o UID da
+  conta Google, com botão "Copiar email + UID". O UID também está no Firebase
+  Console → Authentication → Utilizadores, onde se pode procurar pelo email.
+- **Versão 0.4.6 — "Apagar todos os dados" sempre no fim**: o botão fica depois
+  do Modo Dev, como última opção do ecrã "Você".
+- **Versão 0.4.6 — "Registos opcionais"**: nova secção em "Você" com interruptores
+  para **Turno de trabalho**, **Quilómetros (km)** e **Usar outras plataformas**.
+  Os três são guardados em `profile` (`showTurno`, `showKm`,
+  `customPlatformsEnabled`) e sincronizam entre dispositivos. Por omissão, turno
+  começa ligado, km desligado, e outras plataformas ligadas só se já existirem
+  plataformas registadas. Desativar um interruptor esconde a funcionalidade, mas
+  não apaga os dados já gravados.
+- **Versão 0.4.6 — km nas Estatísticas**: o campo de km do ganho aparece no
+  formulário "Novo ganho" quando o interruptor está ativo. Se for preenchido, as
+  Estatísticas mostram o cartão "Quilometragem" (km registados e lucro por km) e
+  o Lucro mostra o lucro por km. Os km do dia são gravados no primeiro ganho desse
+  registo, para não serem contados em dobro.
+- **Versão 0.4.6 — lista de outras plataformas**: a lista e o campo para adicionar
+  plataformas só aparecem com o interruptor "Usar outras plataformas" ativo.
+
+- **Versão 0.4.7 — perfil e conta num só cartão**: em Configurações → "Perfil e
+  conta", a secção "Conta" separada foi integrada no cartão do perfil. A foto por
+  omissão é a foto da conta Google (`currentPhotoUrl()`: foto própria, ou se não
+  existir, a do Google). O botão "trocar" continua a permitir enviar outra foto, e
+  "Repor foto do Google" volta à foto da conta. O nome é livre, com o nome do
+  Google como sugestão no campo. Por baixo aparecem o email e o ID da conta
+  (UID); sem sessão, aparece o botão "Continuar com Google". O botão "Sair da
+  conta" também está neste cartão. A secção "Conta (suporte)" do Modo Dev foi
+  removida.
+
+- **Versão 0.4.8 — ajustes ao cartão de conta**: símbolo "G" do Google com o
+  texto "Conectado com Google" acima do email. O botão "Sair" fica à direita, com
+  fundo branco e letra vermelha. O ID da conta (UID) aparece mascarado como
+  `****`, com um botão "mostrar"/"ocultar". A escolha fica guardada só neste
+  dispositivo (`localSettings.showUid`), sem sincronizar.
+
+- **Versão 0.4.9 — bloco "Conta"**: o estado da assinatura saiu da secção
+  própria e passou para a parte inferior do cartão de conta, sob o título
+  "Assinatura". A secção de Configurações passou a chamar-se apenas "Conta".
+
+- **Versão 0.4.10 — correções da Fase 1**:
+  - Listeners do Firestore (dados e assinatura) são cancelados antes de voltar a
+    ser registados. Tocar em "sincronizar" já não acumula listeners.
+  - A brincadeira e a verificação de atualização só correm no primeiro
+    carregamento da sessão, e não ao tocar em "sincronizar".
+  - "Importar dados" agenda o envio para a nuvem, para os dados importados
+    chegarem aos outros aparelhos.
+  - Nomes de plataformas e categorias são escapados antes de entrar no HTML.
+  - (Revertido na 0.4.12.) O gráfico diário de Lucro (Semana) passou a usar a
+    mesma fórmula do resumo. A alteração foi revertida a pedido.
+  - Remover uma plataforma extra passa a arquivá-la (`archived: true`). Deixa de
+    aparecer como opção nova, mas os ganhos antigos mantêm o nome. Re-adicionar a
+    mesma plataforma volta a ativá-la.
+
+- **Versão 0.46 — arrastar a gota no celular**: no telemóvel, o navegador tomava o
+  movimento horizontal como deslizar da página e cancelava o arrasto. Ao cancelar, a
+  app usava coordenadas inválidas e voltava sempre à primeira aba. Agora a barra
+  fica com o toque para ela (`touch-action: none`, só com o efeito transparente),
+  a navegação usa a última posição real do dedo, e um cancelamento só devolve a gota
+  à aba atual, sem mudar de aba.
+
+- **Versão 0.4.45 — gota e gestos de navegação (efeito transparente)**:
+  - **Gota da aba selecionada**: um indicador de vidro desliza até à aba nova com uma
+    animação de mola (`#tabPill`, posicionado por `positionTabPill()`). A aba
+    selecionada deixa de ter fundo próprio, porque quem o desenha é a gota.
+  - **Arrastar sobre a barra**: ao arrastar, a gota segue o dedo, limitada às abas
+    visíveis. Ao soltar, muda para a aba mais próxima. Um toque simples continua a
+    funcionar como antes (`setupTabDrag()`).
+  - **Deslizar sobre o conteúdo**: um gesto horizontal com pelo menos 70 px, mais
+    horizontal do que vertical e feito em menos de 0,7 s muda para a aba seguinte
+    ou anterior (`setupSwipeNav()`). Não atua sobre campos, botões, seletores,
+    interruptores, gráficos nem com uma folha aberta.
+  - Tudo só existe com o efeito transparente ativo. Sem ele, a barra funciona como antes.
+  - Limitação: não testado num iPhone. Os gestos usam eventos de toque e de ponteiro,
+    que o Safari suporta, mas a sensação de fluidez só se confirma no aparelho.
+
+- **Versão 0.4.44 — interruptor desligado visível sem o efeito transparente**: o trilho
+  desligado usava uma cor muito translúcida (18%), que no modo escuro quase
+  desaparecia. Agora é mais opaco no modo claro (24%) e tem uma cor própria no modo
+  escuro normal. As regras do efeito transparente continuam a aplicar-se só com o
+  efeito ativo.
+
+- **Versão 0.4.43 — interruptor ligado com a cor do tema nos dois modos**: o interruptor
+  ligado usa agora `--switch-on`, definida ao escolher a cor do tema. No modo
+  transparente escuro, a regra do interruptor desligado sobrepunha o estado ligado,
+  por isso ficava translúcido. Agora a regra só se aplica aos interruptores desligados.
+
+- **Versão 0.4.42 — separador e imagem de fundo**:
+  - Um separador visível (linha) divide o bloco Aparência do bloco Configurações.
+  - Em Configurações → Aparência, "Imagem de fundo": escolher uma imagem (reduzida para
+    no máximo 1080 px, sem cortar) e remover. Fica guardada só neste aparelho
+    (`localSettings.bgImage`) e aparece atrás de toda a app, com um véu para manter a
+    legibilidade (claro ou escuro, conforme o modo).
+  - Redefinir as configurações também remove a imagem de fundo.
+
+- **Versão 0.4.41 — opção ativa do seletor em verde**: com o efeito transparente, a
+  opção selecionada de Dia · Semana · Mês · Ano voltou a ter o fundo da cor do tema
+  (`--vault`), com texto branco, para indicar claramente que está ativa.
+
+- **Versão 0.4.40 — efeito transparente em Configurações e nos controlos**:
+  - O interruptor "Efeito transparente (liquid glass)" sai do Modo Dev e passa para
+    Configurações → Aparência. Continua a ser uma preferência deste aparelho.
+  - Animação das abas: no modo transparente, a troca de abas só anima a opacidade.
+    O deslocamento vertical anterior fazia o vidro tremer.
+  - Com o modo ativo, também ficam em vidro: a aba selecionada, os seletores
+    Dia · Semana · Mês · Ano (com a opção ativa em vidro), as setas de navegação e
+    os interruptores.
+
+- **Versão 0.4.39 — liquid glass (iPhone), opção no Modo Dev**: nova secção "🪟 Visual"
+  no Modo Dev, com o interruptor "Liquid glass (iPhone)". Guardado só neste
+  aparelho (`localSettings.liquidGlass`).
+  - Diagnóstico antes da alteração: o degradê da barra (`.tabbar`) tapava o que passa
+    por trás; o interior da barra era quase opaco (branco a 90%, escuro a 97%); o
+    fundo era liso, sem cor para refratar; cartões e folhas eram opacos.
+  - Com o modo ativo: uma camada de cor fixa por trás de tudo (`body.glass::before`),
+    barra com desfoque e saturação, cartões e folhas translúcidos, e o degradê da barra
+    removido. Sem o modo, nada muda.
+  - Limitação: é uma aproximação web. O material nativo "Liquid Glass" da Apple não
+    está disponível num navegador, por isso o resultado pode diferir do iOS.
+
+- **Versão 0.4.38 — seleção da cor do tema visível no modo claro**: a cor escolhida
+  tinha a borda na cor de texto, que no modo claro é escura e se confundia com a
+  própria cor verde. Agora a seleção é um anel com um espaço claro à volta, visível
+  em qualquer tema.
+
+- **Versão 0.4.37 — suporte com log em ficheiro**: o texto do email passa a dizer
+  "Mensagem:" (sem a palavra "problema"). O log das últimas 24 horas segue como
+  ficheiro .txt (`corridaplus-log-AAAA-MM-DD-HHMM.txt`).
+  - Se o aparelho permitir partilhar ficheiros (em geral, telemóvel), abre a folha de
+    partilha com o ficheiro anexado e o texto do email. Esta folha não preenche o
+    destinatário; o endereço aparece no texto.
+  - Caso contrário, o ficheiro é transferido e o email abre com o endereço preenchido,
+    pedindo para anexar o ficheiro. Um email não consegue anexar ficheiros por si.
+
+- **Versão 0.4.36 — botão de suporte**: no fim de Configurações, abaixo da zona de
+  perigo, o botão "✉️ Suporte" abre o email com o endereço de suporte já preenchido.
+  O assunto e o corpo incluem o email e o ID da conta (ou "sem conta Google ligada"),
+  e a versão da app. O botão funciona também em modo básico.
+
+- **Versão 0.4.35 — alerta de atualização sem sessão**: sem sessão Google, a app
+  deixa de recarregar sozinha quando há uma versão nova. Mostra uma folha com a
+  versão nova e três opções: "Atualizar agora", "Entrar com Google" (para receber
+  as atualizações automaticamente) e "Mais tarde". Com sessão, a atualização
+  automática continua igual. O alerta só aparece depois das boas-vindas.
+
+- **Versão 0.4.34 — cópia diária na planilha**: com sessão e endereço da planilha
+  configurado, ao abrir a app é enviada uma cópia do estado atual para a planilha,
+  no máximo uma vez por dia (`localSettings.lastSheetBackup`, device-local). É só
+  um envio: não lê nem funde dados da planilha. A cópia respeita a encriptação, se
+  estiver ativa. Não corre enquanto houver uma decisão pendente sobre os dados. O
+  resultado fica no log de sincronização (Modo Dev).
+  - Limitação: a cópia só acontece quando a app é aberta. Se a app não for aberta
+    num dia, a cópia desse dia não acontece.
+
+- **Versão 0.4.33 — endereço da planilha na conta e apagado com tudo**:
+  - O endereço da planilha de sincronização passa a ser guardado em `profile.syncUrl`,
+    no perfil da conta Google. Assim, segue a conta entre aparelhos. Sem sessão, não
+    é guardado nem usado. Um endereço que já existisse neste aparelho passa para a
+    conta no primeiro login.
+  - **Apagar tudo** apaga também o endereço da planilha, neste aparelho e na conta.
+    Redefinir só as configurações e apagar só os dados continuam a manter o endereço.
+  - Nota: o endereço é uma credencial da planilha. Fica no documento da conta, que as
+    regras do Firestore só deixam ler e escrever ao próprio utilizador.
+
+- **Versão 0.4.32 — modo básico sem planilha**: sem sessão Google, a app não lê nem
+  envia para a planilha (Apps Script). Antes, com um URL guardado, a primeira
+  sincronização perguntava se queria os dados da nuvem, mesmo sem conta. Agora
+  `_doCloudSync()` e `pushToCloud()` saem logo quando não há sessão, e
+  `scheduleCloudPush()` também. A planilha continua a funcionar para quem tem login.
+
+- **Versão 0.4.31 — tela de carregamento sem conta**: sem sessão Google, mas com um
+  URL de sincronização guardado, a app esperava pela sincronização antes de esconder
+  a tela de carregamento. A ligação podia demorar até 15 s por tentativa, e a tela
+  ficava presa. Agora a sincronização corre em segundo plano, como já acontece com
+  a conta Google.
+
+- **Versão 0.4.30 — primeiro acesso, modo básico e estatísticas**:
+  - **Dados locais antes da conta**: ao entrar com uma conta que já tem dados na
+    nuvem, se este aparelho tiver dados que nunca foram sincronizados com essa conta,
+    a app pergunta: "Manter os deste aparelho (substitui a nuvem)", "Começar de novo com
+    os da nuvem (apaga os deste aparelho)" ou "Decidir depois". Se o aparelho já
+    tinha sincronizado com a conta, a fusão com a base continua a ser usada, sem
+    perguntar. Se a nuvem estiver vazia, os dados do aparelho são enviados sem perguntar.
+  - **Modo básico**: além do IVA e da comissão, que podem ser ativados para testar,
+    todas as outras configurações ficam bloqueadas.
+  - **Estatísticas no modo básico**: mostram só o resumo do mês (bruto TVDE, pessoal,
+    combustível, outras despesas e fixas, lucro). Dia, semana e ano ficam escondidos,
+    e não há gráficos, turnos, km nem metas.
+  - Pendente: a sincronização via Google Drive (Apps Script). Ver a conversa: o script
+    atual usa um único ficheiro para todos os utilizadores.
+
+- **Versão 0.4.29 — boas-vindas e modo básico**:
+  - **Boas-vindas**: na primeira abertura sem sessão Google, aparece uma folha com
+    "Entrar com Google" e "Continuar em modo básico". A escolha fica guardada em
+    `localSettings.welcomeDone`.
+  - **Modo básico** (sem sessão): até 5 ganhos, 5 despesas variáveis e 5 despesas
+    fixas (limite total, não por mês). Ao tentar ultrapassar, aparece um aviso com
+    "Entrar com Google". Editar e apagar continua a funcionar.
+  - **Configurações bloqueadas no modo básico**: os interruptores, os campos de
+    taxas, metas, turnos e plataformas ficam cinzentos e não respondem. Um banner
+    explica porquê. Nome, foto, tema e modo escuro continuam disponíveis.
+  - **Apagar tudo** também sai da conta Google neste aparelho e volta a mostrar as
+    boas-vindas. Não altera a assinatura: a reposição escreve só o documento de
+    dados do utilizador (`users/{uid}`), e a assinatura fica noutra coleção
+    (`customers/{uid}`), que não é tocada.
+  - **Decisões a confirmar**: (1) utilizadores existentes que já têm mais de 5
+    registos mantêm tudo, mas não podem criar registos novos sem login; (2) o
+    Apps Script (sincronização sem login) também conta como modo básico; (3) se um
+    utilizador criou dados em modo básico e depois entra com uma conta que já tem
+    dados na nuvem, prevalecem os da nuvem, como na regra de primeiro acesso.
+
+- **Versão 0.4.28 — cores do modo escuro seguem o tema**: o separador ativo da barra
+  (e a opção selecionada nas plataformas e no seletor de mês) usava um amarelo fixo
+  em modo escuro. Agora usa a cor de texto do tema escolhido, com um fundo neutro.
+
+- **Versão 0.4.27 — turnos padrão repostos em contas antigas**:
+  - Contas antigas podiam ter a lista de turnos incompleta por causa do erro da
+    fusão corrigido na 0.4.25. Quando um turno padrão faltava, a lista ficava sem
+    ele, e apagar as configurações não o repunha.
+  - `repairTurnoList()` garante que os 4 turnos padrão existem. Corre ao abrir a app,
+    ao aplicar dados da nuvem e ao importar. Se algum faltar, é reposto e a alteração
+    é gravada. Um turno removido pelo utilizador fica arquivado e não é reposto.
+  - Em Configurações → Turno de trabalho, o botão "↺ Repor turnos padrão" volta aos
+    4 padrões sem apagar mais nada. Os turnos personalizados ficam arquivados, para
+    os ganhos antigos continuarem com o nome certo.
+  - Turnos personalizados que tenham sido perdidos pelo erro antigo não se
+    recuperam. Só voltam se houver uma cópia de segurança (arquivo .json).
+
+- **Versão 0.4.26 — reposição volta ao padrão, incluindo turnos**:
+  - Ao apagar configurações ou tudo, a base de sincronização passa a ser o estado
+    já reposto. Antes ficava vazia, e a versão antiga da nuvem era tratada como
+    primeira sincronização, o que restaurava as configurações antigas (turnos
+    incluídos).
+  - Durante a reposição, as alterações vindas da nuvem são ignoradas
+    (`window._suppressRemote`), até o novo estado ser gravado.
+
+- **Versão 0.4.25 — correções de turnos, aba Dev e temas**:
+  - **Turnos desapareciam ao remover ou adicionar.** A fusão com a base usava só o
+    campo `id` para identificar itens de lista. Turnos e plataformas extra usam
+    `key`, por isso eram descartados na fusão seguinte. Agora `idOf()` usa `id` ou
+    `key` (e, sem nenhum dos dois, o próprio conteúdo). Testado com turnos
+    removidos, adicionados e criados noutro aparelho, e com plataformas extra.
+  - **Aba Dev** fica à direita de "Você", a última da barra.
+  - **Apagar configurações** (redefinir ou apagar tudo) desativa o Modo Dev e
+    esconde a aba Dev. Apagar só os dados mantém o Modo Dev.
+  - **Temas**: os campos de nome e emoji dos turnos e as opções das folhas de
+    exportação e de apagar seguem o modo claro/escuro (classes `theme-input` e
+    `theme-card`).
+
+- **Versão 0.4.24 — Modo Dev em aba própria e guardado**:
+  - O Modo Dev deixou de ser uma secção no fim de Configurações. Passa a ser um
+    ecrã próprio, com a aba "Dev" na barra inferior. As opções são as mesmas.
+  - A aba só aparece com o Modo Dev ativo. Ativar é feito com 5 toques no número da
+    versão. Desativar é feito pelo interruptor no topo do próprio ecrã.
+  - O estado fica guardado em `localSettings.devMode`, no aparelho. Assim, o Modo
+    Dev continua ativo depois de fechar e reabrir a app, até ser desativado. A
+    reposição de configurações não o desativa.
+  - Em Configurações, a secção de exportação já não menciona o Modo Dev. O arquivo
+    .json continua disponível, sem indicação de onde é importado.
+
+- **Versão 0.4.23 — turnos editáveis (adicionar e remover)**:
+  - Em Configurações → Turno de trabalho, a lista de turnos pode ser editada: mudar
+    o nome e o emoji, remover um turno, reativar um turno removido, ou adicionar
+    turnos novos (nome de até 14 letras e um emoji).
+  - A lista fica em `profile.turnoList`, que sincroniza entre aparelhos. Sem lista
+    guardada, aparecem os 4 turnos padrão, com os nomes e emojis personalizados que
+    já existiam.
+  - Remover um turno marca-o como `archived`. Os ganhos antigos continuam a mostrar
+    o turno nos gráficos e na exportação, mas o turno deixa de aparecer no formulário
+    de ganho. Pode ser reativado na lista de "Removidos".
+
+- **Versão 0.4.22 — ajustes de detalhamento, versão e turnos**:
+  - **Lucro · Detalhamento**: o tracejado por baixo de "Líquido TVDE" foi removido.
+    Não fica nenhum tracejado nessa zona.
+  - **Versão do app**: sai do fim de Configurações e passa para a aba Você, logo
+    abaixo do estado de sincronização. Continua a abrir o Modo Dev com 5 toques.
+  - **Turnos**: cada turno tem um campo de emoji e um campo de nome, em
+    Configurações → Turno de trabalho. A lista mostra o nome e o emoji atuais. O
+    emoji aceita um único símbolo. Os valores são guardados em `profile.turnoNames`
+    e `profile.turnoEmojis`, e aplicam-se ao formulário de ganho, ao gráfico "Ganhos
+    por turno" e à exportação.
+
+- **Versão 0.4.21 — versão no fim de Configurações**: o rodapé "Corrida+ vX.X.X"
+  passou para o fim do ecrã, abaixo da zona de perigo e do Modo Dev. Continua a
+  abrir o Modo Dev com 5 toques.
+
+- **Versão 0.4.20 — ajustes de ganhos, detalhamento e turnos**:
+  - **Ganhos**: removida a linha "líq. €" por baixo do valor de cada ganho.
+  - **Lucro · Detalhamento**: o tracejado que ficava por baixo de "Comissão
+    plataforma" foi removido. Fica só o tracejado por baixo de "Líquido TVDE".
+  - **Turnos com nome configurável**: em Configurações → Turno de trabalho, quando o
+    interruptor está ligado, aparecem quatro campos (um por turno), com máximo de 14
+    letras. Em branco, usa o nome original. Os nomes são guardados em
+    `profile.turnoNames`, que sincroniza entre aparelhos, e aplicam-se ao formulário de
+    ganho, ao gráfico "Ganhos por turno" e à exportação para Excel.
+
+- **Versão 0.4.19 — alinhamentos em Configurações e botão de apagar**:
+  - Alinhamentos: removida a margem negativa do texto das metas de lucro, que
+    puxava o texto para cima do campo. Os campos do grupo "Configurações" usam a
+    mesma margem superior (8px). O texto da lista de plataformas extra usa margem
+    vertical igual aos outros textos da secção.
+  - "Apagar dados ou configurações" fica separado do resto por uma linha tracejada
+    em vermelho, com o título "Zona de perigo". O botão é vermelho e sólido, com
+    sombra, e tem a legenda "Ação permanente. Pede um código de confirmação antes de
+    apagar."
+  - Versão do app: 0.4.19 (mostrada no rodapé de Configurações).
+
+- **Versão 0.4.18 — resumo de ontem no Modo Dev e com km e turno**:
+  - Modo Dev → "📊 Resumo de ontem" → "Forçar resumo na próxima abertura". Ignora o
+    interruptor e o registo de "já mostrado hoje", e mostra o resumo uma vez. Se o
+    dia anterior não tiver registos, mostra o resumo vazio. Depois de mostrado, o
+    botão volta ao normal (`devForceDailySummary`, não sincronizado).
+  - O resumo mostra a linha de km sempre que o interruptor de km estiver ligado,
+    mesmo quando o valor é 0.
+  - O resumo mostra o gráfico "Ganhos por turno" de ontem quando o interruptor de
+    turno estiver ligado. Se não houver turnos registados, mostra "Sem turno
+    registado ontem".
+  - Com sessão Firebase, a verificação do resumo corre no fim da sincronização
+    inicial, mesmo quando ela termina antes de houver dados.
+
+- **Versão 0.4.17 — apagar, redefinir e exportar**:
+  - **"Apagar todos os dados" passa a perguntar o que apagar**, com três opções:
+    - *Apagar só os dados*: ganhos, despesas variáveis, despesas fixas e histórico.
+      Mantém configurações, nome e foto.
+    - *Redefinir só as configurações*: tema, IVA, comissão, metas, plataformas extra,
+      opcionais, resumo de ontem, encriptação e biometria. Mantém dados, nome e foto.
+    - *Apagar tudo*: dados, configurações, nome e foto.
+    Cada opção pede o código aleatório de 8 caracteres e mostra os avisos de
+    responsabilidade e de perda permanente.
+  - A limpeza é enviada à nuvem com substituição (`pushToFirestore(true)` ou
+    `pushToCloud(undefined, true)`), e a base de fusão é limpa. Assim, os dados
+    apagados não voltam pela fusão.
+  - A ligação à planilha e a conta Google não são apagadas por nenhuma das opções.
+    São ligações, não preferências.
+  - **Exportar** abre uma escolha entre:
+    - *Planilha Excel (.xlsx)*, para a declaração de IRS (como antes);
+    - *Arquivo de configurações (.json)*, uma cópia completa dos dados e das
+      configurações no formato v1, que pode ser importada em Modo Dev → Importar
+      dados. Não inclui a senha de encriptação.
+
+- **Versão 0.4.16 — resumo de ontem**: novo interruptor em Configurações →
+  Configurações (`profile.dailySummaryEnabled`, desligado por omissão). Na primeira
+  abertura do dia, mostra uma folha com o resumo do dia anterior: bruto TVDE,
+  pessoal, combustível, outras despesas, km (se o interruptor de km estiver ligado)
+  e lucro do dia. O resumo não inclui despesas fixas, como nas vistas de dia.
+  - A data em que o resumo foi mostrado pela última vez fica em `localSettings`,
+    que não sincroniza. Assim, cada aparelho mostra o resumo uma vez por dia.
+  - Só é mostrado se existir algum registo no dia anterior. Se não houver, não
+    marca o dia como mostrado.
+  - Com sessão Firebase, o resumo é verificado depois da sincronização inicial,
+    para usar os dados da nuvem.
+
+- **Versão 0.4.15 — plataformas com IVA e comissão**:
+  - Ao adicionar uma plataforma extra, pergunta-se se cobra IVA e comissão. Por
+    omissão, a resposta é "Não (pessoal)". Cada plataforma tem o campo
+    `profile.customPlatforms[].taxed`.
+  - Na lista de plataformas, o botão "pôr IVA"/"tirar IVA" altera essa escolha
+    depois de criada. A alteração aplica-se a todos os ganhos dessa plataforma,
+    incluindo os antigos, porque os valores são calculados na hora.
+  - `isTvdePlatform()` passou a incluir as plataformas marcadas com IVA. Todas as
+    comparações diretas com Uber/Bolt foram trocadas por essa função, para que IVA,
+    comissão, líquido, lucro e exportação tratem as duas da mesma forma.
+  - Nos ecrãs Ganhos (resumo), Estatísticas → Ano e Estatísticas → Mês, o bruto das
+    plataformas com IVA entra no total TVDE. O cartão "Pessoal" não as mostra.
+    Limitação: nas listas por plataforma das Estatísticas (Dia, Semana, Mês), essas
+    plataformas ainda não têm cartão próprio.
+  - O grupo de configurações "Opcionais" passou a chamar-se "Configurações".
+
+- **Versão 0.4.14 — ajustes à sincronização e ao grupo de opcionais**:
+  - **Nuvem prevalece no primeiro acesso.** Quando a conta tem dados na nuvem, a
+    app usa esses dados sem perguntar, mesmo que o aparelho tenha dados próprios.
+    O aparelho só envia os seus dados quando a nuvem está vazia (utilizador novo).
+    Isto substitui a escolha "manter os locais ou os da nuvem" da 0.4.11, que foi
+    removida. A fusão com a base continua a ser usada nas sincronizações seguintes.
+  - **Apagar todos os dados** exige um código aleatório de 8 caracteres, que tem de
+    ser escrito antes de o botão ficar ativo. A folha mostra o aviso de que a ação
+    é permanente, de que não há cópia de segurança, e de que a Corrida+ não se
+    responsabiliza por perdas de dados.
+  - **IVA / Imposto e Comissão da plataforma** ficam no topo do grupo "Opcionais",
+    juntos e cada um com o seu seletor (`profile.ivaEnabled` e
+    `profile.comissaoEnabled`). Desligado, o valor deixa de entrar nos cálculos e
+    nos ecrãs, e a taxa fica guardada.
+
+- **Versão 0.4.13 — Configurações agrupadas**: as secções "Registos opcionais",
+  "Meta de lucro" e "Outras plataformas" passaram a ser um só grupo, "Opcionais",
+  com os interruptores de turno, km, IVA/imposto, metas de lucro e outras
+  plataformas. A comissão continua num grupo próprio, logo abaixo.
+- **IVA / Imposto com chave de ativação** (`profile.ivaEnabled`). Desligado, `ivaRate()`
+  devolve 0 e todos os cálculos e ecrãs que dependem do IVA deixam de o mostrar. A
+  taxa continua guardada, para voltar a ativar sem a introduzir de novo. Por
+  omissão, fica ativo quando já existe uma taxa maior que 0.
+
+- **Versão 0.4.12 — reversão**: o gráfico diário de Lucro (Semana) volta à fórmula
+  anterior, `(bruto − combustível − IVA sobre o bruto sem combustível) + pessoal −
+  outras variáveis`, e à legenda "Lucro líquido de cada dia da semana". A
+  alteração da 0.4.10 (item 14) foi revertida a pedido.
+
+- **Versão 0.4.11 — Fase 2 da sincronização**:
+  - **Fusão com base em três vias** (`mergeState`, `syncWithCloud`). A app guarda
+    o último estado conhecido da nuvem (`syncBase`, por fonte: uma conta ou o
+    Apps Script). Ao sincronizar, vence o lado que mudou desde a base; se os dois
+    mudaram, vence o local, e campos diferentes do mesmo item fundem-se. Edições e
+    exclusões de cada aparelho chegam aos outros, sem ressuscitar itens apagados.
+    Isto substitui a união por ID e as lápides.
+  - **Snapshot não substitui mais o estado local.** Quando chega uma alteração de
+    outro aparelho, é fundida com a base. Edições ainda não enviadas ficam
+    preservadas.
+  - **Envio pela conta Firebase só depois de ler a nuvem.** `pushToFirestore()`
+    lê o documento e funde antes de gravar. Se a leitura falhar, não grava.
+  - **Primeiro acesso com dados diferentes**: quando a conta tem dados na nuvem e
+    este aparelho também tem dados, a app pergunta. A folha mostra a data em que a
+    nuvem foi guardada (`updatedAt`) e um resumo de cada lado (ganhos, despesas
+    variáveis e fixas). As opções são "Usar os dados da nuvem", "Manter os deste
+    aparelho (substitui a nuvem)" e "Decidir depois". Fechar a folha equivale a
+    "Decidir depois": nada é enviado, e a pergunta volta a aparecer na próxima
+    abertura ou ao tocar em sincronizar.
+  - **Apagar todos os dados** substitui a nuvem (`pushToFirestore(true)`).
+  - A fusão foi testada isoladamente com nove cenários de dois aparelhos
+    (edição remota, exclusão local e remota, adições dos dois lados, conflito no
+    mesmo item, campos diferentes do mesmo item, foto removida, e base vazia).
+  - (Na 0.4.14, a pergunta sobre dados locais ou da nuvem foi removida: a nuvem prevalece.)
+  - Limitação: a base guarda uma cópia completa dos dados no armazenamento local.
+    Com muito histórico, isto pesa; quando o item 9 da lista (limite de 1 MiB no
+    Firestore) for tratado, convém rever este formato.
 
 ## 11. Formato de armazenamento alternativo (schema v1)
 
@@ -715,3 +1152,76 @@ profile, igual a qualquer outra configuração).
 - Cards de "Total bruto"/"Pessoal" em Ganhos, Estatísticas → Mês e
   Estatísticas → Ano atualizados para incluir e discriminar os totais de
   cada plataforma personalizada.
+
+## 22. Pacote de ajustes (v0.4.3)
+
+- **Schema v1 ativo por padrão**: `useNormalizedSchema` passou a `true`
+  por padrão (tanto o valor inicial em memória quanto o fallback quando
+  não há preferência guardada em `window.storage`). Dispositivos que já
+  tinham desativado explicitamente continuam respeitando essa escolha.
+- **Líquido abaixo do bruto em Ganhos**: cada linha da lista de ganhos
+  (`renderEarningsList()`) agora mostra "líq. €X" em fonte pequena por
+  baixo do valor editável, só para plataformas TVDE (Uber/Bolt) e só
+  quando há IVA ou comissão configurados — para plataformas pessoais
+  líquido = bruto, então a linha extra seria redundante e seria omitida.
+- **Correção visual dos campos de "Novo ganho"**: os 4 campos fixos
+  (Uber, Bolt, Particular, Outros) e os campos de plataformas
+  personalizadas estavam dentro de `<div style="...">` em vez de
+  `<div class="field" style="...">` — como a regra de modo escuro/tema
+  (`body.dark .field input`) depende da classe `.field` como ancestral,
+  esses inputs específicos ficavam com a aparência padrão do navegador em
+  vez de respeitar o tema. Corrigido adicionando a classe em falta.
+- **Exportação para Excel**: nova secção em Configurações →
+  "Exportação de dados", com o botão "Exportar para Excel". Gera um
+  `.xlsx` com 4 folhas — Ganhos (todos, com IVA/comissão/líquido
+  discriminados e turno se preenchido), Despesas, Despesas Fixas, e um
+  Resumo Mensal (bruto TVDE/pessoal, IVA, comissão, despesas, lucro) —
+  pensado para servir de base à declaração de IRS. Usa a biblioteca
+  SheetJS, carregada via CDN (`cdnjs.cloudflare.com`) só para esta
+  funcionalidade; o ficheiro é gerado inteiramente no dispositivo, nada é
+  enviado para fora.
+
+## 23. Reforço de segurança: App Check + regras do Firestore com validação de schema (v0.4.4)
+
+Em vez de tentar "esconder" o JS (impossível — ver conversa), o reforço
+real foi investido em duas frentes, ambas detalhadas em
+`corridaplus-firebase-plan.md`:
+
+- **Firebase App Check** (reCAPTCHA v3) — bloco novo no script-módulo
+  Firebase, condicional a `APP_CHECK_SITE_KEY` ser substituído por uma
+  chave real (placeholder por padrão = desativado, não bloqueia nada
+  enquanto não for configurado). Garante que pedidos ao Firestore vêm
+  mesmo desta app, não de um clone do código a imitar os pedidos.
+- **Regras do Firestore reforçadas**: além de verificar "é dono do
+  documento" (`isOwner`), passaram a validar também a FORMA dos dados
+  (`hasValidShape()` — `request.resource.data.keys().hasOnly([...])`),
+  impedindo um cliente alterado de injetar campos fora do schema v1
+  esperado (ex: um campo fake de assinatura ativa escrito diretamente no
+  próprio documento do utilizador).
+- **Desenho correto do gate de assinatura (Fase 3)**: documentado para
+  nunca confiar num campo dentro do documento que o próprio cliente pode
+  escrever — a validação de assinatura ativa vai sempre consultar a
+  coleção `customers/{uid}/subscriptions`, escrita exclusivamente pela
+  extensão Stripe via Cloud Functions (que ignoram as regras do cliente).
+
+## 24. Cartão "Assinatura" em Configurações, com data de validade (v0.4.5)
+
+Novo cartão em Configurações → "Assinatura", logo abaixo de "Conta",
+mostrando o estado da assinatura e até quando está ativa — já preparado
+para a Fase 3 (Stripe), mesmo antes de ela estar configurada.
+
+- `fbListenSubscription(uid, callback)` (módulo Firebase) lê
+  `customers/{uid}/subscriptions` filtrando por `status in
+  ['active','trialing']` — essa coleção só é escrita pela extensão
+  Stripe (Cloud Functions, nunca pelo cliente). Se a coleção ainda não
+  existir ou estiver vazia, devolve `null` sem erro.
+- `window.__fbSubscription` tem três estados possíveis:
+  `undefined` (a verificar), `null` (verificado, sem assinatura — normal
+  antes do Stripe estar configurado), ou o documento da assinatura.
+- `renderSubscriptionCard()` traduz isso em texto: "A verificar…", "🔓 Sem
+  assinatura ativa" (com nota de que a cobrança ainda não está
+  configurada), ou "✅ Assinatura ativa" / "🎁 Período de teste" +
+  "Ativa até DD de mês de AAAA" (lido de `current_period_end`, aceitando
+  tanto Timestamp do Firestore quanto string/número, conforme a versão
+  da extensão). Se `cancel_at_period_end` estiver marcado, mostra
+  "Termina em [data] (cancelamento agendado)" em vez de "Ativa até".
