@@ -590,6 +590,26 @@ body.glass.dark .month-nav-btn { background: rgba(40,40,52,0.45); border-color: 
 body.glass .switch:not(.on) { background: rgba(42,36,32,0.16); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
 body.glass .switch.on { background: var(--switch-on, var(--vault-light)); }
 body.glass.dark .switch:not(.on) { background: rgba(255,255,255,0.18); }
+/* Gota da aba selecionada (só com o efeito transparente) */
+body.glass .tabbar-inner { position: relative; }
+body.glass .tab { position: relative; z-index: 1; }
+#tabPill { display: none; }
+body.glass #tabPill {
+  display: block; position: absolute; z-index: 0; pointer-events: none;
+  border-radius: 14px; opacity: 0;
+  background: rgba(255,255,255,0.5);
+  backdrop-filter: blur(12px) saturate(180%); -webkit-backdrop-filter: blur(12px) saturate(180%);
+  border: 1px solid rgba(255,255,255,0.7);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.8), 0 4px 14px rgba(20,16,12,0.14);
+  transition: left 0.38s cubic-bezier(.34,1.56,.64,1), top 0.38s cubic-bezier(.34,1.56,.64,1),
+              width 0.38s cubic-bezier(.34,1.56,.64,1), height 0.38s cubic-bezier(.34,1.56,.64,1), opacity 0.2s ease;
+}
+body.glass #tabPill.on { opacity: 1; }
+body.glass.dark #tabPill { background: rgba(255,255,255,0.14); border-color: rgba(255,255,255,0.2); }
+body.glass .tab.active, body.glass.dark .tab.active {
+  background: transparent; border-color: transparent; box-shadow: none;
+  backdrop-filter: none; -webkit-backdrop-filter: none;
+}
 </style>
 </head>
 <body>
@@ -1273,7 +1293,7 @@ body.glass.dark .switch:not(.on) { background: rgba(255,255,255,0.18); }
 // Esquema de versão: de volta ao pré-1.0 (0.x.x) — a v1.0.0 fica
 // reservada para o lançamento com assinatura paga completa. A numeração
 // 4.x.x usada temporariamente para a integração Firebase foi abandonada.
-const APP_VERSION = '0.4.44';
+const APP_VERSION = '0.4.45';
 // Mostra o número da versão na tela de carregamento imediatamente (sem
 // esperar por loadAll/qualquer coisa assíncrona) — sempre visível,
 // independente da mensagem dinâmica ("A carregar…", "A sincronizar…",
@@ -2388,7 +2408,122 @@ function setSyncStatus(state){
 
 // --- NAVIGATION ---
 const TABS = ['tabGanhos','tabDespesas','tabLucro','tabStats','tabSettings','tabDev'];
-function activateTab(id){ TABS.forEach(t => document.getElementById(t).classList.toggle('active', t === id)); }
+function activateTab(id){
+  TABS.forEach(t => document.getElementById(t).classList.toggle('active', t === id));
+  positionTabPill(id);
+}
+// Gota da aba selecionada (só com o efeito transparente).
+function positionTabPill(id, animate){
+  if(!document.body.classList.contains('glass')) return;
+  const bar = document.querySelector('.tabbar-inner');
+  if(!bar) return;
+  let p = document.getElementById('tabPill');
+  if(!p){ p = document.createElement('div'); p.id = 'tabPill'; bar.prepend(p); }
+  const target = document.getElementById(id || currentTabId());
+  if(!target || target.classList.contains('hidden-tab')){ p.classList.remove('on'); return; }
+  p.style.transition = animate === false ? 'none' : '';
+  p.style.left = target.offsetLeft + 'px';
+  p.style.top = target.offsetTop + 'px';
+  p.style.width = target.offsetWidth + 'px';
+  p.style.height = target.offsetHeight + 'px';
+  p.classList.add('on');
+}
+function currentTabId(){ return TABS.find(id => document.getElementById(id) && document.getElementById(id).classList.contains('active')); }
+function visibleTabIds(){ return TABS.filter(id => { const el = document.getElementById(id); return el && !el.classList.contains('hidden-tab'); }); }
+const TAB_NAV = { tabGanhos: () => goGanhos(), tabDespesas: () => goDespesas(), tabLucro: () => goLucro(), tabStats: () => goStats(), tabSettings: () => goSettings(), tabDev: () => goDev() };
+
+// Arrastar sobre a barra: a gota segue o dedo e a aba muda ao soltar, na mais próxima.
+let suppressTabClick = false;
+function setupTabDrag(){
+  const bar = document.querySelector('.tabbar-inner');
+  if(!bar) return;
+  let drag = null;
+  const vertical = () => getComputedStyle(bar).flexDirection === 'column';
+  const nearestIndex = (ids, e) => {
+    let best = 0, bestD = Infinity;
+    ids.forEach((id, i) => {
+      const r = document.getElementById(id).getBoundingClientRect();
+      const c = vertical() ? r.top + r.height / 2 : r.left + r.width / 2;
+      const p = vertical() ? e.clientY : e.clientX;
+      const d = Math.abs(p - c);
+      if(d < bestD){ bestD = d; best = i; }
+    });
+    return best;
+  };
+  const moveGota = (ids, e) => {
+    const p = document.getElementById('tabPill');
+    const first = document.getElementById(ids[0]), last = document.getElementById(ids[ids.length - 1]);
+    const br = bar.getBoundingClientRect();
+    if(!p) return;
+    p.style.transition = 'none';
+    p.style.width = first.offsetWidth + 'px';
+    p.style.height = first.offsetHeight + 'px';
+    if(vertical()){
+      const h = first.offsetHeight;
+      p.style.top = Math.max(first.offsetTop, Math.min(last.offsetTop, e.clientY - br.top - h / 2)) + 'px';
+    } else {
+      const w = first.offsetWidth;
+      p.style.left = Math.max(first.offsetLeft, Math.min(last.offsetLeft, e.clientX - br.left - w / 2)) + 'px';
+    }
+  };
+  bar.addEventListener('pointerdown', e => {
+    if(!document.body.classList.contains('glass')) return;
+    const ids = visibleTabIds();
+    if(ids.length < 2) return;
+    drag = { x: e.clientX, y: e.clientY, moved: false, pointerId: e.pointerId, ids };
+  });
+  bar.addEventListener('pointermove', e => {
+    if(!drag) return;
+    if(!drag.moved){
+      if(Math.hypot(e.clientX - drag.x, e.clientY - drag.y) < 6) return;
+      drag.moved = true;
+      try{ bar.setPointerCapture(drag.pointerId); }catch(_){}
+    }
+    moveGota(drag.ids, e);
+  });
+  const end = e => {
+    if(!drag) return;
+    const d = drag;
+    drag = null;
+    if(!d.moved) return;
+    try{ bar.releasePointerCapture(d.pointerId); }catch(_){}
+    suppressTabClick = true;
+    const id = d.ids[nearestIndex(d.ids, e)];
+    if(id !== currentTabId()) TAB_NAV[id](); else positionTabPill(id);
+  };
+  bar.addEventListener('pointerup', end);
+  bar.addEventListener('pointercancel', end);
+  bar.addEventListener('click', e => {
+    if(suppressTabClick){ suppressTabClick = false; e.stopPropagation(); e.preventDefault(); }
+  }, true);
+}
+
+// Deslizar na horizontal sobre o conteúdo: aba seguinte ou anterior.
+function setupSwipeNav(){
+  const app = document.getElementById('app');
+  if(!app) return;
+  let s = null;
+  app.addEventListener('touchstart', e => {
+    if(!document.body.classList.contains('glass')) return;
+    if(document.querySelector('.overlay.show')) return;
+    if(e.touches.length !== 1) return;
+    if(e.target.closest('input, textarea, select, button, .seg, .switch, svg, .bill-amount-input')) return;
+    const t = e.touches[0];
+    s = { x: t.clientX, y: t.clientY, t: Date.now() };
+  }, { passive: true });
+  app.addEventListener('touchend', e => {
+    if(!s) return;
+    const t = e.changedTouches[0];
+    const dx = t.clientX - s.x, dy = t.clientY - s.y, dt = Date.now() - s.t;
+    s = null;
+    if(Math.abs(dx) < 70 || Math.abs(dx) < 1.6 * Math.abs(dy) || dt > 700) return;
+    const ids = visibleTabIds();
+    const cur = ids.indexOf(currentTabId());
+    const next = dx < 0 ? cur + 1 : cur - 1;
+    if(cur < 0 || next < 0 || next >= ids.length) return;
+    TAB_NAV[ids[next]]();
+  }, { passive: true });
+}
 function showScreen(id){
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   document.getElementById(id).classList.add('active');
@@ -2541,6 +2676,7 @@ function renderBgImageRow(){
 }
 function applyLiquidGlass(){
   document.body.classList.toggle('glass', localSettings.liquidGlass === true);
+  positionTabPill();
 }
 async function toggleLiquidGlass(){
   localSettings.liquidGlass = !(localSettings.liquidGlass === true);
@@ -5869,6 +6005,9 @@ function showToast(msg){
 }
 
 // --- INIT ---
+window.addEventListener('resize', () => positionTabPill());
+setupTabDrag();
+setupSwipeNav();
 if(window.matchMedia){
   window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
     if((localSettings.darkMode || 'system') === 'system') applyDarkModeClass();
