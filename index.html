@@ -1150,7 +1150,7 @@ body.dark .theme-card { background:#252530; }
 // Esquema de versão: de volta ao pré-1.0 (0.x.x) — a v1.0.0 fica
 // reservada para o lançamento com assinatura paga completa. A numeração
 // 4.x.x usada temporariamente para a integração Firebase foi abandonada.
-const APP_VERSION = '0.4.26';
+const APP_VERSION = '0.4.27';
 // Mostra o número da versão na tela de carregamento imediatamente (sem
 // esperar por loadAll/qualquer coisa assíncrona) — sempre visível,
 // independente da mensagem dinâmica ("A carregar…", "A sincronizar…",
@@ -1780,6 +1780,7 @@ async function loadAll(){
   await loadFromLocalStorage();
 
   applyTabVisibility();
+  if(repairTurnoList()){ persistLocalOnlySilently(); scheduleCloudPush(); }
   applyAllAppearance();
   hideLoadingState();
   renderLucro();
@@ -1970,6 +1971,7 @@ async function applyState(st){
   monthData = st.monthData || {};
   profile = st.profile || { name: '', photo: null };
   if(profile.vehicle) delete profile.vehicle;
+  repairTurnoList();
   Object.keys(monthData).forEach(k => {
     const e = monthData[k];
     if(!e.earnings) e.earnings = [];
@@ -2429,7 +2431,8 @@ function renderSettings(){
               <input type="text" id="newTurnoName" maxlength="14" placeholder="ex: Almoço" class="theme-input" style="${inputStyle}" /></div>
           </div>
           <button onclick="addTurno()" style="width:100%;margin-top:10px;padding:12px;border-radius:var(--r-md);border:none;background:var(--vault);color:#fff;font-weight:700;font-size:14px;cursor:pointer;">＋ Adicionar turno</button>
-        </div>`;
+        </div>
+        <button onclick="restoreDefaultTurnos()" style="width:100%;margin-top:4px;padding:12px;border-radius:var(--r-md);border:1.5px solid var(--line);background:transparent;color:var(--ink);font-weight:700;font-size:13px;cursor:pointer;">↺ Repor turnos padrão</button>`;
     } else {
       tnRow.innerHTML = '';
     }
@@ -3998,6 +4001,29 @@ function getTurnos(){
   return TURNOS.map(t => ({ key: t.key, label: names[t.key] || t.label, emoji: emojis[t.key] || t.emoji }));
 }
 function activeTurnos(){ return getTurnos().filter(t => !t.archived); }
+// Garante que os 4 turnos padrão existem na lista. Um turno removido fica
+// arquivado (não some), por isso um padrão em falta só pode ser um erro antigo.
+function repairTurnoList(){
+  if(!profile.turnoList) return false;
+  let changed = false;
+  TURNOS.forEach(t => {
+    if(!profile.turnoList.some(x => x.key === t.key)){
+      profile.turnoList.push({ key: t.key, label: t.label, emoji: t.emoji });
+      changed = true;
+    }
+  });
+  return changed;
+}
+// Volta aos 4 turnos padrão. Os turnos personalizados ficam arquivados, para
+// os ganhos antigos continuarem com o nome certo.
+async function restoreDefaultTurnos(){
+  if(!confirm('Repor os turnos padrão? Os turnos que criaste ficam arquivados, e os ganhos antigos mantêm o nome que tinham.')) return;
+  const custom = getTurnos().filter(t => !TURNOS.some(x => x.key === t.key)).map(t => ({ ...t, archived: true }));
+  profile.turnoList = TURNOS.map(t => ({ key: t.key, label: t.label, emoji: t.emoji })).concat(custom);
+  delete profile.turnoNames;
+  delete profile.turnoEmojis;
+  await saveTurnos('Turnos padrão repostos');
+}
 function firstGrapheme(v){
   const parts = (typeof Intl !== 'undefined' && Intl.Segmenter) ? [...new Intl.Segmenter().segment(v)].map(x => x.segment) : [...v];
   return parts[0] || '';
