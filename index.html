@@ -482,6 +482,18 @@ body.dark button[onclick="lockSyncUrl()"] { background: var(--vault); color: #ff
 body.dark .theme-input { background:#1C1C23; color:var(--ink); border-color:rgba(255,255,255,0.14); }
 .theme-card { background:#fff; }
 body.dark .theme-card { background:#252530; }
+body.basic-mode #screen-settings .switch:not(#swIva):not(#swComissao),
+body.basic-mode #screen-settings .field input:not(#ivaRate):not(#comissaoRate),
+body.basic-mode #screen-settings .field select,
+body.basic-mode #screen-settings #goalsFieldsRow input,
+body.basic-mode #turnoNamesRow input,
+body.basic-mode #turnoNamesRow button,
+body.basic-mode #turnoNamesRow .bill-delete,
+body.basic-mode #customPlatformsBody input,
+body.basic-mode #customPlatformsBody button,
+body.basic-mode #screen-settings .bill-amount-input { pointer-events:none; opacity:0.4; filter:grayscale(1); }
+body.basic-mode #statsViewSeg .seg-opt:not([data-v="mes"]) { display:none; }
+#basicBanner { display:none; background:rgba(184,134,43,0.14); border:1px solid rgba(184,134,43,0.35); border-radius:var(--r-md); padding:12px 14px; margin:8px 0 4px; font-size:12px; line-height:1.5; }
 </style>
 </head>
 <body>
@@ -704,6 +716,7 @@ body.dark .theme-card { background:#252530; }
       </div>
     </div>
 
+    <div id="basicBanner">🔒 <strong>Modo básico.</strong> Limite de 5 ganhos, 5 despesas variáveis e 5 despesas fixas, e as configurações ficam bloqueadas. Entra com a tua conta Google para desbloquear tudo.</div>
     <div class="section-head" style="margin-top:6px;"><div class="section-title">Conta</div></div>
     <div id="profileCardsList"></div>
 
@@ -1150,7 +1163,7 @@ body.dark .theme-card { background:#252530; }
 // Esquema de versão: de volta ao pré-1.0 (0.x.x) — a v1.0.0 fica
 // reservada para o lançamento com assinatura paga completa. A numeração
 // 4.x.x usada temporariamente para a integração Firebase foi abandonada.
-const APP_VERSION = '0.4.28';
+const APP_VERSION = '0.4.30';
 // Mostra o número da versão na tela de carregamento imediatamente (sem
 // esperar por loadAll/qualquer coisa assíncrona) — sempre visível,
 // independente da mensagem dinâmica ("A carregar…", "A sincronizar…",
@@ -1827,6 +1840,7 @@ async function loadAll(){
   hideSplash();
 
   if(isFirstLoad) await maybeRunEasterEgg();
+  if(isFirstLoad && basicMode() && !localSettings.welcomeDone) showWelcomeSheet();
   if(isFirstLoad && !window.__fbUser) await runDailySummaryCheck();
 
   // Verificação silenciosa de atualização: se houver uma versão mais nova
@@ -1995,6 +2009,40 @@ async function loadSyncBase(){
 async function saveSyncBase(state){
   try{ await window.storage.set('syncBase', JSON.stringify({ source: sourceKey(), state })); }catch(e){}
 }
+// Pergunta quando este aparelho tem dados que nunca foram sincronizados com a conta
+// e a nuvem já tem dados. Devolve 'cloud' | 'local' | null (decidir depois).
+function askCloudConflict(localSt, cloudSt, stamp){
+  return new Promise(resolve => {
+    window._conflictResolve = resolve;
+    const when = stamp
+      ? new Date(stamp).toLocaleString('pt-BR', { day:'2-digit', month:'2-digit', year:'numeric', hour:'2-digit', minute:'2-digit' })
+      : 'data desconhecida';
+    openSheet(`
+      <div class="sheet-handle"></div>
+      <div class="sheet-title">Dados diferentes</div>
+      <div class="sheet-sub">A tua conta já tem dados na nuvem, e este aparelho tem dados que ainda não foram sincronizados com ela.</div>
+      <div class="chart-box" style="margin-bottom:10px;">
+        <div class="chart-box-title">☁️ Dados da nuvem</div>
+        <div class="chart-box-sub">Guardados em ${escapeHtml(when)}</div>
+        <div style="font-size:12px;">${escapeHtml(summarizeState(cloudSt))}</div>
+      </div>
+      <div class="chart-box" style="margin-bottom:14px;">
+        <div class="chart-box-title">📱 Este aparelho</div>
+        <div class="chart-box-sub">Dados criados neste aparelho</div>
+        <div style="font-size:12px;">${escapeHtml(summarizeState(localSt))}</div>
+      </div>
+      <button class="btn btn-primary" onclick="resolveCloudConflict('local')">Manter os deste aparelho (substitui a nuvem)</button>
+      <button class="btn btn-danger-text" onclick="resolveCloudConflict('cloud')">Começar de novo com os da nuvem (apaga os deste aparelho)</button>
+      <button class="btn btn-ghost" onclick="resolveCloudConflict(null)">Decidir depois</button>
+    `);
+  });
+}
+function resolveCloudConflict(choice){
+  const r = window._conflictResolve;
+  window._conflictResolve = null;
+  closeSheet();
+  if(r) r(choice);
+}
 // Núcleo da sincronização: compara o remoto com o local, usando a base.
 // Devolve 'ok' (fundido e aplicado), 'push' (enviar o local por cima do remoto),
 // ou 'pending' (aguarda decisão do utilizador).
@@ -2010,11 +2058,13 @@ async function syncWithCloud(remoteRaw, opts){
     return 'ok';
   }
   if(!hasData(remote)) return 'push';
-  // A conta já tem dados na nuvem: a nuvem prevalece. O aparelho só envia os
-  // seus dados quando a nuvem está vazia (utilizador novo).
-  await applyState(remote);
-  await saveSyncBase(remote);
-  return 'ok';
+  // Dados deste aparelho que ainda não foram sincronizados com esta conta, e a nuvem
+  // já tem dados: o utilizador escolhe. Em segundo plano, fica pendente.
+  if(!ask) return 'pending';
+  const choice = await askCloudConflict(currentState(), remote, stamp);
+  if(choice === 'cloud'){ await applyState(remote); await saveSyncBase(remote); return 'ok'; }
+  if(choice === 'local') return 'push';
+  return 'pending';
 }
 // Primeira sincronização da sessão Firebase (não bloqueia a app).
 async function initialCloudSync(uid){
@@ -2393,6 +2443,9 @@ function renderSettings(){
   if(swCustom) swCustom.className = 'switch' + (customPlatformsOn() ? ' on' : '');
   const customBody = document.getElementById('customPlatformsBody');
   if(customBody) customBody.style.display = customPlatformsOn() ? 'block' : 'none';
+  document.body.classList.toggle('basic-mode', basicMode());
+  const bb = document.getElementById('basicBanner');
+  if(bb) bb.style.display = basicMode() ? 'block' : 'none';
   const swCom = document.getElementById('swComissao');
   if(swCom) swCom.className = 'switch' + (comissaoOn() ? ' on' : '');
   const comFieldsRow = document.getElementById('comissaoFieldsRow');
@@ -2938,7 +2991,7 @@ function confirmResetAll(){
 const RESET_TEXTS = {
   data:     { title: 'Apagar os dados', what: 'ganhos, despesas variáveis, despesas fixas e o histórico, neste aparelho e na nuvem. As configurações, o nome e a foto são mantidos.' },
   settings: { title: 'Redefinir as configurações', what: 'tema, IVA, comissão, metas, plataformas extra, opcionais, resumo de ontem, encriptação e biometria, neste aparelho e na nuvem. Os dados, o nome e a foto são mantidos.' },
-  all:      { title: 'Apagar tudo', what: 'todos os dados, todas as configurações, o nome e a foto, neste aparelho e na nuvem.' }
+  all:      { title: 'Apagar tudo', what: 'todos os dados, todas as configurações, o nome e a foto, neste aparelho e na nuvem. Também sai da conta Google neste aparelho. A assinatura não é afetada: continua ativa na conta e volta a aparecer ao entrar de novo.' }
 };
 function openResetCodeSheet(scope){
   const t = RESET_TEXTS[scope];
@@ -2998,7 +3051,7 @@ async function performResetInner(scope){
   if(eraseSettings){
     const keepIdentity = scope === 'settings';
     profile = { name: keepIdentity ? (profile.name || '') : '', photo: keepIdentity ? (profile.photo || null) : null };
-    localSettings = { darkMode: 'system', themeColor: 'green', devMode: false };
+    localSettings = { darkMode: 'system', themeColor: 'green', devMode: false, welcomeDone: scope === 'all' ? false : localSettings.welcomeDone === true };
     devMode = false;
     applyTabVisibility();
     encryptionEnabled = false;
@@ -3022,7 +3075,13 @@ async function performResetInner(scope){
   applyAllAppearance();
   renderSettings();
   showToast(scope === 'data' ? 'Dados apagados' : scope === 'settings' ? 'Configurações redefinidas' : 'Tudo apagado');
+  if(scope === 'all' && window.__fbUser){
+    try{ await window.fbSignOut(); }catch(e){}
+    location.reload();
+    return;
+  }
   goGanhos();
+  if(scope === 'all' && basicMode()) showWelcomeSheet();
 }
 
 // Exportação: escolhe entre a planilha Excel e o arquivo de configurações (.json),
@@ -3686,7 +3745,36 @@ function renderStatsYear(){
   box.innerHTML = html;
 }
 
+// Modo básico: Estatísticas mostram só o resumo do mês (sem gráficos, turnos, km, metas).
+function renderStatsBasic(){
+  statsView = 'mes';
+  document.querySelectorAll('#statsViewSeg .seg-opt').forEach(el => el.classList.toggle('active', el.dataset.v === 'mes'));
+  document.getElementById('statsMonthNav').style.display = 'flex';
+  document.getElementById('statsYearNav').style.display = 'none';
+  document.getElementById('statsDayWeekNav').style.display = 'none';
+  const [curY, curM] = currentMonthKey.split('-').map(Number);
+  document.getElementById('statsLabelMes').textContent = new Date(curY, curM - 1, 1).toLocaleDateString('pt-BR', { month:'long', year:'numeric' });
+  const entry = ensureMonthEntry(currentMonthKey);
+  const apps = entry.earnings.filter(e => isTvdePlatform(e.platform)).reduce((s,e) => s + (e.amount||0), 0);
+  const part = entry.earnings.filter(e => !isTvdePlatform(e.platform)).reduce((s,e) => s + (e.amount||0), 0);
+  const comb = combustivelAmount(entry.variableExpenses);
+  const varOther = entry.variableExpenses.filter(e => e.category !== 'combustivel').reduce((s,e) => s + (e.amount||0), 0);
+  const fixas = totalFixedBills(entry);
+  const iva = ivaAmount(apps), com = comissaoAmount(apps);
+  const liquido = (apps - iva - com) - comb + part;
+  const lucro = liquido - fixas - varOther;
+  document.getElementById('statsContent').innerHTML = `
+    <div class="stat-cards">
+      <div class="stat-card"><div class="stat-card-label">🚖 Bruto TVDE</div><div class="stat-card-value">${fmt(apps)}</div></div>
+      <div class="stat-card"><div class="stat-card-label">🚘 Pessoal</div><div class="stat-card-value">${fmt(part)}</div></div>
+      <div class="stat-card"><div class="stat-card-label">⛽ Combustível</div><div class="stat-card-value negative">− ${fmt(comb)}</div></div>
+      <div class="stat-card"><div class="stat-card-label">Outras despesas</div><div class="stat-card-value negative">− ${fmt(varOther + fixas)}</div></div>
+      <div class="stat-card" style="border-color:var(--vault);grid-column:1/-1;"><div class="stat-card-label">💰 Lucro do mês</div><div class="stat-card-value ${lucro < 0 ? 'negative' : ''}">${fmt(lucro)}</div></div>
+    </div>
+    <div class="section-sub" style="font-size:11px;">Modo básico. Entra com a tua conta Google para ver gráficos, turnos, km e metas.</div>`;
+}
 function renderStats(){
+  if(basicMode()){ renderStatsBasic(); return; }
   if(statsView === 'dia') renderStatsDay();
   else if(statsView === 'semana') renderStatsWeek();
   else if(statsView === 'ano') renderStatsYear();
@@ -3898,7 +3986,10 @@ function renderLucro(){
 
 // --- SHEETS ---
 function openSheet(html){ document.getElementById('sheet').innerHTML = html; document.getElementById('overlay').classList.add('show'); }
-function closeSheet(){ document.getElementById('overlay').classList.remove('show'); }
+function closeSheet(){
+  document.getElementById('overlay').classList.remove('show');
+  if(window._conflictResolve){ const r = window._conflictResolve; window._conflictResolve = null; r(null); }
+}
 function closeSheetOnBackdrop(e){ if(e.target.id === 'overlay') closeSheet(); }
 
 // --- MÊS navigation / picker ---
@@ -4072,6 +4163,50 @@ async function restoreTurno(key){
   const t = ensureTurnoList().find(x => x.key === key);
   if(t) t.archived = false;
   await saveTurnos('Turno reativado');
+}
+// ---------------- Modo básico (sem login) ----------------
+const BASIC_LIMITS = { ganhos: 5, despesas: 5, fixas: 5 };
+const BASIC_LABELS = { ganhos: 'ganhos', despesas: 'despesas variáveis', fixas: 'despesas fixas' };
+function basicMode(){ return !window.__fbUser; }
+function countRecords(){
+  let ganhos = 0, despesas = 0;
+  Object.keys(monthData).forEach(k => {
+    const m = monthData[k] || {};
+    ganhos += (m.earnings || []).length;
+    despesas += (m.variableExpenses || []).length;
+  });
+  return { ganhos, despesas, fixas: bills.length };
+}
+// Devolve true (e mostra o aviso) se adicionar `adding` registos ultrapassaria o limite.
+function basicLimitBlocked(kind, adding){
+  if(!basicMode()) return false;
+  const total = countRecords()[kind] + adding;
+  if(total <= BASIC_LIMITS[kind]) return false;
+  openSheet(`
+    <div class="sheet-handle"></div>
+    <div class="sheet-title">Limite do modo básico</div>
+    <div class="sheet-sub">No modo básico podes ter até ${BASIC_LIMITS[kind]} ${BASIC_LABELS[kind]}.</div>
+    <div style="font-size:13px;line-height:1.6;margin-bottom:14px;">Entra com a tua conta Google para registar sem limite e desbloquear as configurações.</div>
+    <button class="btn btn-primary" onclick="closeSheet(); handleGoogleSignIn();">Entrar com Google</button>
+    <button class="btn btn-ghost" onclick="closeSheet()">Fechar</button>
+  `);
+  return true;
+}
+function showWelcomeSheet(){
+  openSheet(`
+    <div class="sheet-handle"></div>
+    <div class="sheet-title">Bem-vindo ao Corrida+ 👋</div>
+    <div class="sheet-sub">Controla os teus ganhos, despesas e lucro.</div>
+    <div style="font-size:13px;line-height:1.6;margin-bottom:14px;">Entra com a tua conta Google para sincronizar os teus dados e desbloquear todas as opções.<br><br>Sem login, podes usar o modo básico: até 5 ganhos, 5 despesas variáveis e 5 despesas fixas, com as configurações bloqueadas.</div>
+    <button class="btn btn-primary" onclick="welcomeChoice(true)">Entrar com Google</button>
+    <button class="btn btn-ghost" onclick="welcomeChoice(false)">Continuar em modo básico</button>
+  `);
+}
+async function welcomeChoice(login){
+  localSettings.welcomeDone = true;
+  await persistLocalSettings();
+  closeSheet();
+  if(login) handleGoogleSignIn();
 }
 function isTvdePlatform(platform){
   if(platform === 'uber' || platform === 'bolt') return true;
@@ -4385,6 +4520,8 @@ async function confirmAddIncome(){
   }));
   const anyCustom = customAmts.some(c => c.amt > 0);
   if(uberAmt === 0 && boltAmt === 0 && partAmt === 0 && outrosAmt === 0 && !anyCustom){ showToast('Insira pelo menos um valor'); return; }
+  const nAdd = (uberAmt > 0 ? 1 : 0) + (boltAmt > 0 ? 1 : 0) + (partAmt > 0 ? 1 : 0) + (outrosAmt > 0 ? 1 : 0) + customAmts.filter(c => c.amt > 0).length;
+  if(basicLimitBlocked('ganhos', nAdd)) return;
   const monthKeyOfDate = date.slice(0,7);
   const entry = ensureMonthEntry(monthKeyOfDate);
   let tsOffset = 0;
@@ -4490,6 +4627,7 @@ async function confirmNewExpense(){
   const dateVal   = document.getElementById('newExpenseDate').value;
   const liters    = category === 'combustivel' ? (parseFloat(document.getElementById('newExpenseLiters').value) || 0) : 0;
   if(!amount || amount <= 0){ showToast('Digite um valor válido'); return; }
+  if(basicLimitBlocked('despesas', 1)) return;
   const expMonthKey = dateVal ? dateVal.slice(0, 7) : currentMonthKey;
   const entry = ensureMonthEntry(expMonthKey);
   const expDate = dateVal || isoDate(new Date());
@@ -4672,6 +4810,7 @@ async function createBill(){
   const frequency = window._pendingBillFreq || 'mensal';
   const weeklySplit = frequency === 'mensal' ? (window._pendingBillWeeklySplit || 'none') : 'none';
   if(!name){ showToast('Dê um nome à despesa'); return; }
+  if(basicLimitBlocked('fixas', 1)) return;
   bills.push({ id: uid(), name, defaultAmount: amount, frequency, weeklySplit, createdMonthKey: currentMonthKey });
   await persistBills(); closeSheet(); showToast('Adicionado com sucesso'); renderDespesas();
 }
