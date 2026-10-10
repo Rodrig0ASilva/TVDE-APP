@@ -791,18 +791,58 @@ body.dark button[onclick="lockSyncUrl()"] { background: var(--vault); color: #ff
       </div>
     </div>
 
-    <div class="section-head" style="margin-top:20px;"><div class="section-title">Outras plataformas</div></div>
-    <div class="section-sub" style="margin-bottom:10px;">Além de Uber e Bolt, podes registar ganhos de outras apps (ex: 99, InDrive, Free Now) se usares mais do que essas duas. Entram sempre no balde "pessoal", sem desconto de IVA/comissão.</div>
-    <div id="customPlatformsList"></div>
-    <div class="field" style="display:flex;gap:8px;align-items:flex-end;margin-top:4px;">
-      <div style="flex:1;">
-        <label>Nome da plataforma</label>
-        <input type="text" id="newCustomPlatformName" placeholder="ex: 99, InDrive" maxlength="20" />
+    <div class="section-head" style="margin-top:20px;"><div class="section-title">Registos opcionais</div></div>
+    <div class="switch-row">
+      <div class="switch-row-text">
+        <div class="switch-row-title">Turno de trabalho</div>
+        <div class="switch-row-sub">Mostra o seletor de turno ao registar ganhos e o gráfico "Ganhos por turno" nas Estatísticas.</div>
       </div>
-      <button onclick="addCustomPlatform()" style="padding:13px 16px;border-radius:var(--r-md);border:none;background:var(--vault);color:#fff;font-weight:700;font-size:14px;cursor:pointer;white-space:nowrap;">＋ Adicionar</button>
+      <div class="switch" id="swTurno" onclick="toggleFeature('showTurno')"></div>
+    </div>
+    <div class="switch-row">
+      <div class="switch-row-text">
+        <div class="switch-row-title">Quilómetros (km)</div>
+        <div class="switch-row-sub">Campo opcional de km ao registar ganhos. Se preenchido, aparece nas Estatísticas (km totais e lucro por km).</div>
+      </div>
+      <div class="switch" id="swKm" onclick="toggleFeature('showKm')"></div>
     </div>
 
-    <div class="section-head" style="margin-top:20px;"><div class="section-title">Sincronização</div></div>
+    <div class="section-head" style="margin-top:20px;"><div class="section-title">Outras plataformas</div></div>
+    <div class="switch-row">
+      <div class="switch-row-text">
+        <div class="switch-row-title">Usar outras plataformas</div>
+        <div class="switch-row-sub">Ativa o registo de apps extra (ex: 99, InDrive, Free Now). Entram no balde "pessoal", sem IVA nem comissão.</div>
+      </div>
+      <div class="switch" id="swCustomPlat" onclick="toggleFeature('customPlatformsEnabled')"></div>
+    </div>
+    <div id="customPlatformsBody" style="display:none;">
+      <div class="section-sub" style="margin:10px 0;">Lista das plataformas extra que registas.</div>
+      <div id="customPlatformsList"></div>
+      <div class="field" style="display:flex;gap:8px;align-items:flex-end;margin-top:4px;">
+        <div style="flex:1;">
+          <label>Nome da plataforma</label>
+          <input type="text" id="newCustomPlatformName" placeholder="ex: 99, InDrive" maxlength="20" />
+        </div>
+        <button onclick="addCustomPlatform()" style="padding:13px 16px;border-radius:var(--r-md);border:none;background:var(--vault);color:#fff;font-weight:700;font-size:14px;cursor:pointer;white-space:nowrap;">＋ Adicionar</button>
+      </div>
+    </div>
+
+    <div class="section-head" style="margin-top:20px;"><div class="section-title">Exportação de dados</div></div>
+    <div class="section-sub" style="margin-bottom:10px;">Gera uma planilha Excel (.xlsx) com o detalhamento completo de ganhos, despesas e impostos — útil para a declaração de IRS ou para guardar como backup.</div>
+    <button onclick="exportDataToExcel()" id="exportExcelBtn" style="width:100%;padding:13px;border-radius:var(--r-md);border:1.5px solid var(--line);background:transparent;color:var(--ink);font-weight:700;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;">
+      <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M9 13h1m4 0h1M9 17h1m4 0h1" stroke-linecap="round"/></svg>
+      Exportar para Excel
+    </button>
+
+    <div style="text-align:center;padding:18px 0 4px;font-size:11px;color:var(--text-faint);" onclick="tapVersion()">Corrida+ v<span id="appVersionDisplay"></span></div>
+
+    <div id="devPanel" style="display:none;margin-top:4px;border:1.5px dashed var(--terracotta);border-radius:var(--r-xl);padding:16px 18px 20px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+        <div style="font-size:13px;font-weight:700;color:var(--terracotta);">🛠️ Modo Dev</div>
+        <div class="switch on" onclick="toggleDevMode()"></div>
+      </div>
+
+      <div class="section-head" style="margin-top:0;"><div class="section-title">🔗 Sincronização</div></div>
     <div id="syncUrlLockedView" style="background:rgba(31,58,46,0.06);border-radius:var(--r-md);padding:14px;margin-top:8px;display:flex;align-items:center;gap:12px;">
       <div style="font-size:22px;">🔒</div>
       <div style="flex:1;min-width:0;">
@@ -824,26 +864,11 @@ body.dark button[onclick="lockSyncUrl()"] { background: var(--vault); color: #ff
       </div>
     </div>
 
-    <div class="section-head" style="margin-top:20px;"><div class="section-title">Exportação de dados</div></div>
-    <div class="section-sub" style="margin-bottom:10px;">Gera uma planilha Excel (.xlsx) com o detalhamento completo de ganhos, despesas e impostos — útil para a declaração de IRS ou para guardar como backup.</div>
-    <button onclick="exportDataToExcel()" id="exportExcelBtn" style="width:100%;padding:13px;border-radius:var(--r-md);border:1.5px solid var(--line);background:transparent;color:var(--ink);font-weight:700;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;">
-      <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M9 13h1m4 0h1M9 17h1m4 0h1" stroke-linecap="round"/></svg>
-      Exportar para Excel
-    </button>
-
-    <button class="delete-all-btn" onclick="confirmResetAll()">Apagar todos os dados</button>
-
-    <a href="https://github.com/Rodrig0Almeida" target="_blank" rel="noopener" style="display:flex;align-items:center;justify-content:center;gap:8px;margin-top:18px;padding:13px;border-radius:var(--r-md);border:1.5px solid var(--line);background:transparent;color:var(--ink);font-weight:700;font-size:14px;text-decoration:none;">
-      <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.3 3.44 9.8 8.21 11.39.6.11.82-.26.82-.58 0-.29-.01-1.04-.02-2.04-3.34.73-4.04-1.61-4.04-1.61-.55-1.39-1.34-1.76-1.34-1.76-1.09-.75.08-.73.08-.73 1.2.09 1.83 1.24 1.83 1.24 1.07 1.83 2.81 1.3 3.49.99.11-.78.42-1.3.76-1.6-2.67-.3-5.47-1.34-5.47-5.93 0-1.31.47-2.38 1.24-3.22-.12-.3-.54-1.52.12-3.18 0 0 1.01-.32 3.3 1.23a11.5 11.5 0 0 1 6 0c2.29-1.55 3.3-1.23 3.3-1.23.66 1.66.24 2.88.12 3.18.77.84 1.24 1.91 1.24 3.22 0 4.6-2.81 5.63-5.48 5.92.43.37.81 1.1.81 2.22 0 1.61-.02 2.9-.02 3.29 0 .32.22.7.83.58C20.56 21.79 24 17.3 24 12c0-6.63-5.37-12-12-12z"/></svg>
-      Ver no GitHub
-    </a>
-
-    <div style="text-align:center;padding:18px 0 4px;font-size:11px;color:var(--text-faint);" onclick="tapVersion()">Corrida+ v<span id="appVersionDisplay"></span></div>
-
-    <div id="devPanel" style="display:none;margin-top:4px;border:1.5px dashed var(--terracotta);border-radius:var(--r-xl);padding:16px 18px 20px;">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
-        <div style="font-size:13px;font-weight:700;color:var(--terracotta);">🛠️ Modo Dev</div>
-        <div class="switch on" onclick="toggleDevMode()"></div>
+      <div class="section-head" style="margin-top:20px;"><div class="section-title">👤 Conta (suporte)</div></div>
+      <div style="background:rgba(31,58,46,0.06);border-radius:var(--r-md);padding:12px 14px;font-size:12px;line-height:1.7;">
+        <div><strong>Email:</strong> <span id="devAccountEmail">—</span></div>
+        <div style="word-break:break-all;"><strong>UID:</strong> <span id="devAccountUid" style="font-family:'JetBrains Mono',monospace;font-size:11px;">—</span></div>
+        <button onclick="copyDevAccountInfo()" style="margin-top:8px;font-size:12px;padding:8px 14px;border-radius:var(--r-full);border:1.5px solid var(--line);background:#fff;color:var(--vault-2);font-weight:700;cursor:pointer;">📋 Copiar email + UID</button>
       </div>
 
       <div class="section-head" style="margin-top:0;"><div class="section-title">🕵️ Dados Ocultos e Limpeza</div></div>
@@ -944,7 +969,14 @@ body.dark button[onclick="lockSyncUrl()"] { background: var(--vault); color: #ff
       <div class="section-sub" style="margin-bottom:10px;">Se a sincronização automática não funcionar, cole aqui o JSON copiado do Google Sheets para importar os seus dados.</div>
       <textarea id="importJsonInput" placeholder='Cole o JSON aqui… {"bills":[…],"monthData":{…},"profile":{…}}' style="width:100%;min-height:90px;border:1.5px solid var(--line);border-radius:var(--r-md);padding:12px;font-size:12px;font-family:'JetBrains Mono',monospace;background:#fff;color:var(--ink);resize:vertical;" oninput="this.style.borderColor=''"></textarea>
       <button onclick="importFromJson()" style="width:100%;margin-top:8px;padding:13px;border-radius:var(--r-md);border:none;background:var(--vault);color:#fff;font-weight:700;font-size:14px;cursor:pointer;">Importar dados</button>
+
+      <a href="https://github.com/Rodrig0ASilva" target="_blank" rel="noopener" style="display:flex;align-items:center;justify-content:center;gap:8px;margin-top:20px;padding:13px;border-radius:var(--r-md);border:1.5px solid var(--line);background:transparent;color:var(--ink);font-weight:700;font-size:14px;text-decoration:none;">
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.3 3.44 9.8 8.21 11.39.6.11.82-.26.82-.58 0-.29-.01-1.04-.02-2.04-3.34.73-4.04-1.61-4.04-1.61-.55-1.39-1.34-1.76-1.34-1.76-1.09-.75.08-.73.08-.73 1.2.09 1.83 1.24 1.83 1.24 1.07 1.83 2.81 1.3 3.49.99.11-.78.42-1.3.76-1.6-2.67-.3-5.47-1.34-5.47-5.93 0-1.31.47-2.38 1.24-3.22-.12-.3-.54-1.52.12-3.18 0 0 1.01-.32 3.3 1.23a11.5 11.5 0 0 1 6 0c2.29-1.55 3.3-1.23 3.3-1.23.66 1.66.24 2.88.12 3.18.77.84 1.24 1.91 1.24 3.22 0 4.6-2.81 5.63-5.48 5.92.43.37.81 1.1.81 2.22 0 1.61-.02 2.9-.02 3.29 0 .32.22.7.83.58C20.56 21.79 24 17.3 24 12c0-6.63-5.37-12-12-12z"/></svg>
+        Ver no GitHub
+      </a>
     </div>
+
+    <button class="delete-all-btn" onclick="confirmResetAll()">Apagar todos os dados</button>
 
     <div style="height:24px;"></div>
   </div>
@@ -1089,7 +1121,7 @@ body.dark button[onclick="lockSyncUrl()"] { background: var(--vault); color: #ff
 // Esquema de versão: de volta ao pré-1.0 (0.x.x) — a v1.0.0 fica
 // reservada para o lançamento com assinatura paga completa. A numeração
 // 4.x.x usada temporariamente para a integração Firebase foi abandonada.
-const APP_VERSION = '0.4.5';
+const APP_VERSION = '0.4.6';
 // Mostra o número da versão na tela de carregamento imediatamente (sem
 // esperar por loadAll/qualquer coisa assíncrona) — sempre visível,
 // independente da mensagem dinâmica ("A carregar…", "A sincronizar…",
@@ -2149,6 +2181,14 @@ function renderSettings(){
   const comEl = document.getElementById('comissaoRate');
   if(comEl) comEl.value = profile.comissaoRate || '';
 
+  const swTurno = document.getElementById('swTurno');
+  if(swTurno) swTurno.className = 'switch' + (showTurno() ? ' on' : '');
+  const swKm = document.getElementById('swKm');
+  if(swKm) swKm.className = 'switch' + (showKm() ? ' on' : '');
+  const swCustom = document.getElementById('swCustomPlat');
+  if(swCustom) swCustom.className = 'switch' + (customPlatformsOn() ? ' on' : '');
+  const customBody = document.getElementById('customPlatformsBody');
+  if(customBody) customBody.style.display = customPlatformsOn() ? 'block' : 'none';
   const goalsSw = document.getElementById('goalsEnabledSwitch');
   if(goalsSw) goalsSw.className = 'switch' + (profile.goalsEnabled ? ' on' : '');
   const goalsFieldsRow = document.getElementById('goalsFieldsRow');
@@ -2190,6 +2230,10 @@ function renderSettings(){
     if(forceBdayBtn) forceBdayBtn.textContent = devForceBirthday ? '✅ Vai forçar na próxima abertura' : '🎉 Forçar na próxima abertura';
     // Data de aniversário: campo fica vazio se nunca foi configurada — não
     // pré-preenche com nenhuma data padrão (ver shouldTriggerBirthday).
+    const devEmailEl = document.getElementById('devAccountEmail');
+    if(devEmailEl) devEmailEl.textContent = window.__fbUser ? (window.__fbUser.email || '—') : 'Sem sessão iniciada';
+    const devUidEl = document.getElementById('devAccountUid');
+    if(devUidEl) devUidEl.textContent = window.__fbUser ? window.__fbUser.uid : '—';
     const bdayInput = document.getElementById('birthdayDateInput');
     if(bdayInput) bdayInput.value = profile.birthdayDate || '';
     const ta = document.getElementById('importJsonInput');
@@ -2658,7 +2702,19 @@ function horizontalBarsHTML(items){
 // Gráfico "Ganhos por turno" — só aparece se pelo menos um ganho do
 // período tiver o campo opcional `turno` preenchido (ver TURNOS e o
 // seletor em openAddIncomeSheet). Destaca qual turno rendeu mais no total.
+function kmStatsHTML(items, lucro){
+  if(!showKm()) return '';
+  const km = sumKm(items);
+  if(km <= 0) return '';
+  const porKm = lucro / km;
+  return chartBoxWrap('🛣️ Quilometragem', 'Lucro do período ÷ km registados', `
+    <div class="stat-cards" style="margin-bottom:0;">
+      <div class="stat-card"><div class="stat-card-label">Km registados</div><div class="stat-card-value">${km.toLocaleString('pt-BR',{maximumFractionDigits:1})} km</div></div>
+      <div class="stat-card"><div class="stat-card-label">Lucro por km</div><div class="stat-card-value ${porKm<0?'negative':''}">${fmt(porKm)}</div></div>
+    </div>`);
+}
 function turnoBreakdownHTML(items){
+  if(!showTurno()) return '';
   const withTurno = items.filter(e => e.turno);
   if(withTurno.length === 0) return '';
   const totals = {};
@@ -2784,7 +2840,7 @@ function renderStatsDay(){
   if(totalPart>0) breakdownBars.push({label:'Particular', value:totalPart, color:'#5A6B8A'});
   if(totalOut>0)  breakdownBars.push({label:'Outros', value:totalOut, color:'#8A6B5A'});
   if(breakdownBars.length > 1){ html += chartBoxWrap('Por plataforma', 'Faturamento bruto hoje', horizontalBarsHTML(breakdownBars)); }
-  html += turnoBreakdownHTML(items);
+  html += kmStatsHTML(items, lucro) + turnoBreakdownHTML(items);
   box.innerHTML = html;
 }
 
@@ -2868,7 +2924,7 @@ function renderStatsWeek(){
   if(totalPart>0) breakdownBars.push({label:'Particular', value:totalPart, color:'#5A6B8A'});
   if(totalOut>0)  breakdownBars.push({label:'Outros', value:totalOut, color:'#8A6B5A'});
   if(breakdownBars.length > 1){ html += chartBoxWrap('Por plataforma', 'Faturamento bruto da semana', horizontalBarsHTML(breakdownBars)); }
-  html += turnoBreakdownHTML(items);
+  html += kmStatsHTML(items, lucro) + turnoBreakdownHTML(items);
   box.innerHTML = html;
 }
 
@@ -3056,7 +3112,7 @@ function renderStatsMonth(){
     return { label: found ? `${found.emoji} ${found.label}` : cat, value: val, color:'#C97259' };
   });
   if(categoryItems.length){ html += chartBoxWrap('Despesas por categoria', 'Totais acumulados', horizontalBarsHTML(categoryItems)); }
-  html += turnoBreakdownHTML(entry.earnings);
+  html += kmStatsHTML(entry.earnings, lucroMes) + turnoBreakdownHTML(entry.earnings);
 
   box.innerHTML = html;
 }
@@ -3178,7 +3234,7 @@ function renderStatsYear(){
   });
   if(categoryItems.length){ html += chartBoxWrap('Despesas por categoria', 'Totais acumulados no ano', horizontalBarsHTML(categoryItems)); }
   const allYearEarnings = entries.reduce((acc, e) => acc.concat(e.earnings), []);
-  html += turnoBreakdownHTML(allYearEarnings);
+  html += kmStatsHTML(allYearEarnings, lucroAno) + turnoBreakdownHTML(allYearEarnings);
 
   box.innerHTML = html;
 }
@@ -3204,6 +3260,7 @@ function changeLucroDayWeek(delta){
 }
 
 function lucroBreakdownHTML(apps, comb, part, fixas, varOther, km, hours, context){
+  if(!showKm()) km = 0;
   const iva      = ivaAmount(apps);
   const ivaVal   = ivaRate();
   const com      = comissaoAmount(apps);
@@ -3457,6 +3514,34 @@ function updateMonthHint(){
 // o resto — Particular, Outros, e qualquer plataforma personalizada criada
 // pelo utilizador — entra no "balde" pessoal, sem esses descontos. Ver
 // docs para a lista completa de sítios que usam esta distinção.
+// Registos opcionais e plataformas extra — guardados em profile (sincronizados).
+const FEATURE_DEFAULTS = {
+  showTurno: () => true,
+  showKm: () => false,
+  customPlatformsEnabled: () => (profile.customPlatforms || []).length > 0
+};
+function featureOn(flag){
+  return profile[flag] === undefined ? FEATURE_DEFAULTS[flag]() : !!profile[flag];
+}
+function showTurno(){ return featureOn('showTurno'); }
+function showKm(){ return featureOn('showKm'); }
+function customPlatformsOn(){ return featureOn('customPlatformsEnabled'); }
+async function toggleFeature(flag){
+  profile[flag] = !featureOn(flag);
+  await persistProfile();
+  renderSettings();
+  const msgs = { showTurno: 'Turno', showKm: 'Km', customPlatformsEnabled: 'Outras plataformas' };
+  showToast(`${msgs[flag]} ${profile[flag] ? 'ativado' : 'desativado'}`);
+}
+function copyDevAccountInfo(){
+  const u = window.__fbUser;
+  if(!u){ showToast('Sem sessão iniciada'); return; }
+  const text = `Email: ${u.email || '—'}\nUID: ${u.uid}`;
+  if(!navigator.clipboard){ showToast('Copie manualmente'); return; }
+  navigator.clipboard.writeText(text)
+    .then(() => showToast('📋 Copiado'))
+    .catch(() => showToast('Não foi possível copiar'));
+}
 function isTvdePlatform(platform){ return platform === 'uber' || platform === 'bolt'; }
 function findCustomPlatform(platform){ return (profile.customPlatforms || []).find(cp => cp.key === platform); }
 
@@ -3510,7 +3595,7 @@ function renderEarningsList(items, emptyMsg){
       ${platformBadge(it.platform)}
       <div style="flex:1">
         <div class="income-name">${platformLabel(it.platform)}</div>
-        <div class="income-sub">${formatDateStr(it.date)}${it.km ? ' · ' + it.km + ' km' : ''}${it.hours ? ' · ' + it.hours + 'h' : ''}</div>
+        <div class="income-sub">${formatDateStr(it.date)}${it.km && showKm() ? ' · ' + it.km + ' km' : ''}${it.hours ? ' · ' + it.hours + 'h' : ''}</div>
       </div>
       <div style="display:flex;flex-direction:column;align-items:flex-end;gap:2px;">
         <div class="bill-amount-edit"><input type="number" class="bill-amount-input" inputmode="decimal" value="${it.amount}" onchange="updateEarningAmount('${it.id}', this.value)" /></div>
@@ -3684,13 +3769,28 @@ function openAddIncomeSheet(){
     sheetSub = 'Escolha o dia deste mês e registe os ganhos.';
   }
   window._pendingTurno = '';
-  const customPlatforms = profile.customPlatforms || [];
+  const customPlatforms = customPlatformsOn() ? (profile.customPlatforms || []) : [];
   const customFieldsHtml = customPlatforms.map(cp => `
     <div class="field" style="margin-bottom:10px;">
       <div class="section-sub" style="margin-bottom:8px;font-weight:700;">${escapeHtml(cp.emoji||'📍')} ${escapeHtml(cp.label)}</div>
       <div class="field-money"><input type="number" id="incCustom_${cp.key}" placeholder="0,00" inputmode="decimal"></div>
       <div class="section-sub" style="font-size:11px;margin-top:4px;">Sem desconto de IVA.</div>
     </div>`).join('');
+  const kmHtml = showKm() ? `
+    <div class="field">
+      <label>Km rodados no dia (opcional)</label>
+      <input type="number" id="incKm" placeholder="0" inputmode="decimal" step="0.1" />
+      <div class="section-sub" style="font-size:11px;margin-top:6px;">Aparece nas Estatísticas (km totais e lucro por km).</div>
+    </div>` : '';
+  const turnoHtml = showTurno() ? `
+    <div class="field">
+      <label>Turno trabalhado (opcional)</label>
+      <div class="seg" id="incTurnoSeg" style="flex-wrap:wrap;height:auto;">
+        <div class="seg-opt active" data-t="" onclick="pickIncomeTurno('')" style="flex:1 1 calc(50% - 4px);margin:2px;">Não dizer</div>
+        ${TURNOS.map(t => `<div class="seg-opt" data-t="${t.key}" onclick="pickIncomeTurno('${t.key}')" style="flex:1 1 calc(50% - 4px);margin:2px;">${t.emoji} ${t.label}</div>`).join('')}
+      </div>
+      <div class="section-sub" style="font-size:11px;margin-top:6px;">Se preencheres, as Estatísticas passam a mostrar qual turno rende mais para ti.</div>
+    </div>` : '';
   openSheet(`
     <div class="sheet-handle"></div>
     <div class="sheet-header" style="display:flex;align-items:center;gap:12px;margin-bottom:4px;">
@@ -3701,14 +3801,8 @@ function openAddIncomeSheet(){
     </div>
     <div class="sheet-sub" style="margin-left:34px;">${sheetSub}</div>
     <div class="field"><label>Dia do turno</label><input type="date" id="incDate" value="${defaultDate}" /></div>
-    <div class="field">
-      <label>Turno trabalhado (opcional)</label>
-      <div class="seg" id="incTurnoSeg" style="flex-wrap:wrap;height:auto;">
-        <div class="seg-opt active" data-t="" onclick="pickIncomeTurno('')" style="flex:1 1 calc(50% - 4px);margin:2px;">Não dizer</div>
-        ${TURNOS.map(t => `<div class="seg-opt" data-t="${t.key}" onclick="pickIncomeTurno('${t.key}')" style="flex:1 1 calc(50% - 4px);margin:2px;">${t.emoji} ${t.label}</div>`).join('')}
-      </div>
-      <div class="section-sub" style="font-size:11px;margin-top:6px;">Se preencheres, as Estatísticas passam a mostrar qual turno rende mais para ti.</div>
-    </div>
+    ${kmHtml}
+    ${turnoHtml}
     <div class="field" style="margin-bottom:10px;">
       <div class="section-sub" style="margin-bottom:8px;font-weight:700;">Uber</div>
       <div class="field-money"><input type="number" id="incUber" placeholder="0,00" inputmode="decimal"></div>
@@ -3745,29 +3839,36 @@ function pickIncomeTurno(t){
 async function confirmAddIncome(){
   const date = document.getElementById('incDate').value;
   if(!date){ showToast('Selecione a data'); return; }
-  const turno = window._pendingTurno || '';
+  const turno = showTurno() ? (window._pendingTurno || '') : '';
+  const kmVal = showKm() ? (parseFloat((document.getElementById('incKm') || {}).value) || 0) : 0;
   const uberAmt   = parseFloat(document.getElementById('incUber').value) || 0;
   const boltAmt   = parseFloat(document.getElementById('incBolt').value) || 0;
   const partAmt   = parseFloat(document.getElementById('incParticular').value) || 0;
   const outrosAmt = parseFloat(document.getElementById('incOutros').value) || 0;
-  const customPlatforms = profile.customPlatforms || [];
+  const customPlatforms = customPlatformsOn() ? (profile.customPlatforms || []) : [];
   const customAmts = customPlatforms.map(cp => ({
-    cp, amt: parseFloat((document.getElementById(`incCustom_${cp.key}`)||{}).value) || 0
+    cp, amt: parseFloat((document.getElementById(`incCustom_${cp.key}`) || {}).value) || 0
   }));
   const anyCustom = customAmts.some(c => c.amt > 0);
   if(uberAmt === 0 && boltAmt === 0 && partAmt === 0 && outrosAmt === 0 && !anyCustom){ showToast('Insira pelo menos um valor'); return; }
   const monthKeyOfDate = date.slice(0,7);
   const entry = ensureMonthEntry(monthKeyOfDate);
   let tsOffset = 0;
+  // Os km do dia ficam só no primeiro ganho gravado, para não serem contados em dobro.
+  let kmPending = kmVal;
   function pushEarning(platform, amount, extra){
-    entry.earnings.push({ id: uid(), date, platform, amount, km:0, hours:0, ts: Date.now()+tsOffset, ...(turno?{turno}:{}) , ...(extra||{}) });
+    const km = kmPending; kmPending = 0;
+    entry.earnings.push({
+      id: uid(), date, platform, amount, km, hours: 0, ts: Date.now() + tsOffset,
+      ...(turno ? { turno } : {}), ...(extra || {})
+    });
     tsOffset++;
   }
   if(uberAmt > 0)   pushEarning('uber', uberAmt);
   if(boltAmt > 0)   pushEarning('bolt', boltAmt);
-  if(partAmt > 0)   pushEarning('particular', partAmt, { noIva:true });
-  if(outrosAmt > 0) pushEarning('outros', outrosAmt, { noIva:true });
-  customAmts.forEach(({cp, amt}) => { if(amt > 0) pushEarning(cp.key, amt, { noIva:true }); });
+  if(partAmt > 0)   pushEarning('particular', partAmt, { noIva: true });
+  if(outrosAmt > 0) pushEarning('outros', outrosAmt, { noIva: true });
+  customAmts.forEach(({cp, amt}) => { if(amt > 0) pushEarning(cp.key, amt, { noIva: true }); });
   await persistMonthData(); closeSheet(); renderGanhos();
 }
 async function removeEarning(id){
