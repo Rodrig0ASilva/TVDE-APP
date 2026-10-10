@@ -591,7 +591,7 @@ body.glass .switch:not(.on) { background: rgba(42,36,32,0.16); backdrop-filter: 
 body.glass .switch.on { background: var(--switch-on, var(--vault-light)); }
 body.glass.dark .switch:not(.on) { background: rgba(255,255,255,0.18); }
 /* Gota da aba selecionada (só com o efeito transparente) */
-body.glass .tabbar-inner { position: relative; }
+body.glass .tabbar-inner { position: relative; touch-action: none; }
 body.glass .tab { position: relative; z-index: 1; }
 #tabPill { display: none; }
 body.glass #tabPill {
@@ -1293,7 +1293,7 @@ body.glass .tab.active, body.glass.dark .tab.active {
 // Esquema de versão: de volta ao pré-1.0 (0.x.x) — a v1.0.0 fica
 // reservada para o lançamento com assinatura paga completa. A numeração
 // 4.x.x usada temporariamente para a integração Firebase foi abandonada.
-const APP_VERSION = '0.4.45';
+const APP_VERSION = '0.46';
 // Mostra o número da versão na tela de carregamento imediatamente (sem
 // esperar por loadAll/qualquer coisa assíncrona) — sempre visível,
 // independente da mensagem dinâmica ("A carregar…", "A sincronizar…",
@@ -2439,18 +2439,18 @@ function setupTabDrag(){
   if(!bar) return;
   let drag = null;
   const vertical = () => getComputedStyle(bar).flexDirection === 'column';
-  const nearestIndex = (ids, e) => {
+  const nearestIndex = (ids, pt) => {
     let best = 0, bestD = Infinity;
     ids.forEach((id, i) => {
       const r = document.getElementById(id).getBoundingClientRect();
       const c = vertical() ? r.top + r.height / 2 : r.left + r.width / 2;
-      const p = vertical() ? e.clientY : e.clientX;
+      const p = vertical() ? pt.y : pt.x;
       const d = Math.abs(p - c);
       if(d < bestD){ bestD = d; best = i; }
     });
     return best;
   };
-  const moveGota = (ids, e) => {
+  const moveGota = (ids, pt) => {
     const p = document.getElementById('tabPill');
     const first = document.getElementById(ids[0]), last = document.getElementById(ids[ids.length - 1]);
     const br = bar.getBoundingClientRect();
@@ -2460,17 +2460,17 @@ function setupTabDrag(){
     p.style.height = first.offsetHeight + 'px';
     if(vertical()){
       const h = first.offsetHeight;
-      p.style.top = Math.max(first.offsetTop, Math.min(last.offsetTop, e.clientY - br.top - h / 2)) + 'px';
+      p.style.top = Math.max(first.offsetTop, Math.min(last.offsetTop, pt.y - br.top - h / 2)) + 'px';
     } else {
       const w = first.offsetWidth;
-      p.style.left = Math.max(first.offsetLeft, Math.min(last.offsetLeft, e.clientX - br.left - w / 2)) + 'px';
+      p.style.left = Math.max(first.offsetLeft, Math.min(last.offsetLeft, pt.x - br.left - w / 2)) + 'px';
     }
   };
   bar.addEventListener('pointerdown', e => {
     if(!document.body.classList.contains('glass')) return;
     const ids = visibleTabIds();
     if(ids.length < 2) return;
-    drag = { x: e.clientX, y: e.clientY, moved: false, pointerId: e.pointerId, ids };
+    drag = { x: e.clientX, y: e.clientY, lastX: e.clientX, lastY: e.clientY, moved: false, pointerId: e.pointerId, ids };
   });
   bar.addEventListener('pointermove', e => {
     if(!drag) return;
@@ -2479,20 +2479,28 @@ function setupTabDrag(){
       drag.moved = true;
       try{ bar.setPointerCapture(drag.pointerId); }catch(_){}
     }
-    moveGota(drag.ids, e);
+    drag.lastX = e.clientX;
+    drag.lastY = e.clientY;
+    moveGota(drag.ids, { x: drag.lastX, y: drag.lastY });
   });
-  const end = e => {
+  // Soltar: muda para a aba mais próxima da última posição do dedo
+  bar.addEventListener('pointerup', e => {
     if(!drag) return;
     const d = drag;
     drag = null;
     if(!d.moved) return;
     try{ bar.releasePointerCapture(d.pointerId); }catch(_){}
     suppressTabClick = true;
-    const id = d.ids[nearestIndex(d.ids, e)];
+    const id = d.ids[nearestIndex(d.ids, { x: e.clientX, y: e.clientY })];
     if(id !== currentTabId()) TAB_NAV[id](); else positionTabPill(id);
-  };
-  bar.addEventListener('pointerup', end);
-  bar.addEventListener('pointercancel', end);
+  });
+  // Cancelado pelo navegador: não navega; a gota volta à aba atual
+  bar.addEventListener('pointercancel', () => {
+    if(!drag) return;
+    const moved = drag.moved;
+    drag = null;
+    if(moved) positionTabPill(currentTabId(), true);
+  });
   bar.addEventListener('click', e => {
     if(suppressTabClick){ suppressTabClick = false; e.stopPropagation(); e.preventDefault(); }
   }, true);
