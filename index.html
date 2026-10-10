@@ -714,19 +714,6 @@ body.dark button[onclick="lockSyncUrl()"] { background: var(--vault); color: #ff
       <div class="theme-color-grid" id="themeColorGrid"></div>
     </div>
 
-    <div class="section-head" style="margin-top:20px;"><div class="section-title">IVA / Imposto</div></div>
-    <div class="field" style="margin-top:8px;">
-      <label>Taxa de IVA (%)</label>
-      <div style="position:relative; display:flex; align-items:center;">
-        <input type="number" id="ivaRate" placeholder="0" inputmode="decimal" min="0" max="100" step="0.1"
-          onchange="updateIvaRate(this.value)" style="padding-right:32px;" />
-        <span style="position:absolute;right:12px;font-size:13px;font-weight:700;color:var(--text-muted);">%</span>
-      </div>
-    </div>
-    <div class="section-sub" style="margin-top:6px; font-size:11px; line-height:1.5;">
-      Descontado diretamente do faturamento bruto das apps (Uber/Bolt).
-    </div>
-
     <div class="section-head" style="margin-top:20px;"><div class="section-title">Comissão da plataforma</div></div>
     <div class="field" style="margin-top:8px;">
       <label>Taxa de comissão (%)</label>
@@ -740,7 +727,47 @@ body.dark button[onclick="lockSyncUrl()"] { background: var(--vault); color: #ff
       Descontada após o IVA. Cobrada pela Uber/Bolt sobre o valor bruto.
     </div>
 
-    <div class="section-head" style="margin-top:20px;"><div class="section-title">Meta de lucro</div></div>
+    <div class="section-head" style="margin-top:20px;"><div class="section-title">Opcionais</div></div>
+    <div class="section-sub" style="margin-bottom:6px;">Liga só o que usas. Cada opção aparece nos ecrãs e nos cálculos apenas quando estiver ativa.</div>
+
+    <div class="switch-row">
+      <div class="switch-row-text">
+        <div class="switch-row-title">Turno de trabalho</div>
+        <div class="switch-row-sub">Mostra o seletor de turno ao registar ganhos e o gráfico "Ganhos por turno" nas Estatísticas.</div>
+      </div>
+      <div class="switch" id="swTurno" onclick="toggleFeature('showTurno')"></div>
+    </div>
+    <div class="switch-row">
+      <div class="switch-row-text">
+        <div class="switch-row-title">Quilómetros (km)</div>
+        <div class="switch-row-sub">Campo opcional de km ao registar ganhos. Se preenchido, aparece nas Estatísticas (km totais e lucro por km).</div>
+      </div>
+      <div class="switch" id="swKm" onclick="toggleFeature('showKm')"></div>
+    </div>
+
+    <div class="switch-row">
+      <div class="switch-row-text">
+        <div class="switch-row-title">IVA / Imposto</div>
+        <div class="switch-row-sub">Desconta o IVA do bruto das apps (Uber/Bolt). Desligado, o IVA não entra nos cálculos nem aparece nos ecrãs.</div>
+      </div>
+      <div class="switch" id="swIva" onclick="toggleFeature('ivaEnabled')"></div>
+    </div>
+    <div id="ivaFieldsRow">
+
+    <div class="field" style="margin-top:8px;">
+      <label>Taxa de IVA (%)</label>
+      <div style="position:relative; display:flex; align-items:center;">
+        <input type="number" id="ivaRate" placeholder="0" inputmode="decimal" min="0" max="100" step="0.1"
+          onchange="updateIvaRate(this.value)" style="padding-right:32px;" />
+        <span style="position:absolute;right:12px;font-size:13px;font-weight:700;color:var(--text-muted);">%</span>
+      </div>
+    </div>
+    <div class="section-sub" style="margin-top:6px; font-size:11px; line-height:1.5;">
+      Descontado diretamente do faturamento bruto das apps (Uber/Bolt).
+    </div>
+
+    </div>
+
     <div class="switch-row">
       <div class="switch-row-text">
         <div class="switch-row-title">Ativar metas de lucro</div>
@@ -762,23 +789,7 @@ body.dark button[onclick="lockSyncUrl()"] { background: var(--vault); color: #ff
       </div>
     </div>
 
-    <div class="section-head" style="margin-top:20px;"><div class="section-title">Registos opcionais</div></div>
-    <div class="switch-row">
-      <div class="switch-row-text">
-        <div class="switch-row-title">Turno de trabalho</div>
-        <div class="switch-row-sub">Mostra o seletor de turno ao registar ganhos e o gráfico "Ganhos por turno" nas Estatísticas.</div>
-      </div>
-      <div class="switch" id="swTurno" onclick="toggleFeature('showTurno')"></div>
-    </div>
-    <div class="switch-row">
-      <div class="switch-row-text">
-        <div class="switch-row-title">Quilómetros (km)</div>
-        <div class="switch-row-sub">Campo opcional de km ao registar ganhos. Se preenchido, aparece nas Estatísticas (km totais e lucro por km).</div>
-      </div>
-      <div class="switch" id="swKm" onclick="toggleFeature('showKm')"></div>
-    </div>
 
-    <div class="section-head" style="margin-top:20px;"><div class="section-title">Outras plataformas</div></div>
     <div class="switch-row">
       <div class="switch-row-text">
         <div class="switch-row-title">Usar outras plataformas</div>
@@ -1085,7 +1096,7 @@ body.dark button[onclick="lockSyncUrl()"] { background: var(--vault); color: #ff
 // Esquema de versão: de volta ao pré-1.0 (0.x.x) — a v1.0.0 fica
 // reservada para o lançamento com assinatura paga completa. A numeração
 // 4.x.x usada temporariamente para a integração Firebase foi abandonada.
-const APP_VERSION = '0.4.9';
+const APP_VERSION = '0.4.12a';
 // Mostra o número da versão na tela de carregamento imediatamente (sem
 // esperar por loadAll/qualquer coisa assíncrona) — sempre visível,
 // independente da mensagem dinâmica ("A carregar…", "A sincronizar…",
@@ -1537,8 +1548,9 @@ function resolveIncomingPayload(raw){
 }
 
 async function finishCloudSync(decoded){
-  applyCloudData(resolveIncomingPayload(decoded));
-  await persistLocalOnlySilently();
+  const r = await syncWithCloud(resolveIncomingPayload(decoded), { ask: true, stamp: decoded.updatedAt });
+  if(r === 'pending'){ setSyncStatus('nolink'); showToast('Sincronização pausada — escolhe que dados manter'); return; }
+  if(r === 'push'){ await pushToCloud(undefined, true); }
   setSyncStatus('synced');
   showToast('✅ Sincronizado com sucesso');
   refreshActiveScreen();
@@ -1687,6 +1699,8 @@ function renderSubscriptionCard(){
   }
 }
 
+let unsubUserData = null;
+let unsubSubscription = null;
 async function loadAll(){
   const splashMsg = document.getElementById('splashMsg');
   const splash    = document.getElementById('splashScreen');
@@ -1700,6 +1714,10 @@ async function loadAll(){
   // a app segue normalmente com Apps Script/local, como sempre; o botão
   // "Continuar com Google" fica disponível em Configurações → Conta,
   // para quem quiser ligar a conta sem que isso seja obrigatório.
+  // Só o primeiro carregamento da sessão corre a brincadeira e a verificação de
+  // atualização; tocar em "sincronizar" não as repete.
+  const isFirstLoad = !window.__appStarted;
+  window.__appStarted = true;
   window.__fbUser = await (window.fbAuthReadyPromise || Promise.resolve(null));
 
   await loadLocalOnlySettings();
@@ -1712,39 +1730,22 @@ async function loadAll(){
   renderLucro();
 
   if(window.__fbUser){
-    // Firebase é a sincronização principal quando há sessão: primeira
-    // vez nesta conta sem dados na nuvem → migra o que já está local (se
-    // houver); havendo dados na nuvem, esses é que mandam. onSnapshot
-    // depois mantém tudo atualizado sozinho entre dispositivos.
     setSplash('A sincronizar…');
     setSyncStatus('saving');
-    try{
-      const remote = await window.fbLoadUserData(window.__fbUser.uid);
-      if(remote){
-        applyCloudData(resolveIncomingPayload(remote));
-        await persistLocalOnlySilently();
-      } else if(bills.length || Object.keys(monthData).length){
-        await pushToFirestore();
-      }
-      setSyncStatus('synced');
-      window.fbListenUserData(window.__fbUser.uid, (remoteData) => {
-        applyCloudData(resolveIncomingPayload(remoteData));
-        persistLocalOnlySilently();
-        refreshActiveScreen();
+    const uid = window.__fbUser.uid;
+    if(unsubUserData) unsubUserData();
+    unsubUserData = window.fbListenUserData(uid, (remoteData) => {
+      syncWithCloud(resolveIncomingPayload(remoteData), { ask: false, stamp: remoteData.updatedAt })
+        .then(r => { if(r === 'ok') refreshActiveScreen(); });
+    });
+    if(window.fbListenSubscription){
+      if(unsubSubscription) unsubSubscription();
+      unsubSubscription = window.fbListenSubscription(uid, (sub) => {
+        window.__fbSubscription = sub;
+        renderSettings();
       });
-      // Assinatura (Fase 3 — Stripe): window.__fbSubscription fica
-      // undefined até a primeira resposta chegar (distingue "ainda a
-      // verificar" de "verificado, sem assinatura" = null).
-      if(window.fbListenSubscription){
-        window.fbListenSubscription(window.__fbUser.uid, (sub) => {
-          window.__fbSubscription = sub;
-          renderSettings();
-        });
-      }
-    }catch(e){
-      console.warn('Falha na sincronização com o Firestore:', e);
-      setSyncStatus('nolink');
     }
+    initialCloudSync(uid);
   } else if(syncUrl){
     // Reserva: só chega aqui se por algum motivo não houver utilizador
     // Firebase (não deveria acontecer, já que loadAll() exige sessão).
@@ -1768,13 +1769,13 @@ async function loadAll(){
   }
   hideSplash();
 
-  await maybeRunEasterEgg();
+  if(isFirstLoad) await maybeRunEasterEgg();
 
   // Verificação silenciosa de atualização: se houver uma versão mais nova
   // publicada, atualiza sozinho (recarrega a página), sem perguntar nada
   // ao utilizador. O aviso de "atualizado" só aparece na abertura seguinte,
   // já com a versão nova (ver consumePendingUpdateNotice acima).
-  checkForUpdatesOnStartup();
+  if(isFirstLoad) checkForUpdatesOnStartup();
 }
 
 async function persistProfile()   { await safeSet('profile',   profile);   }
@@ -1814,11 +1815,224 @@ function scheduleFirestorePush(){
 // do utilizador autenticado, no mesmo formato "schema v1" já usado para a
 // sincronização via Apps Script — reaproveita normalizeToSchemaV1() tal
 // e qual, só muda o destino (Firestore em vez da planilha).
-async function pushToFirestore(){
-  if(!window.__fbUser) return;
+// ---------------------------------------------------------------
+// FUSÃO COM BASE (três vias) — substitui a união por ID e as lápides.
+// A "base" é o último estado conhecido da nuvem (guardado localmente em
+// syncBase, por fonte: uma conta Firebase ou o Apps Script). Ao fundir:
+//  - se só um lado mudou desde a base, vence esse lado;
+//  - se os dois mudaram, vence o local (e campos diferentes são fundidos);
+//  - um item apagado de um lado sai do resultado se o outro lado não o mudou.
+// Assim as edições e as exclusões de cada aparelho chegam aos outros, sem
+// ressuscitar itens apagados e sem perder alterações ainda não enviadas.
+// ---------------------------------------------------------------
+const isNested = v => v !== null && typeof v === 'object';
+function stable(x){
+  if(Array.isArray(x)) return '[' + x.map(v => stable(v === undefined ? null : v)).join(',') + ']';
+  if(isNested(x)) return '{' + Object.keys(x).filter(k => x[k] !== undefined).sort().map(k => JSON.stringify(k) + ':' + stable(x[k])).join(',') + '}';
+  return JSON.stringify(x === undefined ? null : x);
+}
+function mapById(arr){
+  const m = {};
+  (arr || []).forEach(it => { if(it && it.id) m[it.id] = it; });
+  return m;
+}
+function arrFromMap(m, lArr, rArr){
+  const seen = new Set(), out = [];
+  [...(lArr || []), ...(rArr || [])].forEach(it => {
+    const id = it && it.id;
+    if(id && m[id] && !seen.has(id)){ seen.add(id); out.push(m[id]); }
+  });
+  Object.keys(m).forEach(id => { if(!seen.has(id)){ seen.add(id); out.push(m[id]); } });
+  return out;
+}
+function mergeObj(b, l, r){
+  const out = {};
+  const keys = new Set([...Object.keys(l || {}), ...Object.keys(r || {}), ...Object.keys(b || {})]);
+  keys.forEach(k => {
+    const inB = !!b && Object.prototype.hasOwnProperty.call(b, k);
+    const inL = !!l && Object.prototype.hasOwnProperty.call(l, k);
+    const inR = !!r && Object.prototype.hasOwnProperty.call(r, k);
+    const bv = inB ? b[k] : undefined, lv = inL ? l[k] : undefined, rv = inR ? r[k] : undefined;
+    const lChanged = inB ? (!inL || stable(bv) !== stable(lv)) : inL;
+    const rChanged = inB ? (!inR || stable(bv) !== stable(rv)) : inR;
+    if(!lChanged && !rChanged){ if(inL) out[k] = lv; return; }
+    if(lChanged && !rChanged){ if(inL) out[k] = lv; return; }
+    if(!lChanged && rChanged){ if(inR) out[k] = rv; return; }
+    if(inL && inR && isNested(lv) && isNested(rv)){ out[k] = mergeNode(bv, lv, rv); return; }
+    if(inL) out[k] = lv;
+  });
+  return out;
+}
+function mergeNode(b, l, r){
+  if(Array.isArray(b) || Array.isArray(l) || Array.isArray(r)){
+    const L = Array.isArray(l) ? l : [], R = Array.isArray(r) ? r : [];
+    return arrFromMap(mergeObj(mapById(Array.isArray(b) ? b : []), mapById(L), mapById(R)), L, R);
+  }
+  return mergeObj(b || {}, l || {}, r || {});
+}
+function mergeState(b, l, r){
+  b = b || {};
+  return {
+    bills: mergeNode(b.bills, l.bills, r.bills),
+    monthData: mergeNode(b.monthData, l.monthData, r.monthData),
+    profile: mergeNode(b.profile, l.profile, r.profile)
+  };
+}
+// Forma canónica: passa pelo mesmo conversor que a nuvem usa, para que
+// comparar local, base e remoto não dê diferenças falsas (ex: valores por omissão).
+function canon(st){
+  return resolveIncomingPayload(normalizeToSchemaV1({
+    bills: st.bills || [], monthData: st.monthData || {}, profile: st.profile || {}
+  }));
+}
+function currentState(){
+  return canon({
+    bills: JSON.parse(JSON.stringify(bills || [])),
+    monthData: JSON.parse(JSON.stringify(pruneEmptyMonths(monthData))),
+    profile: JSON.parse(JSON.stringify(profile || {}))
+  });
+}
+function hasData(st){
+  return (st.bills || []).length > 0 || Object.keys(st.monthData || {}).length > 0;
+}
+function hasLocalData(){ return hasData(currentState()); }
+function summarizeState(st){
+  let e = 0, x = 0;
+  Object.keys(st.monthData || {}).forEach(k => {
+    const m = st.monthData[k] || {};
+    e += (m.earnings || []).length;
+    x += (m.variableExpenses || []).length;
+  });
+  return `${e} ganhos · ${x} despesas variáveis · ${(st.bills || []).length} despesas fixas`;
+}
+async function applyState(st){
+  bills = st.bills || [];
+  monthData = st.monthData || {};
+  profile = st.profile || { name: '', photo: null };
+  if(profile.vehicle) delete profile.vehicle;
+  Object.keys(monthData).forEach(k => {
+    const e = monthData[k];
+    if(!e.earnings) e.earnings = [];
+    if(!e.variableExpenses) e.variableExpenses = [];
+    if(!e.billOverrides) e.billOverrides = {};
+    if(!e.billsPaid) e.billsPaid = {};
+    if(!e.hiddenBills) e.hiddenBills = {};
+    e.earnings.forEach(x => { if(!x.platform) x.platform = 'uber'; });
+  });
+  bills.forEach(b => { if(!b.frequency) b.frequency = 'mensal'; });
+  await persistLocalOnlySilently();
+}
+function sourceKey(){ return window.__fbUser ? 'firebase:' + window.__fbUser.uid : 'apps-script'; }
+async function loadSyncBase(){
   try{
-    const payload = normalizeToSchemaV1({ bills, monthData: pruneEmptyMonths(monthData), profile });
-    await window.fbSaveUserData(window.__fbUser.uid, payload);
+    const r = await window.storage.get('syncBase');
+    const o = JSON.parse(r.value);
+    return (o && o.source === sourceKey()) ? o.state : null;
+  }catch(e){ return null; }
+}
+async function saveSyncBase(state){
+  try{ await window.storage.set('syncBase', JSON.stringify({ source: sourceKey(), state })); }catch(e){}
+}
+// Decisão quando a conta já tem dados e este aparelho ainda não sincronizou
+// com ela: o utilizador escolhe. Devolve 'cloud' | 'local' | null (decidir depois).
+function askCloudConflict(localSt, cloudSt, stamp){
+  return new Promise(resolve => {
+    window._conflictResolve = resolve;
+    const when = stamp
+      ? new Date(stamp).toLocaleString('pt-BR', { day:'2-digit', month:'2-digit', year:'numeric', hour:'2-digit', minute:'2-digit' })
+      : 'data desconhecida';
+    openSheet(`
+      <div class="sheet-handle"></div>
+      <div class="sheet-title">Dados diferentes</div>
+      <div class="sheet-sub">Esta conta já tem dados guardados na nuvem. Escolhe quais manter.</div>
+      <div class="chart-box" style="margin-bottom:10px;">
+        <div class="chart-box-title">☁️ Dados da nuvem</div>
+        <div class="chart-box-sub">Guardados em ${escapeHtml(when)}</div>
+        <div style="font-size:12px;">${escapeHtml(summarizeState(cloudSt))}</div>
+      </div>
+      <div class="chart-box" style="margin-bottom:14px;">
+        <div class="chart-box-title">📱 Este aparelho</div>
+        <div class="chart-box-sub">Dados atuais deste aparelho</div>
+        <div style="font-size:12px;">${escapeHtml(summarizeState(localSt))}</div>
+      </div>
+      <button class="btn btn-primary" onclick="resolveCloudConflict('cloud')">Usar os dados da nuvem</button>
+      <button class="btn btn-danger-text" onclick="resolveCloudConflict('local')">Manter os deste aparelho (substitui a nuvem)</button>
+      <button class="btn btn-ghost" onclick="resolveCloudConflict(null)">Decidir depois</button>
+    `);
+  });
+}
+function resolveCloudConflict(choice){
+  const r = window._conflictResolve;
+  window._conflictResolve = null;
+  closeSheet();
+  if(r) r(choice);
+}
+// Núcleo da sincronização: compara o remoto com o local, usando a base.
+// Devolve 'ok' (fundido e aplicado), 'push' (enviar o local por cima do remoto),
+// ou 'pending' (aguarda decisão do utilizador).
+async function syncWithCloud(remoteRaw, opts){
+  const ask = !!(opts && opts.ask);
+  const stamp = opts && opts.stamp;
+  const remote = canon(remoteRaw || {});
+  const base = await loadSyncBase();
+  if(base){
+    const merged = canon(mergeState(canon(base), currentState(), remote));
+    await applyState(merged);
+    await saveSyncBase(remote);
+    return 'ok';
+  }
+  if(!hasData(remote)) return 'push';
+  if(!hasLocalData()){ await applyState(remote); await saveSyncBase(remote); return 'ok'; }
+  if(!ask) return 'pending';
+  const choice = await askCloudConflict(currentState(), remote, stamp);
+  if(choice === 'cloud'){ await applyState(remote); await saveSyncBase(remote); return 'ok'; }
+  if(choice === 'local') return 'push';
+  return 'pending';
+}
+// Primeira sincronização da sessão Firebase (não bloqueia a app).
+async function initialCloudSync(uid){
+  try{
+    const raw = await window.fbLoadUserData(uid);
+    let r;
+    if(raw){
+      r = await syncWithCloud(resolveIncomingPayload(raw), { ask: true, stamp: raw.updatedAt });
+    } else if(hasLocalData()){
+      r = 'push';
+    } else {
+      setSyncStatus('synced');
+      return;
+    }
+    if(r === 'pending'){
+      setSyncStatus('nolink');
+      showToast('Escolhe que dados manter — toca em sincronizar');
+      return;
+    }
+    if(r === 'push'){ await pushToFirestore(true); }
+    else if(stable(currentState()) !== stable(canon(resolveIncomingPayload(raw)))){ await pushToFirestore(false); }
+    setSyncStatus('synced');
+    refreshActiveScreen();
+  }catch(e){
+    console.warn('Falha na sincronização inicial:', e);
+    setSyncStatus('nolink');
+  }
+}
+// Grava o estado atual na conta Firebase. Por omissão, funde primeiro com a
+// nuvem; overwrite=true substitui a nuvem (usado quando o utilizador escolhe
+// "manter os deste aparelho" ou ao apagar tudo).
+async function pushToFirestore(overwrite){
+  if(!window.__fbUser) return;
+  const uid = window.__fbUser.uid;
+  try{
+    if(!overwrite){
+      const raw = await window.fbLoadUserData(uid);
+      if(raw){
+        const r = await syncWithCloud(resolveIncomingPayload(raw), { ask: false, stamp: raw.updatedAt });
+        if(r === 'pending') return;
+      }
+    }
+    const st = currentState();
+    await window.fbSaveUserData(uid, normalizeToSchemaV1(st));
+    await saveSyncBase(st);
     setSyncStatus('synced');
     await persistLocalOnlySilently();
   }catch(e){
@@ -1871,65 +2085,37 @@ async function loadDeletedIdsFromStorage(){
 async function persistDeletedIds(){
   try{ await window.storage.set('deletedIds', JSON.stringify([...deletedIds])); }catch(e){}
 }
-function markDeleted(key){ deletedIds.add(key); persistDeletedIds(); }
+function markDeleted(key){ /* substituído pela fusão com a base (ver syncWithCloud) */ }
 async function clearDeletedIdsAfterSuccessfulPush(){
   if(deletedIds.size === 0) return;
   deletedIds = new Set();
   try{ await window.storage.set('deletedIds', JSON.stringify([])); }catch(e){}
 }
 
-function mergeRemoteIntoLocal(remote){
-  const remoteBills = Array.isArray(remote.bills) ? remote.bills : [];
-  const localBillIds = new Set(bills.map(b=>b.id));
-  remoteBills.forEach(rb => { if(!localBillIds.has(rb.id) && !deletedIds.has(`bill:${rb.id}`)) bills.push(rb); });
-
-  const remoteMonthData = (remote.monthData && typeof remote.monthData === 'object') ? remote.monthData : {};
-  Object.keys(remoteMonthData).forEach(key => {
-    const remoteEntry = remoteMonthData[key] || {};
-    const localEntry  = ensureMonthEntry(key);
-
-    const localEarningIds = new Set(localEntry.earnings.map(e=>e.id));
-    (remoteEntry.earnings || []).forEach(e => { if(!localEarningIds.has(e.id) && !deletedIds.has(`earning:${e.id}`)) localEntry.earnings.push(e); });
-
-    const localExpenseIds = new Set(localEntry.variableExpenses.map(e=>e.id));
-    (remoteEntry.variableExpenses || []).forEach(e => { if(!localExpenseIds.has(e.id) && !deletedIds.has(`expense:${e.id}`)) localEntry.variableExpenses.push(e); });
-
-    const remoteBillsPaid   = remoteEntry.billsPaid   || {};
-    const remoteHiddenBills = remoteEntry.hiddenBills || {};
-    const filteredBillsPaid = {};
-    Object.keys(remoteBillsPaid).forEach(billId => { if(!deletedIds.has(`billsPaidKey:${key}:${billId}`)) filteredBillsPaid[billId] = remoteBillsPaid[billId]; });
-    const filteredHiddenBills = {};
-    Object.keys(remoteHiddenBills).forEach(billId => { if(!deletedIds.has(`hiddenBillsKey:${key}:${billId}`)) filteredHiddenBills[billId] = remoteHiddenBills[billId]; });
-
-    localEntry.billOverrides = { ...(remoteEntry.billOverrides||{}), ...localEntry.billOverrides };
-    localEntry.billsPaid     = { ...filteredBillsPaid,   ...localEntry.billsPaid };
-    localEntry.hiddenBills   = { ...filteredHiddenBills, ...localEntry.hiddenBills };
-  });
-
-  const remoteProfile = (remote.profile && typeof remote.profile === 'object') ? remote.profile : {};
-  profile = { ...remoteProfile, ...profile };
-}
-
+// Puxa a planilha e funde com a base. Devolve:
+// 'ok' fundido · 'none' nada a fundir (encriptado, migração ou nuvem vazia) ·
+// 'pending' aguarda decisão · 'failed' rede/erro (não envia para não sobrescrever).
 async function pullLatestAndMergeBeforePush(){
-  if(!syncUrl) return;
+  if(!syncUrl) return 'none';
   try{
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), PRE_PUSH_PULL_TIMEOUT_MS);
     const response = await fetch(syncUrl, { signal: controller.signal, cache: 'no-store' });
     clearTimeout(timeoutId);
-    if(!response.ok) return;
+    if(!response.ok) return 'failed';
     const data = await response.json();
-    // Payloads encriptados ou em migração não são mesclados aqui — não faz
-    // sentido decifrar/interromper o utilizador em segundo plano só para
-    // enviar uma edição; nesses casos o push local segue normalmente.
-    if(data && data.encrypted === true) return;
-    if(data && typeof data.syncUrl === 'string' && data.syncUrl.trim()) return;
-    mergeRemoteIntoLocal(resolveIncomingPayload(data));
-    logSyncEvent('info', 'Sincronizado com a nuvem antes de enviar (merge)', 'pull-then-push');
-    refreshActiveScreen();
+    if(data && data.encrypted === true) return 'none';
+    if(data && typeof data.syncUrl === 'string' && data.syncUrl.trim()) return 'none';
+    const r = await syncWithCloud(resolveIncomingPayload(data), { ask: false, stamp: data.updatedAt });
+    if(r === 'ok'){
+      logSyncEvent('info', 'Sincronizado com a nuvem antes de enviar (fusão)', 'pull-then-push');
+      refreshActiveScreen();
+      return 'ok';
+    }
+    if(r === 'push') return 'none';
+    return 'pending';
   }catch(e){
-    // Se o pull prévio falhar (rede lenta, offline), segue com o push do
-    // estado local mesmo — não bloqueia a gravação do utilizador.
+    return 'failed';
   }
 }
 
@@ -1942,9 +2128,12 @@ async function pushToCloud(migrationUrl, skipMerge){
   // skipMerge=true é usado só por confirmResetAll(): apagar tudo é uma
   // sobrescrita intencional, não uma edição incremental — não faz sentido
   // "mesclar de volta" dados que o utilizador acabou de mandar apagar.
-  if(!skipMerge){ await pullLatestAndMergeBeforePush(); }
+  if(!skipMerge){
+    const pr = await pullLatestAndMergeBeforePush();
+    if(pr === 'failed' || pr === 'pending'){ setSyncStatus('nolink'); return; }
+  }
 
-  const rawPayload = { bills, monthData: pruneEmptyMonths(monthData), profile };
+  const rawPayload = currentState();
   // Se ativado no Modo Dev, grava no formato normalizado (schema v1) em vez
   // do formato clássico. A leitura entende os dois formatos sempre, então
   // isto é seguro de ligar/desligar a qualquer momento.
@@ -1976,6 +2165,7 @@ async function pushToCloud(migrationUrl, skipMerge){
     // A nuvem agora reflete o estado local (incluindo exclusões) — as
     // lápides deixam de ser necessárias.
     await clearDeletedIdsAfterSuccessfulPush();
+    await saveSyncBase(rawPayload);
   }catch(err){
     clearTimeout(pushTimeoutId);
     const elapsedMs = Date.now() - pushStart;
@@ -2170,6 +2360,10 @@ function renderSettings(){
   if(swCustom) swCustom.className = 'switch' + (customPlatformsOn() ? ' on' : '');
   const customBody = document.getElementById('customPlatformsBody');
   if(customBody) customBody.style.display = customPlatformsOn() ? 'block' : 'none';
+  const swIva = document.getElementById('swIva');
+  if(swIva) swIva.className = 'switch' + (ivaOn() ? ' on' : '');
+  const ivaFieldsRow = document.getElementById('ivaFieldsRow');
+  if(ivaFieldsRow) ivaFieldsRow.style.display = ivaOn() ? 'block' : 'none';
   const goalsSw = document.getElementById('goalsEnabledSwitch');
   if(goalsSw) goalsSw.className = 'switch' + (profile.goalsEnabled ? ' on' : '');
   const goalsFieldsRow = document.getElementById('goalsFieldsRow');
@@ -2258,7 +2452,7 @@ async function updateWeeklyGoal(value){
 function renderCustomPlatformsList(){
   const box = document.getElementById('customPlatformsList');
   if(!box) return;
-  const list = profile.customPlatforms || [];
+  const list = (profile.customPlatforms || []).filter(cp => !cp.archived);
   if(list.length === 0){ box.innerHTML = '<div class="empty-note">Nenhuma plataforma extra adicionada.</div>'; return; }
   box.innerHTML = list.map(cp => `
     <div class="income-row-compact" style="margin-bottom:8px;">
@@ -2273,8 +2467,10 @@ async function addCustomPlatform(){
   if(!label){ showToast('Digite o nome da plataforma'); return; }
   const key = 'custom_' + label.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]+/g,'_').replace(/^_+|_+$/g,'') || uid();
   profile.customPlatforms = profile.customPlatforms || [];
-  if(profile.customPlatforms.some(cp => cp.key === key)){ showToast('Essa plataforma já existe'); return; }
-  profile.customPlatforms.push({ key, label });
+  const existing = profile.customPlatforms.find(cp => cp.key === key);
+  if(existing && !existing.archived){ showToast('Essa plataforma já existe'); return; }
+  if(existing){ existing.archived = false; existing.label = label; }
+  else { profile.customPlatforms.push({ key, label }); }
   await persistProfile();
   if(input) input.value = '';
   renderCustomPlatformsList();
@@ -2282,7 +2478,7 @@ async function addCustomPlatform(){
 }
 async function removeCustomPlatform(key){
   if(!confirm('Remover esta plataforma? Ganhos já registados com ela continuam guardados, só deixa de aparecer como opção nova.')) return;
-  profile.customPlatforms = (profile.customPlatforms || []).filter(cp => cp.key !== key);
+  profile.customPlatforms = (profile.customPlatforms || []).map(cp => cp.key === key ? { ...cp, archived: true } : cp);
   await persistProfile();
   renderCustomPlatformsList();
 }
@@ -2460,6 +2656,7 @@ async function importFromJson(){
   if(!data || typeof data !== 'object' || (!data.bills && !data.monthData && !data.earnings)){ showToast('❌ Formato não reconhecido'); return; }
   applyCloudData(resolveIncomingPayload(data));
   await persistLocalOnlySilently();
+  scheduleCloudPush();
   showToast('✅ Dados importados com sucesso!');
   const el = document.getElementById('importJsonInput');
   if(el){ el.value = ''; el.style.borderColor = 'var(--vault-light)'; }
@@ -2585,7 +2782,7 @@ async function confirmResetAll(){
   clearTimeout(firestorePushTimer);
   deletedIds = new Set();
   try{ await window.storage.set('deletedIds', JSON.stringify([])); }catch(e){}
-  if(window.__fbUser){ setSyncStatus('saving'); await pushToFirestore(); }
+  if(window.__fbUser){ setSyncStatus('saving'); await pushToFirestore(true); }
   else if(syncUrl){ setSyncStatus('saving'); await pushToCloud(undefined, true); }
   showToast('Tudo apagado'); goGanhos();
 }
@@ -2733,10 +2930,10 @@ function changeStatsYear(delta){
 
 // --- IVA / Comissão (impostos aplicados sobre bruto Uber+Bolt) ---
 function ivaAmount(grossEarnings){
-  const rate = parseFloat(profile.ivaRate) || 0;
+  const rate = ivaRate();
   return grossEarnings * (rate / 100);
 }
-function ivaRate(){ return parseFloat(profile.ivaRate) || 0; }
+function ivaRate(){ return ivaOn() ? (parseFloat(profile.ivaRate) || 0) : 0; }
 function comissaoAmount(grossEarnings){
   const rate = parseFloat(profile.comissaoRate) || 0;
   return grossEarnings * (rate / 100);
@@ -3428,7 +3625,10 @@ function renderLucro(){
 
 // --- SHEETS ---
 function openSheet(html){ document.getElementById('sheet').innerHTML = html; document.getElementById('overlay').classList.add('show'); }
-function closeSheet(){ document.getElementById('overlay').classList.remove('show'); }
+function closeSheet(){
+  document.getElementById('overlay').classList.remove('show');
+  if(window._conflictResolve){ const r = window._conflictResolve; window._conflictResolve = null; r(null); }
+}
 function closeSheetOnBackdrop(e){ if(e.target.id === 'overlay') closeSheet(); }
 
 // --- MÊS navigation / picker ---
@@ -3495,7 +3695,8 @@ function updateMonthHint(){
 const FEATURE_DEFAULTS = {
   showTurno: () => true,
   showKm: () => false,
-  customPlatformsEnabled: () => (profile.customPlatforms || []).length > 0
+  customPlatformsEnabled: () => (profile.customPlatforms || []).length > 0,
+  ivaEnabled: () => (parseFloat(profile.ivaRate) || 0) > 0
 };
 function featureOn(flag){
   return profile[flag] === undefined ? FEATURE_DEFAULTS[flag]() : !!profile[flag];
@@ -3503,11 +3704,12 @@ function featureOn(flag){
 function showTurno(){ return featureOn('showTurno'); }
 function showKm(){ return featureOn('showKm'); }
 function customPlatformsOn(){ return featureOn('customPlatformsEnabled'); }
+function ivaOn(){ return featureOn('ivaEnabled'); }
 async function toggleFeature(flag){
   profile[flag] = !featureOn(flag);
   await persistProfile();
   renderSettings();
-  const msgs = { showTurno: 'Turno', showKm: 'Km', customPlatformsEnabled: 'Outras plataformas' };
+  const msgs = { showTurno: 'Turno', showKm: 'Km', customPlatformsEnabled: 'Outras plataformas', ivaEnabled: 'IVA' };
   showToast(`${msgs[flag]} ${profile[flag] ? 'ativado' : 'desativado'}`);
 }
 async function toggleUidVisibility(){
@@ -3568,7 +3770,7 @@ function renderEarningsList(items, emptyMsg){
     <div class="income-row-compact">
       ${platformBadge(it.platform)}
       <div style="flex:1">
-        <div class="income-name">${platformLabel(it.platform)}</div>
+        <div class="income-name">${escapeHtml(platformLabel(it.platform))}</div>
         <div class="income-sub">${formatDateStr(it.date)}${it.km && showKm() ? ' · ' + it.km + ' km' : ''}${it.hours ? ' · ' + it.hours + 'h' : ''}</div>
       </div>
       <div style="display:flex;flex-direction:column;align-items:flex-end;gap:2px;">
@@ -3743,7 +3945,7 @@ function openAddIncomeSheet(){
     sheetSub = 'Escolha o dia deste mês e registe os ganhos.';
   }
   window._pendingTurno = '';
-  const customPlatforms = customPlatformsOn() ? (profile.customPlatforms || []) : [];
+  const customPlatforms = customPlatformsOn() ? (profile.customPlatforms || []).filter(cp => !cp.archived) : [];
   const customFieldsHtml = customPlatforms.map(cp => `
     <div class="field" style="margin-bottom:10px;">
       <div class="section-sub" style="margin-bottom:8px;font-weight:700;">${escapeHtml(cp.emoji||'📍')} ${escapeHtml(cp.label)}</div>
@@ -3819,7 +4021,7 @@ async function confirmAddIncome(){
   const boltAmt   = parseFloat(document.getElementById('incBolt').value) || 0;
   const partAmt   = parseFloat(document.getElementById('incParticular').value) || 0;
   const outrosAmt = parseFloat(document.getElementById('incOutros').value) || 0;
-  const customPlatforms = customPlatformsOn() ? (profile.customPlatforms || []) : [];
+  const customPlatforms = customPlatformsOn() ? (profile.customPlatforms || []).filter(cp => !cp.archived) : [];
   const customAmts = customPlatforms.map(cp => ({
     cp, amt: parseFloat((document.getElementById(`incCustom_${cp.key}`) || {}).value) || 0
   }));
@@ -4793,7 +4995,7 @@ function renderHiddenDataList() {
   if(allE.length === 0) html += '<div class="bill-sub">Nenhum ganho.</div>';
   allE.forEach(e => {
     html += `<div class="bill-row" style="padding:8px 0;">
-      <div class="bill-info"><div class="bill-name">${platformLabel(e.platform)}</div><div class="bill-sub">${formatDateStr(e.date)}</div></div>
+      <div class="bill-info"><div class="bill-name">${escapeHtml(platformLabel(e.platform))}</div><div class="bill-sub">${formatDateStr(e.date)}</div></div>
       <div class="bill-amount-wrap"><div class="bill-amount-edit">${fmt(e.amount)}</div><div class="bill-delete" onclick="removeEarningFromSettings('${e.id}')">✕</div></div>
     </div>`;
   });
@@ -4804,7 +5006,7 @@ function renderHiddenDataList() {
     const cat = EXPENSE_CATEGORIES.find(c => c.key === e.category) || {label: e.category};
     const dStr = e.date || formatDateStr(new Date(e.ts).toISOString().slice(0,10));
     html += `<div class="bill-row" style="padding:8px 0;">
-      <div class="bill-info"><div class="bill-name">${cat.label}</div><div class="bill-sub">${dStr}</div></div>
+      <div class="bill-info"><div class="bill-name">${escapeHtml(cat.label)}</div><div class="bill-sub">${dStr}</div></div>
       <div class="bill-amount-wrap"><div class="bill-amount-edit">${fmt(e.amount)}</div><div class="bill-delete" onclick="removeExpenseFromSettings('${e.id}')">✕</div></div>
     </div>`;
   });
