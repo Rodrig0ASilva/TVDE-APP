@@ -344,7 +344,7 @@ body {
 .no-income-title { margin-bottom: 8px; }
 .no-income-sub   { margin-bottom: 28px; }
 .theme-color-grid { display: flex; gap: 10px; flex-wrap: wrap; }
-.theme-color-swatch { width: 32px; height: 32px; border-radius: 50%; cursor: pointer; border: 3px solid transparent; transition: border-color 0.15s ease, transform 0.1s ease; }
+.theme-color-swatch { width: 32px; height: 32px; border-radius: 50%; cursor: pointer; border: 3px solid transparent; transition: border-color 0.3s ease, box-shadow 0.3s ease, transform 0.42s cubic-bezier(.34,1.56,.64,1); }
 .theme-color-swatch.selected { border-color: transparent; transform: scale(1.12); box-shadow: 0 0 0 2px var(--cream), 0 0 0 4px var(--ink); }
 body.dark {
   --cream:          #16161B;
@@ -499,8 +499,9 @@ body.basic-mode #statsViewSeg .seg-opt:not([data-v="mes"]) { display:none; }
    Camada de cor estática por trás de tudo, para o vidro ter o que refratar.
    Os elementos ficam translúcidos e com desfoque. Sem o modo ativo, nada muda. */
 body.glass { background: #EFE7D6; }
-body.glass::before {
+body::before {
   content: ''; position: fixed; inset: 0; z-index: 0; pointer-events: none;
+  opacity: 0; transition: opacity 0.5s ease;
   background:
     radial-gradient(circle at 12% 18%, rgba(217,169,73,0.75) 0, transparent 38%),
     radial-gradient(circle at 88% 30%, rgba(62,102,80,0.65) 0, transparent 42%),
@@ -509,7 +510,8 @@ body.glass::before {
     linear-gradient(160deg, #F6EFE2 0%, #E6DCC6 100%);
 }
 body.glass.dark { background: #0E0E12; }
-body.glass.dark::before {
+body.glass::before { opacity: 1; }
+body.dark::before {
   background:
     radial-gradient(circle at 12% 18%, rgba(217,169,73,0.35) 0, transparent 38%),
     radial-gradient(circle at 88% 30%, rgba(62,102,80,0.45) 0, transparent 42%),
@@ -622,6 +624,29 @@ body.glass.dark .seg > .glass-pill { background: var(--vault); }
 body.glass .seg-opt.active, body.glass.dark .seg-opt.active {
   background: transparent; box-shadow: none; color: #fff;
 }
+/* Gota: funciona nos dois modos (no vidro, as regras body.glass por cima dão o aspeto transparente) */
+.glass-pill {
+  display: block; position: absolute; z-index: 0; pointer-events: none;
+  border-radius: 14px; opacity: 0;
+  background: rgba(31,58,46,0.1);
+  transition: left 0.38s cubic-bezier(.34,1.56,.64,1), top 0.38s cubic-bezier(.34,1.56,.64,1),
+              width 0.38s cubic-bezier(.34,1.56,.64,1), height 0.38s cubic-bezier(.34,1.56,.64,1),
+              transform 0.42s cubic-bezier(.34,1.56,.64,1), opacity 0.2s ease;
+}
+.glass-pill.on { opacity: 1; }
+body.dark .glass-pill { background: rgba(255,255,255,0.1); }
+.seg, .tabbar-inner { position: relative; touch-action: none; }
+.seg-opt, .tab { position: relative; z-index: 1; }
+.seg > .glass-pill { background: var(--vault); border-radius: var(--r-sm); }
+body.dark .seg > .glass-pill { background: var(--vault); }
+.seg-opt.active, body.dark .seg-opt.active { background: transparent; box-shadow: none; color: #fff; }
+.tab.active, body.dark .tab.active { background: transparent; }
+/* Mudanças de tema, de modo e do efeito: as cores passam gradualmente */
+html.soft-change, html.soft-change * {
+  transition: background-color 0.5s ease, color 0.5s ease, border-color 0.5s ease,
+              box-shadow 0.5s ease, fill 0.5s ease !important;
+}
+.theme-color-swatch:active { transform: scale(0.9); }
 </style>
 </head>
 <body>
@@ -1305,7 +1330,7 @@ body.glass .seg-opt.active, body.glass.dark .seg-opt.active {
 // Esquema de versão: de volta ao pré-1.0 (0.x.x) — a v1.0.0 fica
 // reservada para o lançamento com assinatura paga completa. A numeração
 // 4.x.x usada temporariamente para a integração Firebase foi abandonada.
-const APP_VERSION = '0.48';
+const APP_VERSION = '0.51';
 // Mostra o número da versão na tela de carregamento imediatamente (sem
 // esperar por loadAll/qualquer coisa assíncrona) — sempre visível,
 // independente da mensagem dinâmica ("A carregar…", "A sincronizar…",
@@ -2428,7 +2453,8 @@ function activateTab(id){
 // Serve a barra de abas e todos os seletores (.seg): desliza até à opção ativa,
 // estica-se na direção do movimento, achata-se contra as paredes e recupera
 // a forma normal com mola ao chegar.
-function isGlass(){ return document.body.classList.contains('glass'); }
+// As animações (gota, deformação, mola, gestos) valem nos dois modos. O aspeto de vidro é só CSS.
+function isGlass(){ return true; }
 function currentTabId(){ return TABS.find(id => document.getElementById(id) && document.getElementById(id).classList.contains('active')); }
 function visibleTabIds(){ return TABS.filter(id => { const el = document.getElementById(id); return el && !el.classList.contains('hidden-tab'); }); }
 const TAB_NAV = { tabGanhos: () => goGanhos(), tabDespesas: () => goDespesas(), tabLucro: () => goLucro(), tabStats: () => goStats(), tabSettings: () => goSettings(), tabDev: () => goDev() };
@@ -2578,7 +2604,6 @@ function setupSwipeNav(){
   if(!app) return;
   let s = null;
   app.addEventListener('touchstart', e => {
-    if(!document.body.classList.contains('glass')) return;
     if(document.querySelector('.overlay.show')) return;
     if(e.touches.length !== 1) return;
     if(e.target.closest('input, textarea, select, button, .seg, .switch, svg, .bill-amount-input')) return;
@@ -2635,11 +2660,17 @@ function applyThemeColor(key){
   root.style.setProperty('--brass-light', theme.brassLight);
   updateThemeColorMeta();
 }
+// Atualiza só a seleção nos círculos existentes, para a animação acontecer.
+function updateThemeSwatches(key){
+  document.querySelectorAll('#themeColorGrid .theme-color-swatch').forEach(el => {
+    el.classList.toggle('selected', el.dataset.key === key);
+  });
+}
 async function setThemeColor(key){
   localSettings.themeColor = key;
   await persistLocalSettings();
-  applyThemeColor(key);
-  renderSettings();
+  softChange(() => applyThemeColor(key));
+  updateThemeSwatches(key);
 }
 function updateThemeColorMeta(){
   const metaLight = document.getElementById('themeColorMeta');
@@ -2662,8 +2693,7 @@ function applyDarkModeClass(){
 async function setDarkMode(mode){
   localSettings.darkMode = mode;
   await persistLocalSettings();
-  applyDarkModeClass();
-  applyCustomBackground();
+  softChange(() => { applyDarkModeClass(); applyCustomBackground(); });
   renderSettings();
 }
 function applyAllAppearance(){
@@ -2748,6 +2778,14 @@ function renderBgImageRow(){
     if(pv){ pv.style.backgroundImage = `url("${localSettings.bgImage}")`; }
   }
 }
+// Liga a transição suave de cores durante a mudança; desliga depois de a animação acabar.
+let softTimer = null;
+function softChange(fn){
+  document.documentElement.classList.add('soft-change');
+  fn();
+  clearTimeout(softTimer);
+  softTimer = setTimeout(() => document.documentElement.classList.remove('soft-change'), 650);
+}
 function applyLiquidGlass(){
   document.body.classList.toggle('glass', localSettings.liquidGlass === true);
   glassRefreshAll(false);
@@ -2755,7 +2793,7 @@ function applyLiquidGlass(){
 async function toggleLiquidGlass(){
   localSettings.liquidGlass = !(localSettings.liquidGlass === true);
   await persistLocalSettings();
-  applyLiquidGlass();
+  softChange(() => applyLiquidGlass());
   renderSettings();
   showToast(localSettings.liquidGlass ? '🪟 Liquid glass ativado' : 'Liquid glass desativado');
 }
@@ -2838,7 +2876,7 @@ function renderSettings(){
   if(grid){
     const currentColor = localSettings.themeColor || 'green';
     grid.innerHTML = THEME_COLORS.map(t => `
-      <div class="theme-color-swatch ${t.key===currentColor?'selected':''}"
+      <div data-key="${t.key}" class="theme-color-swatch ${t.key===currentColor?'selected':''}"
            style="background:${t.vault};"
            title="${t.label}"
            onclick="setThemeColor('${t.key}')"></div>
