@@ -1130,7 +1130,7 @@ body.dark button[onclick="lockSyncUrl()"] { background: var(--vault); color: #ff
 // Esquema de versão: de volta ao pré-1.0 (0.x.x) — a v1.0.0 fica
 // reservada para o lançamento com assinatura paga completa. A numeração
 // 4.x.x usada temporariamente para a integração Firebase foi abandonada.
-const APP_VERSION = '0.4.22';
+const APP_VERSION = '0.4.23';
 // Mostra o número da versão na tela de carregamento imediatamente (sem
 // esperar por loadAll/qualquer coisa assíncrona) — sempre visível,
 // independente da mensagem dinâmica ("A carregar…", "A sincronizar…",
@@ -2373,18 +2373,37 @@ function renderSettings(){
   const tnRow = document.getElementById('turnoNamesRow');
   if(tnRow){
     tnRow.style.display = showTurno() ? 'block' : 'none';
-    tnRow.innerHTML = showTurno()
-      ? `<div class="section-sub" style="margin-bottom:8px;">Muda o nome e o emoji de cada turno. Os novos valores aparecem no formulário de ganho, nos gráficos e na exportação. Em branco, volta ao original.</div>` +
-        getTurnos().map(t => {
-          const orig = TURNOS.find(x => x.key === t.key);
-          return `<div style="display:flex;gap:8px;align-items:flex-end;margin-bottom:10px;">
-            <div style="width:64px;"><label style="display:block;font-size:10px;font-weight:700;color:var(--vault-2);margin-bottom:6px;text-transform:uppercase;">Emoji</label>
-              <input type="text" maxlength="4" value="${escapeHtml(t.emoji)}" onchange="updateTurnoField('${t.key}','emoji',this.value)" style="width:100%;text-align:center;font-size:18px;padding:10px 4px;border:1.5px solid var(--line);border-radius:var(--r-md);background:#fff;" /></div>
-            <div style="flex:1;min-width:0;"><label style="display:block;font-size:10px;font-weight:700;color:var(--vault-2);margin-bottom:6px;text-transform:uppercase;">Nome</label>
-              <input type="text" maxlength="14" value="${escapeHtml(t.label)}" placeholder="${escapeHtml(orig ? orig.label : '')}" onchange="updateTurnoField('${t.key}','name',this.value)" style="width:100%;padding:10px 12px;border:1.5px solid var(--line);border-radius:var(--r-md);background:#fff;font-size:14px;" /></div>
-          </div>`;
-        }).join('')
-      : '';
+    if(showTurno()){
+      const all = getTurnos();
+      const actives = all.filter(t => !t.archived);
+      const archived = all.filter(t => t.archived);
+      const lbl = 'display:block;font-size:10px;font-weight:700;color:var(--vault-2);margin-bottom:6px;text-transform:uppercase;';
+      const inputStyle = 'width:100%;padding:10px 12px;border:1.5px solid var(--line);border-radius:var(--r-md);background:#fff;font-size:14px;';
+      const rowFor = (t) => `
+        <div style="display:flex;gap:8px;align-items:flex-end;margin-bottom:10px;">
+          <div style="width:64px;"><label style="${lbl}">Emoji</label>
+            <input type="text" maxlength="4" value="${escapeHtml(t.emoji)}" onchange="updateTurnoField('${t.key}','emoji',this.value)" style="${inputStyle}text-align:center;font-size:18px;padding:10px 4px;" /></div>
+          <div style="flex:1;min-width:0;"><label style="${lbl}">Nome</label>
+            <input type="text" maxlength="14" value="${escapeHtml(t.label)}" onchange="updateTurnoField('${t.key}','name',this.value)" style="${inputStyle}" /></div>
+          <div class="bill-delete" onclick="${t.archived ? `restoreTurno('${t.key}')` : `removeTurno('${t.key}')`}" title="${t.archived ? 'Reativar' : 'Remover'}" style="padding:10px 4px;font-size:${t.archived ? '12px' : '16px'};font-weight:700;color:${t.archived ? 'var(--vault-2)' : 'var(--terracotta)'};white-space:nowrap;">${t.archived ? '↺ reativar' : '✕'}</div>
+        </div>`;
+      tnRow.innerHTML =
+        `<div class="section-sub" style="margin-bottom:10px;">Muda o nome e o emoji, remove os que não usas, ou adiciona outros. Os turnos removidos continuam nos relatórios dos ganhos antigos.</div>` +
+        actives.map(rowFor).join('') +
+        (archived.length ? `<div class="section-sub" style="margin:6px 0 8px;font-weight:700;">Removidos</div>` + archived.map(rowFor).join('') : '') +
+        `<div style="border-top:1.5px dashed var(--line);margin:12px 0 10px;padding-top:12px;">
+          <div class="section-sub" style="margin-bottom:8px;font-weight:700;">Adicionar turno</div>
+          <div style="display:flex;gap:8px;align-items:flex-end;">
+            <div style="width:64px;"><label style="${lbl}">Emoji</label>
+              <input type="text" id="newTurnoEmoji" maxlength="4" placeholder="🕒" style="${inputStyle}text-align:center;font-size:18px;padding:10px 4px;" /></div>
+            <div style="flex:1;min-width:0;"><label style="${lbl}">Nome</label>
+              <input type="text" id="newTurnoName" maxlength="14" placeholder="ex: Almoço" style="${inputStyle}" /></div>
+          </div>
+          <button onclick="addTurno()" style="width:100%;margin-top:10px;padding:12px;border-radius:var(--r-md);border:none;background:var(--vault);color:#fff;font-weight:700;font-size:14px;cursor:pointer;">＋ Adicionar turno</button>
+        </div>`;
+    } else {
+      tnRow.innerHTML = '';
+    }
   }
   const swDaily = document.getElementById('swDailySummary');
   if(swDaily) swDaily.className = 'switch' + (featureOn('dailySummaryEnabled') ? ' on' : '');
@@ -3931,27 +3950,64 @@ async function toggleUidVisibility(){
   renderSettings();
 }
 function currentPhotoUrl(){ return profile.photo || (window.__fbUser && window.__fbUser.photoURL) || null; }
+// Lista de turnos. Sem lista guardada, usa os 4 padrões com os nomes e emojis
+// personalizados anteriores. Turnos removidos ficam com archived:true, para os
+// ganhos antigos continuarem com o nome certo nos relatórios.
 function getTurnos(){
+  if(profile.turnoList) return profile.turnoList;
   const names = profile.turnoNames || {};
   const emojis = profile.turnoEmojis || {};
-  return TURNOS.map(t => ({ ...t, label: names[t.key] || t.label, emoji: emojis[t.key] || t.emoji }));
+  return TURNOS.map(t => ({ key: t.key, label: names[t.key] || t.label, emoji: emojis[t.key] || t.emoji }));
 }
-// Atualiza o nome ou o emoji de um turno. Vazio = volta ao original.
-async function updateTurnoField(key, field, value){
-  profile.turnoNames = profile.turnoNames || {};
-  profile.turnoEmojis = profile.turnoEmojis || {};
-  const bag = field === 'emoji' ? profile.turnoEmojis : profile.turnoNames;
-  let v = (value || '').trim();
-  if(field === 'emoji'){
-    const parts = (typeof Intl !== 'undefined' && Intl.Segmenter) ? [...new Intl.Segmenter().segment(v)].map(x => x.segment) : [...v];
-    v = parts[0] || '';
-  } else {
-    v = v.slice(0, 14);
-  }
-  if(v) bag[key] = v; else delete bag[key];
+function activeTurnos(){ return getTurnos().filter(t => !t.archived); }
+function firstGrapheme(v){
+  const parts = (typeof Intl !== 'undefined' && Intl.Segmenter) ? [...new Intl.Segmenter().segment(v)].map(x => x.segment) : [...v];
+  return parts[0] || '';
+}
+function ensureTurnoList(){
+  if(!profile.turnoList){ profile.turnoList = getTurnos().map(t => ({ ...t })); }
+  return profile.turnoList;
+}
+async function saveTurnos(msg){
   await persistProfile();
   renderSettings();
-  showToast('Turno atualizado');
+  if(msg) showToast(msg);
+}
+// Atualiza o nome ou o emoji de um turno. Vazio no nome = volta ao original.
+async function updateTurnoField(key, field, value){
+  const list = ensureTurnoList();
+  const t = list.find(x => x.key === key);
+  if(!t) return;
+  if(field === 'emoji'){
+    const e = firstGrapheme((value || '').trim());
+    if(e) t.emoji = e;
+  } else {
+    const v = (value || '').trim().slice(0, 14);
+    if(v){ t.label = v; }
+    else {
+      const orig = TURNOS.find(x => x.key === key);
+      t.label = orig ? orig.label : t.label;
+    }
+  }
+  await saveTurnos('Turno atualizado');
+}
+async function addTurno(){
+  const name = (document.getElementById('newTurnoName')?.value || '').trim().slice(0, 14);
+  const emoji = firstGrapheme((document.getElementById('newTurnoEmoji')?.value || '').trim()) || '🕒';
+  if(!name){ showToast('Dá um nome ao turno'); return; }
+  ensureTurnoList().push({ key: 'turno_' + uid(), label: name, emoji });
+  await saveTurnos('Turno adicionado');
+}
+async function removeTurno(key){
+  if(!confirm('Remover este turno? Os ganhos já registados continuam com ele nos relatórios, mas deixa de aparecer nos novos ganhos.')) return;
+  const t = ensureTurnoList().find(x => x.key === key);
+  if(t) t.archived = true;
+  await saveTurnos('Turno removido');
+}
+async function restoreTurno(key){
+  const t = ensureTurnoList().find(x => x.key === key);
+  if(t) t.archived = false;
+  await saveTurnos('Turno reativado');
 }
 function isTvdePlatform(platform){
   if(platform === 'uber' || platform === 'bolt') return true;
@@ -4201,7 +4257,7 @@ function openAddIncomeSheet(){
       <label>Turno trabalhado (opcional)</label>
       <div class="seg" id="incTurnoSeg" style="flex-wrap:wrap;height:auto;">
         <div class="seg-opt active" data-t="" onclick="pickIncomeTurno('')" style="flex:1 1 calc(50% - 4px);margin:2px;">Não dizer</div>
-        ${getTurnos().map(t => `<div class="seg-opt" data-t="${t.key}" onclick="pickIncomeTurno('${t.key}')" style="flex:1 1 calc(50% - 4px);margin:2px;">${t.emoji} ${t.label}</div>`).join('')}
+        ${activeTurnos().map(t => `<div class="seg-opt" data-t="${t.key}" onclick="pickIncomeTurno('${t.key}')" style="flex:1 1 calc(50% - 4px);margin:2px;">${t.emoji} ${t.label}</div>`).join('')}
       </div>
       <div class="section-sub" style="font-size:11px;margin-top:6px;">Se preencheres, as Estatísticas passam a mostrar qual turno rende mais para ti.</div>
     </div>` : '';
