@@ -747,7 +747,8 @@ body.glass .tab { border-radius: var(--tab-inner); }
 html.soft-change .glass-pill {
   transition: left 0.38s cubic-bezier(.34,1.56,.64,1), top 0.38s cubic-bezier(.34,1.56,.64,1),
               width 0.38s cubic-bezier(.34,1.56,.64,1), height 0.38s cubic-bezier(.34,1.56,.64,1),
-              transform 0.42s cubic-bezier(.34,1.56,.64,1), opacity 0.2s ease !important;
+              transform 0.42s cubic-bezier(.34,1.56,.64,1), opacity 0.2s ease,
+              background-color 0.5s ease, border-color 0.5s ease, box-shadow 0.5s ease !important;
 }
 /* Intensidade do efeito transparente: sem preenchimento colorido, só o trilho neutro e a bolinha */
 #glassRange::-webkit-slider-runnable-track { background: rgba(42,36,32,0.25); }
@@ -1443,7 +1444,7 @@ body.dark .brand-name, body.dark .screen-title, body.dark .tabbar-inner::before 
 // Esquema de versão: de volta ao pré-1.0 (0.x.x) — a v1.0.0 fica
 // reservada para o lançamento com assinatura paga completa. A numeração
 // 4.x.x usada temporariamente para a integração Firebase foi abandonada.
-const APP_VERSION = '0.81';
+const APP_VERSION = '0.83';
 // Mostra o número da versão na tela de carregamento imediatamente (sem
 // esperar por loadAll/qualquer coisa assíncrona) — sempre visível,
 // independente da mensagem dinâmica ("A carregar…", "A sincronizar…",
@@ -2772,18 +2773,36 @@ function updateThemeColorMeta(){
   const isDark = document.body.classList.contains('dark');
   const glass = localSettings.liquidGlass === true;
   const theme  = THEME_COLORS.find(t => t.key === (localSettings.themeColor || 'green')) || THEME_COLORS[0];
-  // Com efeito transparente, as barras do sistema (topo e fundo no Android) usam a cor de base do vidro.
+  // Barras do sistema (topo e fundo no Android): cor do tema; com o efeito transparente, a cor de base do vidro.
   const color = glass ? (isDark ? '#0E0E12' : '#EFE7D6') : (isDark ? '#111114' : theme.vault);
-  setThemeColorMeta(color);
+  const bg    = glass ? (isDark ? '#0E0E12' : '#EFE7D6') : (isDark ? '#16161B' : '#F6EFE2');
+  setThemeColorMeta(color, bg);
 }
-// O Chrome só atualiza a cor da barra quando o elemento é recriado; alterar o atributo nem sempre basta.
-function setThemeColorMeta(color){
+// O Android usa o theme_color do manifest para as barras da app instalada, por isso o manifest acompanha a meta.
+// Chrome só relê o manifest ao abrir a app, por isso a nova cor aplica-se na próxima abertura.
+function setThemeColorMeta(color, bg){
   document.querySelectorAll('meta[name="theme-color"]').forEach(m => m.remove());
   const m = document.createElement('meta');
   m.name = 'theme-color';
   m.id = 'themeColorMeta';
   m.content = color;
   document.head.appendChild(m);
+  setManifestColors(color, bg);
+}
+function setManifestColors(color, bg){
+  const link = document.querySelector('link[rel="manifest"]');
+  if(!link) return;
+  try{
+    const b64 = link.href.split(',')[1];
+    const bytes = Uint8Array.from(atob(b64), c => c.charCodeAt(0));
+    const manifest = JSON.parse(new TextDecoder().decode(bytes));
+    if(manifest.theme_color === color && manifest.background_color === bg) return;
+    manifest.theme_color = color;
+    manifest.background_color = bg;
+    const json = new TextEncoder().encode(JSON.stringify(manifest));
+    let bin = ''; json.forEach(c => { bin += String.fromCharCode(c); });
+    link.href = 'data:application/manifest+json;base64,' + btoa(bin);
+  }catch(e){ console.warn('Falha ao atualizar cor do manifest:', e); }
 }
 function applyDarkModeClass(){
   const mode = localSettings.darkMode || 'system';
