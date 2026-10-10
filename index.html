@@ -1438,7 +1438,7 @@ body.dark #glassRange::-moz-range-track { background: rgba(255,255,255,0.3); }
 // Esquema de versão: de volta ao pré-1.0 (0.x.x) — a v1.0.0 fica
 // reservada para o lançamento com assinatura paga completa. A numeração
 // 4.x.x usada temporariamente para a integração Firebase foi abandonada.
-const APP_VERSION = '0.77';
+const APP_VERSION = '0.78';
 // Mostra o número da versão na tela de carregamento imediatamente (sem
 // esperar por loadAll/qualquer coisa assíncrona) — sempre visível,
 // independente da mensagem dinâmica ("A carregar…", "A sincronizar…",
@@ -3091,7 +3091,7 @@ function renderSettings(){
   const showUid = !!localSettings.showUid;
   const accountBlock = u
     ? `<div style="margin-top:12px;">
-         <div style="font-size:11px;font-weight:700;color:var(--vault-2);margin-bottom:6px;">${googleG} Conectado com Google</div>
+         <div style="font-size:11px;font-weight:700;color:var(--vault-text, var(--vault-2));margin-bottom:6px;">${googleG} Conectado com Google</div>
          <div style="display:flex;align-items:flex-end;justify-content:space-between;gap:10px;">
            <div style="font-size:11px;color:var(--text-muted);line-height:1.8;min-width:0;word-break:break-all;">
              <div>📧 ${escapeHtml(u.email || '—')}</div>
