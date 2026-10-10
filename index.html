@@ -1438,7 +1438,7 @@ body.dark #glassRange::-moz-range-track { background: rgba(255,255,255,0.3); }
 // Esquema de versão: de volta ao pré-1.0 (0.x.x) — a v1.0.0 fica
 // reservada para o lançamento com assinatura paga completa. A numeração
 // 4.x.x usada temporariamente para a integração Firebase foi abandonada.
-const APP_VERSION = '0.75';
+const APP_VERSION = '0.77';
 // Mostra o número da versão na tela de carregamento imediatamente (sem
 // esperar por loadAll/qualquer coisa assíncrona) — sempre visível,
 // independente da mensagem dinâmica ("A carregar…", "A sincronizar…",
@@ -2956,27 +2956,34 @@ function renderBgImageRow(){
   if(!row) return;
   const tem = !!localSettings.bgImage;
   const on = localSettings.bgEnabled !== false;
-  const sl = (key, id, titulo, a, b) => `
-    <div class="range-title" data-bglabel="${key}">${titulo}: ${bgNum(key)}%</div>
-    <input id="${id}" class="gl-range" type="range" min="0" max="100" step="1" value="${bgNum(key)}" style="--fill:${bgNum(key)}%;"
-      oninput="setBgSetting('${key}', this.value, true)" onchange="setBgSetting('${key}', this.value, false)" />
-    <div class="range-ends"><span>${a}</span><span>${b}</span></div>`;
-  row.innerHTML = `
+  // O interruptor é criado uma vez e só muda de classe: assim anima ao ativar/desativar
+  if(!document.getElementById('swBg')){
+    row.innerHTML = `
     <div class="switch-row" style="margin-top:12px;">
       <div class="switch-row-text">
         <div class="switch-row-title">Imagem de fundo</div>
         <div class="switch-row-sub">Mostra a imagem atrás da app. Desligada, a imagem fica guardada neste aparelho.</div>
       </div>
-      <div class="switch${on ? ' on' : ''}" onclick="toggleBgImage()"></div>
+      <div class="switch" id="swBg" onclick="toggleBgImage()"></div>
     </div>
-    ${on ? `<div class="field" style="margin-top:10px;">
+    <div id="bgContent"></div>`;
+  }
+  const sw = document.getElementById('swBg');
+  sw.className = 'switch' + (on ? ' on' : '');
+  const sl = (key, id, titulo, a, b) => `
+    <div class="range-title" data-bglabel="${key}">${titulo}: ${bgNum(key)}%</div>
+    <input id="${id}" class="gl-range" type="range" min="0" max="100" step="1" value="${bgNum(key)}" style="--fill:${bgNum(key)}%;"
+      oninput="setBgSetting('${key}', this.value, true)" onchange="setBgSetting('${key}', this.value, false)" />
+    <div class="range-ends"><span>${a}</span><span>${b}</span></div>`;
+  const box = document.getElementById('bgContent');
+  box.innerHTML = on ? `<div class="field" style="margin-top:10px;">
       <div id="bgPreview" style="height:72px;border-radius:var(--r-md);border:1.5px solid var(--line);background:var(--cream-2);background-size:cover;background-position:center;margin-bottom:10px;"></div>
       <div style="display:flex;gap:8px;">
         <label style="flex:1;display:block;margin:0;text-align:center;padding:12px;border-radius:var(--r-md);background:var(--vault);color:#fff;font-weight:700;font-size:13px;text-transform:none;letter-spacing:0;cursor:pointer;">Escolher imagem<input type="file" accept="image/*" style="display:none;" onchange="handleBgImage(this)" /></label>
         ${tem ? `<button onclick="removeBgImage()" style="padding:12px 16px;border-radius:var(--r-md);border:1.5px solid var(--line);background:transparent;color:var(--terracotta);font-weight:700;font-size:13px;cursor:pointer;">Remover</button>` : ''}
       </div>
       ${tem ? `<div class="chart-box" style="margin-top:12px;">${sl('bgVeil', 'bgVeilRange', 'Véu sobre a imagem', 'Normal', 'Opaco')}${sl('bgBlur', 'bgBlurRange', 'Desfoque com granulação', 'Nítido', 'Desfocado')}</div>` : ''}
-    </div>` : ''}`;
+    </div>` : '';
   if(on && tem){
     const pv = document.getElementById('bgPreview');
     if(pv){ pv.style.backgroundImage = `url("${localSettings.bgImage}")`; }
@@ -3050,6 +3057,8 @@ async function toggleLiquidGlass(){
       softChange(() => applyLiquidGlass());
       const swG = document.getElementById('swGlass');
       if(swG) swG.className = 'switch' + (localSettings.liquidGlass === true ? ' on' : '');
+      // Mostra (ou esconde) já a barra de intensidade, sem precisar de mudar de tela
+      renderGlassControls();
     }catch(e){
       console.warn('Falha ao aplicar o efeito transparente:', e);
     }finally{
