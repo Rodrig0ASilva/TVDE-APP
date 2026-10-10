@@ -1137,7 +1137,7 @@ body.dark .brand-name, body.dark .screen-title, body.dark .tabbar-inner::before 
   <div class="screen" id="screen-aparencia">
     <div class="topbar">
       <div class="screen-title-group">
-        <div class="month-nav-btn" onclick="goSettings()" style="cursor:pointer;">
+        <div class="month-nav-btn" onclick="closeAparencia()" style="cursor:pointer;">
           <svg viewBox="0 0 24 24" width="16" height="16" fill="none"><path d="M15 18l-6-6 6-6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
         </div>
         <div class="screen-title">Aparência</div>
@@ -1462,7 +1462,7 @@ body.dark .brand-name, body.dark .screen-title, body.dark .tabbar-inner::before 
 // Esquema de versão: de volta ao pré-1.0 (0.x.x) — a v1.0.0 fica
 // reservada para o lançamento com assinatura paga completa. A numeração
 // 4.x.x usada temporariamente para a integração Firebase foi abandonada.
-const APP_VERSION = '0.89';
+const APP_VERSION = '0.90';
 // Mostra o número da versão na tela de carregamento imediatamente (sem
 // esperar por loadAll/qualquer coisa assíncrona) — sempre visível,
 // independente da mensagem dinâmica ("A carregar…", "A sincronizar…",
@@ -2842,9 +2842,20 @@ function showScreen(id){
 function goGanhos(){ showScreen('screen-ganhos'); activateTab('tabGanhos'); renderGanhos(); }
 function goSettings(){ showScreen('screen-settings'); activateTab('tabSettings'); renderSettings(); }
 // Sub-ecrã de Aparência (não está na barra de abas; abre a partir de Você).
+// Entra e sai com a mesma transição de deslize das abas (entra pela direita, sai pela esquerda).
 function openAparencia(){
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active','slide-r','slide-l'));
-  document.getElementById('screen-aparencia').classList.add('active');
+  const el = document.getElementById('screen-aparencia');
+  el.classList.add('active','slide-r');
+  activateTab('tabSettings');
+  renderSettings();
+  glassRefreshAll(false);
+  const appEl = document.getElementById('app');
+  if(appEl) appEl.scrollTop = 0;
+}
+function closeAparencia(){
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active','slide-r','slide-l'));
+  document.getElementById('screen-settings').classList.add('active','slide-l');
   activateTab('tabSettings');
   renderSettings();
   glassRefreshAll(false);
