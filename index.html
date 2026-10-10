@@ -1163,7 +1163,7 @@ body.basic-mode #statsViewSeg .seg-opt:not([data-v="mes"]) { display:none; }
 // Esquema de versão: de volta ao pré-1.0 (0.x.x) — a v1.0.0 fica
 // reservada para o lançamento com assinatura paga completa. A numeração
 // 4.x.x usada temporariamente para a integração Firebase foi abandonada.
-const APP_VERSION = '0.4.32';
+const APP_VERSION = '0.4.34';
 // Mostra o número da versão na tela de carregamento imediatamente (sem
 // esperar por loadAll/qualquer coisa assíncrona) — sempre visível,
 // independente da mensagem dinâmica ("A carregar…", "A sincronizar…",
@@ -1815,7 +1815,10 @@ async function loadAll(){
         renderSettings();
       });
     }
-    initialCloudSync(uid);
+    initialCloudSync(uid).then(() => {
+      if(syncUrl && !profile.syncUrl) persistSyncUrl();
+      backupToSheetIfDue();
+    });
   } else if(syncUrl){
     // Sem sessão Google (modo básico): a planilha só existe para contas com login.
     // Nada é lido nem enviado.
@@ -1985,6 +1988,7 @@ async function applyState(st){
   profile = st.profile || { name: '', photo: null };
   if(profile.vehicle) delete profile.vehicle;
   repairTurnoList();
+  if(profile.syncUrl) syncUrl = profile.syncUrl;
   Object.keys(monthData).forEach(k => {
     const e = monthData[k];
     if(!e.earnings) e.earnings = [];
@@ -2067,6 +2071,7 @@ async function syncWithCloud(remoteRaw, opts){
 }
 // Primeira sincronização da sessão Firebase (não bloqueia a app).
 async function initialCloudSync(uid){
+  window._syncPendingDecision = false;
   try{
     const raw = await window.fbLoadUserData(uid);
     let r;
@@ -2079,6 +2084,7 @@ async function initialCloudSync(uid){
       return;
     }
     if(r === 'pending'){
+      window._syncPendingDecision = true;
       setSyncStatus('nolink');
       showToast('Escolhe que dados manter — toca em sincronizar');
       return;
@@ -2819,12 +2825,55 @@ function renderSyncUrlUI(){
 }
 
 let syncUrlSaveTimer = null;
+// Cópia de segurança na planilha, no máximo uma vez por dia, ao abrir a app.
+// Só com sessão. Envia o estado atual; não lê nem funde nada. Não corre
+// enquanto houver uma decisão pendente sobre os dados.
+async function backupToSheetIfDue(){
+  if(!window.__fbUser || !syncUrl || window._syncPendingDecision) return;
+  const last = Number(localSettings.lastSheetBackup) || 0;
+  if(Date.now() - last < 24 * 60 * 60 * 1000) return;
+  const payload = normalizeToSchemaV1(currentState());
+  let body;
+  try{
+    body = (encryptionEnabled && encryptionPassword)
+      ? JSON.stringify(await encryptPayload(payload, encryptionPassword))
+      : JSON.stringify(payload);
+  }catch(e){
+    body = JSON.stringify(payload);
+  }
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), SYNC_TIMEOUT_MS);
+  const started = Date.now();
+  try{
+    await fetch(syncUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body,
+      signal: controller.signal
+    });
+    clearTimeout(timeoutId);
+    localSettings.lastSheetBackup = Date.now();
+    await persistLocalSettings();
+    logSyncEvent('success', 'Cópia diária guardada na planilha', `${Date.now() - started}ms · ${body.length} bytes`);
+  }catch(e){
+    clearTimeout(timeoutId);
+    logSyncEvent('error', `Cópia diária na planilha falhou: ${e.message || e.name}`, `${Date.now() - started}ms`);
+  }
+}
+// O endereço da planilha fica no perfil da conta Google (segue a conta entre aparelhos).
+// Sem sessão, não é guardado nem usado.
+async function persistSyncUrl(){
+  if(!window.__fbUser) return;
+  profile.syncUrl = syncUrl || '';
+  await persistProfile();
+}
 function saveSyncUrl(){
   const input = document.getElementById('syncUrl');
   if(input) syncUrl = input.value.trim();
   clearTimeout(syncUrlSaveTimer);
   syncUrlSaveTimer = setTimeout(async () => {
     try{ await window.storage.set('syncUrl', syncUrl); }catch(e){}
+    await persistSyncUrl();
     setSyncStatus(syncUrl ? 'synced' : 'nolink');
     showToast(syncUrl ? '🔗 URL guardada' : 'Sincronização desativada');
   }, 500);
@@ -2990,7 +3039,7 @@ function confirmResetAll(){
 const RESET_TEXTS = {
   data:     { title: 'Apagar os dados', what: 'ganhos, despesas variáveis, despesas fixas e o histórico, neste aparelho e na nuvem. As configurações, o nome e a foto são mantidos.' },
   settings: { title: 'Redefinir as configurações', what: 'tema, IVA, comissão, metas, plataformas extra, opcionais, resumo de ontem, encriptação e biometria, neste aparelho e na nuvem. Os dados, o nome e a foto são mantidos.' },
-  all:      { title: 'Apagar tudo', what: 'todos os dados, todas as configurações, o nome e a foto, neste aparelho e na nuvem. Também sai da conta Google neste aparelho. A assinatura não é afetada: continua ativa na conta e volta a aparecer ao entrar de novo.' }
+  all:      { title: 'Apagar tudo', what: 'todos os dados, todas as configurações, o nome, a foto e o endereço da planilha de sincronização, neste aparelho e na nuvem. Também sai da conta Google neste aparelho. A assinatura não é afetada: continua ativa na conta e volta a aparecer ao entrar de novo.' }
 };
 function openResetCodeSheet(scope){
   const t = RESET_TEXTS[scope];
@@ -3064,6 +3113,10 @@ async function performResetInner(scope){
       try{ await window.storage.set(k, v); }catch(e){}
     }
     try{ await window.storage.delete('biometricCredentialId'); }catch(e){}
+  }
+  if(scope === 'all'){
+    syncUrl = '';
+    try{ await window.storage.delete('syncUrl'); }catch(e){}
   }
   await saveSyncBase(currentState());
   await persistLocalOnlySilently();
