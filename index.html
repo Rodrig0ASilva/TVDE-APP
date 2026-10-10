@@ -1439,11 +1439,11 @@ body.dark .brand-name, body.dark .screen-title, body.dark .tabbar-inner::before 
 <script>
 // Corrida+ — lógica do app.
 // Documentação detalhada de arquitetura, sincronização, encriptação e
-// easter eggs: ver corridaplus-docs.md (ficheiro separado).
+// easter eggs: ver DOCUMENTATION.md (ficheiro separado).
 // Esquema de versão: de volta ao pré-1.0 (0.x.x) — a v1.0.0 fica
 // reservada para o lançamento com assinatura paga completa. A numeração
 // 4.x.x usada temporariamente para a integração Firebase foi abandonada.
-const APP_VERSION = '0.80';
+const APP_VERSION = '0.81';
 // Mostra o número da versão na tela de carregamento imediatamente (sem
 // esperar por loadAll/qualquer coisa assíncrona) — sempre visível,
 // independente da mensagem dinâmica ("A carregar…", "A sincronizar…",
@@ -2769,12 +2769,21 @@ async function setThemeColor(key){
   updateThemeSwatches(key);
 }
 function updateThemeColorMeta(){
-  const metaLight = document.getElementById('themeColorMeta');
-  const metaDark  = document.getElementById('themeColorMetaDark');
   const isDark = document.body.classList.contains('dark');
+  const glass = localSettings.liquidGlass === true;
   const theme  = THEME_COLORS.find(t => t.key === (localSettings.themeColor || 'green')) || THEME_COLORS[0];
-  if(metaLight) metaLight.setAttribute('content', isDark ? '#111114' : theme.vault);
-  if(metaDark)  metaDark.setAttribute('content', isDark ? '#111114' : theme.vault);
+  // Com efeito transparente, as barras do sistema (topo e fundo no Android) usam a cor de base do vidro.
+  const color = glass ? (isDark ? '#0E0E12' : '#EFE7D6') : (isDark ? '#111114' : theme.vault);
+  setThemeColorMeta(color);
+}
+// O Chrome só atualiza a cor da barra quando o elemento é recriado; alterar o atributo nem sempre basta.
+function setThemeColorMeta(color){
+  document.querySelectorAll('meta[name="theme-color"]').forEach(m => m.remove());
+  const m = document.createElement('meta');
+  m.name = 'theme-color';
+  m.id = 'themeColorMeta';
+  m.content = color;
+  document.head.appendChild(m);
 }
 function applyDarkModeClass(){
   const mode = localSettings.darkMode || 'system';
@@ -2790,7 +2799,7 @@ async function setDarkMode(mode){
   localSettings.darkMode = mode;
   await persistLocalSettings();
   softChange(() => { applyDarkModeClass(); applyCustomBackground(); });
-  renderSettings();
+  document.querySelectorAll('#darkModeSeg .seg-opt').forEach(el => el.classList.toggle('active', el.dataset.m === mode));
 }
 function applyAllAppearance(){
   applyThemeColor(localSettings.themeColor || 'green');
@@ -3006,6 +3015,7 @@ function applyLiquidGlass(){
   document.body.classList.toggle('glass', localSettings.liquidGlass === true);
   applyGlassVars();
   glassRefreshAll(false);
+  updateThemeColorMeta();
 }
 // Intensidade do vidro: 0 = mais transparente, 50 = padrão (o atual), 100 = mais opaco.
 function glassLevel(){
@@ -3128,7 +3138,7 @@ function renderSettings(){
         </label>
         <div class="profile-card-info">
           <input class="profile-card-name-input" type="text" value="${escapeHtml(profile.name||'')}" placeholder="${escapeHtml((u && u.displayName) || 'Seu nome')}" maxlength="30"
-            oninput="updateProfileName(this.value)" />
+            onchange="commitProfileName(this.value)" onkeydown="if(event.key==='Enter')this.blur()" />
         </div>
       </div>
       ${profile.photo ? `<div class="profile-card-actions"><button class="profile-action-btn danger" onclick="removeProfilePhoto()">Repor foto do Google</button></div>` : ''}
@@ -3441,15 +3451,13 @@ function goalProgressHTML(current, goal, label){
   </div>`;
 }
 
-let profileNameTimer = null;
-function updateProfileName(value){
-  profile.name = value;
-  clearTimeout(profileNameTimer);
-  profileNameTimer = setTimeout(() => {
-    persistProfile();
-    syncAllAvatars();
-    renderGanhos();
-  }, 500);
+function commitProfileName(value){
+  const name = (value || '').trim();
+  if(name === (profile.name || '')) return;
+  profile.name = name;
+  persistProfile();
+  syncAllAvatars();
+  renderGanhos();
 }
 
 function resizeImageToDataUrl(file, size = 200){
