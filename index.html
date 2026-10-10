@@ -370,7 +370,7 @@ body.dark .vault-card, body.dark .action-btn, body.dark .income-row-compact, bod
 body.dark .month-nav-btn, body.dark .month-picker-year-btn { background: #252530; color: var(--ink); border-color: rgba(255,255,255,0.12); }
 body.dark .add-dashed-btn { background: rgba(255,255,255,0.04); border-color: rgba(255,255,255,0.18); color: var(--vault-light); }
 body.dark .platform-pick-opt { background: #252530; color: var(--ink); border-color: rgba(255,255,255,0.13); }
-body.dark .platform-pick-opt.active { border-color: var(--brass-light); background: rgba(217,169,73,0.15); }
+body.dark .platform-pick-opt.active { border-color: var(--vault-text, var(--vault-light)); background: rgba(255,255,255,0.08); }
 body.dark .field input, body.dark .field select, body.dark .field textarea, body.dark .bill-amount-input { background: #1C1C23; color: var(--ink); border-color: rgba(255,255,255,0.14); }
 body.dark .field input::placeholder, body.dark .field textarea::placeholder { color: rgba(230,225,215,0.32); }
 body.dark .field select option { background: #1C1C23; color: var(--ink); }
@@ -382,7 +382,7 @@ body.dark .seg-opt.active { background: var(--vault); color: #fff; }
 body.dark .tabbar { background: linear-gradient(to top, #0e0e12 60%, rgba(14,14,18,0)); }
 body.dark .tabbar-inner { background: rgba(18,18,24,0.97); border-color: rgba(255,255,255,0.08); }
 body.dark .tab { color: rgba(230,225,215,0.55); }
-body.dark .tab.active { color: var(--brass-light); background: rgba(217,169,73,0.12); }
+body.dark .tab.active { color: var(--vault-text, var(--vault-light)); background: rgba(255,255,255,0.08); }
 body.dark .sheet { background: #1A1A21; }
 body.dark .sheet-title { color: var(--ink); }
 body.dark .sheet-sub { color: var(--text-muted); }
@@ -396,7 +396,7 @@ body.dark .income-row-compact { border-color: rgba(255,255,255,0.07); }
 body.dark .installment-preview { background: rgba(184,134,43,0.18); }
 body.dark .leftover-banner { background: rgba(184,134,43,0.12); border-color: rgba(184,134,43,0.28); }
 body.dark .month-picker-cell { background: #1C1C23; color: var(--ink); border-color: transparent; }
-body.dark .month-picker-cell.is-current { border-color: var(--brass-light); }
+body.dark .month-picker-cell.is-current { border-color: var(--vault-text, var(--vault-light)); }
 body.dark .month-picker-cell.is-selected { background: var(--vault); color: #fff; }
 body.dark .split-total-row { border-color: rgba(255,255,255,0.12); }
 body.dark .split-total-row.balanced { color: var(--vault-light); }
@@ -1150,7 +1150,7 @@ body.dark .theme-card { background:#252530; }
 // Esquema de versão: de volta ao pré-1.0 (0.x.x) — a v1.0.0 fica
 // reservada para o lançamento com assinatura paga completa. A numeração
 // 4.x.x usada temporariamente para a integração Firebase foi abandonada.
-const APP_VERSION = '0.4.27';
+const APP_VERSION = '0.4.28';
 // Mostra o número da versão na tela de carregamento imediatamente (sem
 // esperar por loadAll/qualquer coisa assíncrona) — sempre visível,
 // independente da mensagem dinâmica ("A carregar…", "A sincronizar…",
