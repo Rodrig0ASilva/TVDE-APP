@@ -345,7 +345,7 @@ body {
 .no-income-sub   { margin-bottom: 28px; }
 .theme-color-grid { display: flex; gap: 10px; flex-wrap: wrap; }
 .theme-color-swatch { width: 32px; height: 32px; border-radius: 50%; cursor: pointer; border: 3px solid transparent; transition: border-color 0.15s ease, transform 0.1s ease; }
-.theme-color-swatch.selected { border-color: var(--ink); transform: scale(1.12); }
+.theme-color-swatch.selected { border-color: transparent; transform: scale(1.12); box-shadow: 0 0 0 2px var(--cream), 0 0 0 4px var(--ink); }
 body.dark {
   --cream:          #16161B;
   --cream-2:        #22222A;
@@ -1167,7 +1167,7 @@ body.basic-mode #statsViewSeg .seg-opt:not([data-v="mes"]) { display:none; }
 // Esquema de versão: de volta ao pré-1.0 (0.x.x) — a v1.0.0 fica
 // reservada para o lançamento com assinatura paga completa. A numeração
 // 4.x.x usada temporariamente para a integração Firebase foi abandonada.
-const APP_VERSION = '0.4.37';
+const APP_VERSION = '0.4.38';
 // Mostra o número da versão na tela de carregamento imediatamente (sem
 // esperar por loadAll/qualquer coisa assíncrona) — sempre visível,
 // independente da mensagem dinâmica ("A carregar…", "A sincronizar…",
