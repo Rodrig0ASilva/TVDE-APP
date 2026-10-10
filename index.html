@@ -478,6 +478,10 @@ body.dark button[onclick="lockSyncUrl()"] { background: var(--vault); color: #ff
   #splashScreen .splash-title { color: #F0EDE6; }
   #splashScreen .splash-msg { color: rgba(230,225,215,0.62); }
 }
+.theme-input { background:#fff; color:var(--ink); }
+body.dark .theme-input { background:#1C1C23; color:var(--ink); border-color:rgba(255,255,255,0.14); }
+.theme-card { background:#fff; }
+body.dark .theme-card { background:#252530; }
 </style>
 </head>
 <body>
@@ -1122,13 +1126,13 @@ body.dark button[onclick="lockSyncUrl()"] { background: var(--vault); color: #ff
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="M7 14l4-4 4 3 5-6" stroke-linecap="round" stroke-linejoin="round"/></svg>
       Estatísticas
     </div>
-    <div class="tab hidden-tab" id="tabDev" onclick="goDev()">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.7 6.3a4 4 0 0 0-5.4 5.4L3 18l3 3 6.3-6.3a4 4 0 0 0 5.4-5.4l-2.5 2.5-2.5-.5-.5-2.5z"/></svg>
-      Dev
-    </div>
     <div class="tab" id="tabSettings" onclick="goSettings()">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1-1.6 1.7 1.7 0 0 0-1.9.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.9 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.6-1 1.7 1.7 0 0 0-.3-1.9l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.9.3h.1a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.6 1.7 1.7 0 0 0 1.9-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.9v.1a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.6 1z"/></svg>
       Você
+    </div>
+    <div class="tab hidden-tab" id="tabDev" onclick="goDev()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.7 6.3a4 4 0 0 0-5.4 5.4L3 18l3 3 6.3-6.3a4 4 0 0 0 5.4-5.4l-2.5 2.5-2.5-.5-.5-2.5z"/></svg>
+      Dev
     </div>
   </div>
 </div>
@@ -1146,7 +1150,7 @@ body.dark button[onclick="lockSyncUrl()"] { background: var(--vault); color: #ff
 // Esquema de versão: de volta ao pré-1.0 (0.x.x) — a v1.0.0 fica
 // reservada para o lançamento com assinatura paga completa. A numeração
 // 4.x.x usada temporariamente para a integração Firebase foi abandonada.
-const APP_VERSION = '0.4.24';
+const APP_VERSION = '0.4.26';
 // Mostra o número da versão na tela de carregamento imediatamente (sem
 // esperar por loadAll/qualquer coisa assíncrona) — sempre visível,
 // independente da mensagem dinâmica ("A carregar…", "A sincronizar…",
@@ -1786,6 +1790,7 @@ async function loadAll(){
     const uid = window.__fbUser.uid;
     if(unsubUserData) unsubUserData();
     unsubUserData = window.fbListenUserData(uid, (remoteData) => {
+      if(window._suppressRemote) return;
       syncWithCloud(resolveIncomingPayload(remoteData), { ask: false, stamp: remoteData.updatedAt })
         .then(r => { if(r === 'ok') refreshActiveScreen(); });
     });
@@ -1883,15 +1888,18 @@ function stable(x){
   if(isNested(x)) return '{' + Object.keys(x).filter(k => x[k] !== undefined).sort().map(k => JSON.stringify(k) + ':' + stable(x[k])).join(',') + '}';
   return JSON.stringify(x === undefined ? null : x);
 }
+// Identificador de cada item: id (registos) ou key (plataformas e turnos).
+// Sem nenhum dos dois, usa o próprio conteúdo, para o item não se perder.
+function idOf(it){ return (it && (it.id || it.key)) || (it ? stable(it) : null); }
 function mapById(arr){
   const m = {};
-  (arr || []).forEach(it => { if(it && it.id) m[it.id] = it; });
+  (arr || []).forEach(it => { const id = idOf(it); if(id) m[id] = it; });
   return m;
 }
 function arrFromMap(m, lArr, rArr){
   const seen = new Set(), out = [];
   [...(lArr || []), ...(rArr || [])].forEach(it => {
-    const id = it && it.id;
+    const id = idOf(it);
     if(id && m[id] && !seen.has(id)){ seen.add(id); out.push(m[id]); }
   });
   Object.keys(m).forEach(id => { if(!seen.has(id)){ seen.add(id); out.push(m[id]); } });
@@ -2399,13 +2407,13 @@ function renderSettings(){
       const actives = all.filter(t => !t.archived);
       const archived = all.filter(t => t.archived);
       const lbl = 'display:block;font-size:10px;font-weight:700;color:var(--vault-2);margin-bottom:6px;text-transform:uppercase;';
-      const inputStyle = 'width:100%;padding:10px 12px;border:1.5px solid var(--line);border-radius:var(--r-md);background:#fff;font-size:14px;';
+      const inputStyle = 'width:100%;padding:10px 12px;border:1.5px solid var(--line);border-radius:var(--r-md);font-size:14px;';
       const rowFor = (t) => `
         <div style="display:flex;gap:8px;align-items:flex-end;margin-bottom:10px;">
           <div style="width:64px;"><label style="${lbl}">Emoji</label>
-            <input type="text" maxlength="4" value="${escapeHtml(t.emoji)}" onchange="updateTurnoField('${t.key}','emoji',this.value)" style="${inputStyle}text-align:center;font-size:18px;padding:10px 4px;" /></div>
+            <input type="text" maxlength="4" value="${escapeHtml(t.emoji)}" onchange="updateTurnoField('${t.key}','emoji',this.value)" class="theme-input" style="${inputStyle}text-align:center;font-size:18px;padding:10px 4px;" /></div>
           <div style="flex:1;min-width:0;"><label style="${lbl}">Nome</label>
-            <input type="text" maxlength="14" value="${escapeHtml(t.label)}" onchange="updateTurnoField('${t.key}','name',this.value)" style="${inputStyle}" /></div>
+            <input type="text" maxlength="14" value="${escapeHtml(t.label)}" onchange="updateTurnoField('${t.key}','name',this.value)" class="theme-input" style="${inputStyle}" /></div>
           <div class="bill-delete" onclick="${t.archived ? `restoreTurno('${t.key}')` : `removeTurno('${t.key}')`}" title="${t.archived ? 'Reativar' : 'Remover'}" style="padding:10px 4px;font-size:${t.archived ? '12px' : '16px'};font-weight:700;color:${t.archived ? 'var(--vault-2)' : 'var(--terracotta)'};white-space:nowrap;">${t.archived ? '↺ reativar' : '✕'}</div>
         </div>`;
       tnRow.innerHTML =
@@ -2416,9 +2424,9 @@ function renderSettings(){
           <div class="section-sub" style="margin-bottom:8px;font-weight:700;">Adicionar turno</div>
           <div style="display:flex;gap:8px;align-items:flex-end;">
             <div style="width:64px;"><label style="${lbl}">Emoji</label>
-              <input type="text" id="newTurnoEmoji" maxlength="4" placeholder="🕒" style="${inputStyle}text-align:center;font-size:18px;padding:10px 4px;" /></div>
+              <input type="text" id="newTurnoEmoji" maxlength="4" placeholder="🕒" class="theme-input" style="${inputStyle}text-align:center;font-size:18px;padding:10px 4px;" /></div>
             <div style="flex:1;min-width:0;"><label style="${lbl}">Nome</label>
-              <input type="text" id="newTurnoName" maxlength="14" placeholder="ex: Almoço" style="${inputStyle}" /></div>
+              <input type="text" id="newTurnoName" maxlength="14" placeholder="ex: Almoço" class="theme-input" style="${inputStyle}" /></div>
           </div>
           <button onclick="addTurno()" style="width:100%;margin-top:10px;padding:12px;border-radius:var(--r-md);border:none;background:var(--vault);color:#fff;font-weight:700;font-size:14px;cursor:pointer;">＋ Adicionar turno</button>
         </div>`;
@@ -2910,7 +2918,7 @@ function exportDataToExcel(){
 
 function confirmResetAll(){
   const opt = (scope, title, desc, danger) => `
-    <button class="btn" onclick="openResetCodeSheet('${scope}')" style="text-align:left;background:#fff;border:1.5px solid ${danger ? 'var(--terracotta)' : 'var(--line)'};color:${danger ? 'var(--terracotta)' : 'var(--ink)'};margin-bottom:10px;padding:14px;">
+    <button class="btn theme-card" onclick="openResetCodeSheet('${scope}')" style="text-align:left;border:1.5px solid ${danger ? 'var(--terracotta)' : 'var(--line)'};color:${danger ? 'var(--terracotta)' : 'var(--ink)'};margin-bottom:10px;padding:14px;">
       <div style="font-weight:800;font-size:14px;">${title}</div>
       <div style="font-size:11px;font-weight:500;color:var(--text-muted);margin-top:4px;line-height:1.5;">${desc}</div>
     </button>`;
@@ -2973,14 +2981,23 @@ async function executeResetAll(){
 }
 // Aplica a redefinição. Os dados e as configurações são limpos localmente e
 // depois enviados para a nuvem com substituição (sem fusão), para não voltarem.
+// Ignora alterações remotas durante a reposição: a nuvem antiga não pode
+// voltar a aplicar-se localmente enquanto a reposição não tiver sido gravada.
 async function performReset(scope){
+  window._suppressRemote = true;
+  try{ await performResetInner(scope); }
+  finally{ window._suppressRemote = false; }
+}
+async function performResetInner(scope){
   const eraseData = scope === 'data' || scope === 'all';
   const eraseSettings = scope === 'settings' || scope === 'all';
   if(eraseData){ bills = []; monthData = {}; }
   if(eraseSettings){
     const keepIdentity = scope === 'settings';
     profile = { name: keepIdentity ? (profile.name || '') : '', photo: keepIdentity ? (profile.photo || null) : null };
-    localSettings = { darkMode: 'system', themeColor: 'green', devMode: localSettings.devMode === true };
+    localSettings = { darkMode: 'system', themeColor: 'green', devMode: false };
+    devMode = false;
+    applyTabVisibility();
     encryptionEnabled = false;
     encryptionPassword = '';
     biometricUnlockEnabled = false;
@@ -2993,7 +3010,7 @@ async function performReset(scope){
     }
     try{ await window.storage.delete('biometricCredentialId'); }catch(e){}
   }
-  await saveSyncBase(null);
+  await saveSyncBase(currentState());
   await persistLocalOnlySilently();
   clearTimeout(syncPushTimer);
   clearTimeout(firestorePushTimer);
@@ -3016,7 +3033,7 @@ function openExportChoice(){
       <div style="font-weight:800;">📊 Planilha Excel (.xlsx)</div>
       <div style="font-size:11px;font-weight:500;opacity:0.85;margin-top:3px;">Para a declaração de IRS: ganhos, despesas, despesas fixas e resumo mensal.</div>
     </button>
-    <button class="btn" onclick="closeSheet(); exportSettingsJson()" style="text-align:left;background:#fff;border:1.5px solid var(--line);color:var(--ink);">
+    <button class="btn theme-card" onclick="closeSheet(); exportSettingsJson()" style="text-align:left;border:1.5px solid var(--line);color:var(--ink);">
       <div style="font-weight:800;">🗂️ Arquivo de configurações (.json)</div>
       <div style="font-size:11px;font-weight:500;color:var(--text-muted);margin-top:3px;">Cópia completa de dados e configurações, para guardar ou transferir para outro aparelho.</div>
     </button>
