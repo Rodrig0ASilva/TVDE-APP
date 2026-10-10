@@ -255,9 +255,9 @@ body {
 .section-sub { font-size: var(--text-xs); color: var(--text-muted); line-height: 1.5; }
 .no-income-title { font-size: var(--text-md); font-weight: 600; margin-bottom: 4px; }
 .no-income-sub   { font-size: var(--text-sm); color: var(--text-muted); }
-.screen { display: none; animation: fadeIn 0.22s ease; }
+.screen { display: none; }
 .screen.active { display: block; }
-@keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 .overlay { position: fixed; inset: 0; background: rgba(20,16,12,0.45); display: none; align-items: flex-end; justify-content: center; z-index: 50; }
 .overlay.show { display: flex; }
 .sheet { background: var(--cream); width: 100%; max-width: 480px; border-radius: 24px 24px 0 0; padding: 10px 20px calc(24px + env(safe-area-inset-bottom)); max-height: 88vh; overflow-y: auto; overflow-x: hidden; animation: slideUp 0.25s ease; }
@@ -542,8 +542,11 @@ body.glass .tab.active {
   border: 1px solid rgba(255,255,255,0.6);
   box-shadow: inset 0 1px 0 rgba(255,255,255,0.7), 0 2px 10px rgba(20,16,12,0.12);
 }
-body.glass .screen { animation: glassFade 0.28s ease; }
-@keyframes glassFade { from { opacity: 0; } to { opacity: 1; } }
+/* Troca de abas: a nova aba entra do lado de onde vem (só deslize, opacidade total) */
+@keyframes slideFromRight { from { transform: translateX(28px); } to { transform: translateX(0); } }
+@keyframes slideFromLeft { from { transform: translateX(-28px); } to { transform: translateX(0); } }
+.screen.slide-r { animation: slideFromRight 0.3s cubic-bezier(.2,.8,.2,1); }
+.screen.slide-l { animation: slideFromLeft 0.3s cubic-bezier(.2,.8,.2,1); }
 body.glass.dark .tab.active { background: rgba(255,255,255,0.12); border-color: rgba(255,255,255,0.18); }
 body.glass .stat-card, body.glass .chart-box, body.glass .profile-card, body.glass .income-row-compact {
   background: rgba(255,255,255,0.5);
@@ -668,10 +671,27 @@ body.dark.bg-img #app .add-dashed-btn { background: rgba(14,14,18,0.6); border-c
 /* Fade da interface e do menu ao ligar/desligar o efeito */
 #app, .tabbar { transition: opacity 0.22s ease; }
 #app.fade-out, .tabbar.fade-out { opacity: 0; }
+/* Intensidade do vidro (--gl-k: transparência; --gl-b: desfoque). Padrão = 1. */
+body.glass .tabbar-inner { background: rgba(255,255,255, min(0.97, calc(0.28 * var(--gl-k)))); backdrop-filter: blur(calc(24px * var(--gl-b))) saturate(180%); -webkit-backdrop-filter: blur(calc(24px * var(--gl-b))) saturate(180%); }
+body.glass.dark .tabbar-inner { background: rgba(40,40,52, min(0.97, calc(0.38 * var(--gl-k)))); }
+body.glass .stat-card, body.glass .chart-box, body.glass .profile-card, body.glass .income-row-compact { background: rgba(255,255,255, min(0.97, calc(0.5 * var(--gl-k)))); backdrop-filter: blur(calc(18px * var(--gl-b))) saturate(160%); -webkit-backdrop-filter: blur(calc(18px * var(--gl-b))) saturate(160%); }
+body.glass.dark .stat-card, body.glass.dark .chart-box, body.glass.dark .profile-card, body.glass.dark .income-row-compact { background: rgba(30,30,40, min(0.97, calc(0.5 * var(--gl-k)))); }
+body.glass .sheet { background: rgba(246,239,226, min(0.98, calc(0.82 * var(--gl-k)))); backdrop-filter: blur(calc(30px * var(--gl-b))) saturate(170%); -webkit-backdrop-filter: blur(calc(30px * var(--gl-b))) saturate(170%); }
+body.glass.dark .sheet { background: rgba(26,26,33, min(0.98, calc(0.82 * var(--gl-k)))); }
+body.glass .seg { background: rgba(255,255,255, min(0.97, calc(0.32 * var(--gl-k)))); backdrop-filter: blur(calc(16px * var(--gl-b))) saturate(170%); -webkit-backdrop-filter: blur(calc(16px * var(--gl-b))) saturate(170%); }
+body.glass.dark .seg { background: rgba(40,40,52, min(0.97, calc(0.4 * var(--gl-k)))); }
+body.glass .month-nav-btn { background: rgba(255,255,255, min(0.97, calc(0.45 * var(--gl-k)))); backdrop-filter: blur(calc(14px * var(--gl-b))) saturate(170%); -webkit-backdrop-filter: blur(calc(14px * var(--gl-b))) saturate(170%); }
+body.glass.dark .month-nav-btn { background: rgba(40,40,52, min(0.97, calc(0.45 * var(--gl-k)))); }
+/* Balões sem cor (interruptor "Balões tintados" desligado) */
+body.glass-clear .seg > .glass-pill { background: rgba(255,255,255,0.75); border-color: rgba(255,255,255,0.85); box-shadow: 0 2px 8px rgba(20,16,12,0.12); }
+body.glass-clear.dark .seg > .glass-pill { background: rgba(255,255,255,0.22); border-color: rgba(255,255,255,0.25); }
+body.glass-clear .seg-opt.active, body.glass-clear.dark .seg-opt.active { color: var(--ink); }
+body.glass-clear .glass-pill { background: rgba(255,255,255,0.45); }
+body.glass-clear.dark .glass-pill { background: rgba(255,255,255,0.14); }
 </style>
 </head>
 <body>
-<div id="customBg" style="position:fixed;inset:0;z-index:0;pointer-events:none;"></div>
+<div id="customBg" style="position:fixed;inset:0;z-index:0;pointer-events:none;"><div id="customBgGrain" style="position:absolute;inset:0;pointer-events:none;mix-blend-mode:overlay;opacity:0;"></div></div>
 
 <div id="splashScreen" style="
   position:fixed;inset:0;
@@ -915,6 +935,7 @@ body.dark.bg-img #app .add-dashed-btn { background: rgba(14,14,18,0.6); border-c
       </div>
       <div class="switch" id="swGlass" onclick="toggleLiquidGlass()"></div>
     </div>
+    <div id="glassControls"></div>
     <div id="bgImageRow"></div>
 
     <div style="height:1px;background:var(--line);margin:26px 0 0;"></div>
@@ -1351,7 +1372,7 @@ body.dark.bg-img #app .add-dashed-btn { background: rgba(14,14,18,0.6); border-c
 // Esquema de versão: de volta ao pré-1.0 (0.x.x) — a v1.0.0 fica
 // reservada para o lançamento com assinatura paga completa. A numeração
 // 4.x.x usada temporariamente para a integração Firebase foi abandonada.
-const APP_VERSION = '0.56';
+const APP_VERSION = '0.62';
 // Mostra o número da versão na tela de carregamento imediatamente (sem
 // esperar por loadAll/qualquer coisa assíncrona) — sempre visível,
 // independente da mensagem dinâmica ("A carregar…", "A sincronizar…",
@@ -2620,33 +2641,108 @@ const glassObserver = new MutationObserver(muts => {
 glassObserver.observe(document.body, { subtree: true, childList: true, attributes: true, attributeFilter: ['class'] });
 
 // Deslizar na horizontal sobre o conteúdo: aba seguinte ou anterior.
+const TAB_SCREEN = { tabGanhos: 'screen-ganhos', tabDespesas: 'screen-despesas', tabLucro: 'screen-lucro', tabStats: 'screen-stats', tabSettings: 'screen-settings', tabDev: 'screen-dev' };
+// Deslizar na horizontal sobre o conteúdo: a página segue o dedo e mostra a aba vizinha.
+// Ao soltar: muda se o deslize for longo ou rápido; senão volta. Só no telemóvel.
 function setupSwipeNav(){
   const app = document.getElementById('app');
   if(!app) return;
-  let s = null;
+  let s = null, live = null;
+  const isMobile = () => !window.matchMedia || !window.matchMedia('(min-width: 860px)').matches;
+  // Prepara as duas telas lado a lado, em posição absoluta, só durante o gesto
+  const startLive = dx => {
+    const ids = visibleTabIds();
+    const ci = ids.indexOf(currentTabId());
+    const ni = dx < 0 ? ci + 1 : ci - 1;
+    if(ci < 0 || ni < 0 || ni >= ids.length) return false;
+    const cs = getComputedStyle(app);
+    const pl = parseFloat(cs.paddingLeft) || 0, pr = parseFloat(cs.paddingRight) || 0;
+    const cur = document.getElementById(TAB_SCREEN[ids[ci]]);
+    const tgt = document.getElementById(TAB_SCREEN[ids[ni]]);
+    if(!cur || !tgt) return false;
+    const W = app.clientWidth - pl - pr;
+    app.style.minHeight = cur.offsetHeight + 'px';
+    [cur, tgt].forEach(el => {
+      el.style.display = 'block';
+      el.style.position = 'absolute';
+      el.style.left = pl + 'px';
+      el.style.right = pr + 'px';
+      el.style.top = '0';
+      el.style.transition = 'none';
+    });
+    live = { cur, tgt, tgtId: ids[ni], W, dir: dx < 0 ? 1 : -1 };
+    return true;
+  };
+  const moveLive = dx => {
+    const { cur, tgt, W, dir } = live;
+    cur.style.transform = `translateX(${dx}px)`;
+    tgt.style.transform = `translateX(${dir * W + dx}px)`;
+  };
+  const endLive = () => {
+    if(!live) return;
+    [live.cur, live.tgt].forEach(el => {
+      el.style.position = ''; el.style.left = ''; el.style.right = ''; el.style.top = '';
+      el.style.transform = ''; el.style.transition = ''; el.style.display = '';
+    });
+    app.style.minHeight = '';
+  };
   app.addEventListener('touchstart', e => {
+    if(!isMobile()) return;
     if(document.querySelector('.overlay.show')) return;
     if(e.touches.length !== 1) return;
     if(e.target.closest('input, textarea, select, button, .seg, .switch, svg, .bill-amount-input')) return;
     const t = e.touches[0];
-    s = { x: t.clientX, y: t.clientY, t: Date.now() };
+    s = { x: t.clientX, y: t.clientY, dx: 0, lastX: t.clientX, lastT: Date.now(), v: 0, isLive: false };
   }, { passive: true });
-  app.addEventListener('touchend', e => {
-    if(!s) return;
-    const t = e.changedTouches[0];
-    const dx = t.clientX - s.x, dy = t.clientY - s.y, dt = Date.now() - s.t;
+  app.addEventListener('touchmove', e => {
+    if(!s || e.touches.length !== 1) return;
+    const t = e.touches[0];
+    const dx = t.clientX - s.x, dy = t.clientY - s.y;
+    if(!s.isLive){
+      if(Math.abs(dx) < 10 || Math.abs(dx) < 1.3 * Math.abs(dy)) return;
+      if(!startLive(dx)){ s = null; return; }
+      s.isLive = true;
+    }
+    const now = Date.now();
+    s.v = (t.clientX - s.lastX) / Math.max(1, now - s.lastT);
+    s.lastX = t.clientX; s.lastT = now;
+    s.dx = dx;
+    moveLive(dx);
+  }, { passive: true });
+  const finish = (cancelled) => {
+    if(!s || !s.isLive || !live){ s = null; return; }
+    const { cur, tgt, W, tgtId } = live;
+    const dx = s.dx, v = s.v;
     s = null;
-    if(Math.abs(dx) < 70 || Math.abs(dx) < 1.6 * Math.abs(dy) || dt > 700) return;
-    const ids = visibleTabIds();
-    const cur = ids.indexOf(currentTabId());
-    const next = dx < 0 ? cur + 1 : cur - 1;
-    if(cur < 0 || next < 0 || next >= ids.length) return;
-    TAB_NAV[ids[next]]();
-  }, { passive: true });
+    const go = !cancelled && (Math.abs(dx) > W * 0.25 || (Math.abs(v) > 0.45 && Math.sign(v) === Math.sign(dx)));
+    const curEnd = go ? (dx < 0 ? -W : W) : 0;
+    const tgtEnd = go ? 0 : (dx < 0 ? W : -W);
+    const ease = 'transform 0.24s cubic-bezier(.2,.8,.2,1)';
+    cur.style.transition = ease;
+    tgt.style.transition = ease;
+    requestAnimationFrame(() => {
+      cur.style.transform = `translateX(${curEnd}px)`;
+      tgt.style.transform = `translateX(${tgtEnd}px)`;
+    });
+    setTimeout(() => {
+      endLive();
+      live = null;
+      if(go){ window._skipSlide = true; TAB_NAV[tgtId](); }
+    }, 250);
+  };
+  app.addEventListener('touchend', () => finish(false), { passive: true });
+  app.addEventListener('touchcancel', () => finish(true), { passive: true });
 }
+const SCREEN_ORDER = ['screen-ganhos','screen-despesas','screen-lucro','screen-stats','screen-settings','screen-dev'];
 function showScreen(id){
-  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-  document.getElementById(id).classList.add('active');
+  const prev = document.querySelector('.screen.active');
+  const from = prev ? SCREEN_ORDER.indexOf(prev.id) : -1;
+  const to = SCREEN_ORDER.indexOf(id);
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active', 'slide-r', 'slide-l'));
+  const next = document.getElementById(id);
+  next.classList.add('active');
+  if(!window._skipSlide && from >= 0 && to >= 0 && from !== to){ next.classList.add(to > from ? 'slide-r' : 'slide-l'); }
+  window._skipSlide = false;
   window.scrollTo(0, 0);
 }
 function goGanhos(){ showScreen('screen-ganhos'); activateTab('tabGanhos'); renderGanhos(); }
@@ -2754,24 +2850,53 @@ function applyBodyTone(){
   document.body.classList.toggle('bg-img', !!img);
 }
 let bgTimer = null;
+// Granulação (ruído) para o desfoque.
+const GRAIN_SVG = "url(\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>\")";
+function bgNum(k){ const v = Number(localSettings[k]); return isNaN(v) ? 0 : Math.max(0, Math.min(100, v)); }
+// Véu: a 0 é o véu leve atual; a 100 é o véu totalmente opaco (a imagem fica tapada).
+function bgCss(img){
+  const dark = document.body.classList.contains('dark');
+  const V = bgNum('bgVeil') / 100;
+  const base = dark ? '14,14,18' : '20,16,12';
+  const baseA = ((dark ? 0.62 : 0.22) * (1 - V)).toFixed(3);
+  const cream = dark ? '22,22,28' : '246,239,226';
+  return `linear-gradient(rgba(${base},${baseA}), rgba(${base},${baseA})), linear-gradient(rgba(${cream},${V.toFixed(3)}), rgba(${cream},${V.toFixed(3)})), url("${img}")`;
+}
+// Desfoque (0 a 100) e granulação, que sobe com o desfoque.
+function applyBgEffects(el){
+  const B = bgNum('bgBlur');
+  el.style.filter = B > 0 ? `blur(${(B * 0.2).toFixed(1)}px)` : '';
+  el.style.transform = B > 0 ? 'scale(1.04)' : '';
+  const g = document.getElementById('customBgGrain');
+  if(g){ g.style.backgroundImage = GRAIN_SVG; g.style.opacity = (B / 100 * 0.5).toFixed(3); }
+}
 function applyCustomBackground(){
   const el = document.getElementById('customBg');
   if(!el) return;
   const img = localSettings.bgImage;
-  const dark = document.body.classList.contains('dark');
-  const veil = dark ? 'rgba(14,14,18,0.62)' : 'rgba(20,16,12,0.22)';
-  const want = img ? `linear-gradient(${veil}, ${veil}), url("${img}")` : '';
   if(img && !localSettings.bgTone){
     imageTone(img).then(async t => { localSettings.bgTone = t; await persistLocalSettings(); applyBodyTone(); });
   }
   applyBodyTone();
+  applyBgEffects(el);
+  const want = img ? bgCss(img) : '';
   if((el.dataset.bg || '') === want) return;
+  // Mesma imagem (mudam só o véu ou o desfoque): atualiza já, sem fade
+  if((el.dataset.img || '') === (img || '')){
+    el.dataset.bg = want;
+    el.style.backgroundImage = want;
+    el.style.backgroundSize = 'cover';
+    el.style.backgroundPosition = 'center';
+    el.classList.toggle('on', !!want);
+    return;
+  }
+  // Imagem nova ou removida: sai com fade, troca, entra
   clearTimeout(bgTimer);
   el.classList.remove('on');
-  // Se já havia imagem, espera que saia antes de trocar; senão entra logo.
   const delay = el.dataset.bg ? 260 : 30;
   bgTimer = setTimeout(() => {
     el.dataset.bg = want;
+    el.dataset.img = img || '';
     el.style.backgroundImage = want;
     el.style.backgroundSize = 'cover';
     el.style.backgroundPosition = 'center';
@@ -2834,10 +2959,22 @@ async function removeBgImage(){
   renderSettings();
   showToast('Imagem de fundo removida');
 }
+async function setBgSetting(key, v, live){
+  localSettings[key] = Number(v);
+  applyCustomBackground();
+  const lab = document.querySelector(`#bgImageRow [data-bglabel="${key}"]`);
+  if(lab) lab.textContent = (key === 'bgVeil' ? 'Véu sobre a imagem: ' : 'Desfoque com granulação: ') + bgNum(key) + '%';
+  if(!live) await persistLocalSettings();
+}
 function renderBgImageRow(){
   const row = document.getElementById('bgImageRow');
   if(!row) return;
   const tem = !!localSettings.bgImage;
+  const slider = (key, titulo, a, b) => `
+    <div data-bglabel="${key}" style="font-size:12px;font-weight:600;margin:14px 0 6px;">${titulo}: ${bgNum(key)}%</div>
+    <input type="range" min="0" max="100" step="1" value="${bgNum(key)}" style="width:100%;accent-color:var(--vault);"
+      oninput="setBgSetting('${key}', this.value, true)" onchange="setBgSetting('${key}', this.value, false)" />
+    <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--text-muted);margin-top:2px;"><span>${a}</span><span>${b}</span></div>`;
   row.innerHTML = `<div class="field" style="margin-top:12px;">
     <label>Imagem de fundo</label>
     <div id="bgPreview" style="height:72px;border-radius:var(--r-md);border:1.5px solid var(--line);background:var(--cream-2);background-size:cover;background-position:center;margin-bottom:10px;"></div>
@@ -2845,23 +2982,66 @@ function renderBgImageRow(){
       <label style="flex:1;display:block;margin:0;text-align:center;padding:12px;border-radius:var(--r-md);background:var(--vault);color:#fff;font-weight:700;font-size:13px;text-transform:none;letter-spacing:0;cursor:pointer;">Escolher imagem<input type="file" accept="image/*" style="display:none;" onchange="handleBgImage(this)" /></label>
       ${tem ? `<button onclick="removeBgImage()" style="padding:12px 16px;border-radius:var(--r-md);border:1.5px solid var(--line);background:transparent;color:var(--terracotta);font-weight:700;font-size:13px;cursor:pointer;">Remover</button>` : ''}
     </div>
+    ${tem ? slider('bgVeil', 'Véu sobre a imagem', 'Normal', 'Opaco') + slider('bgBlur', 'Desfoque com granulação', 'Nítido', 'Desfocado') : ''}
   </div>`;
   if(tem){
     const pv = document.getElementById('bgPreview');
     if(pv){ pv.style.backgroundImage = `url("${localSettings.bgImage}")`; }
   }
 }
-// Liga a transição suave de cores durante a mudança; desliga depois de a animação acabar.
-let softTimer = null;
-function softChange(fn){
-  document.documentElement.classList.add('soft-change');
-  fn();
-  clearTimeout(softTimer);
-  softTimer = setTimeout(() => document.documentElement.classList.remove('soft-change'), 650);
-}
 function applyLiquidGlass(){
   document.body.classList.toggle('glass', localSettings.liquidGlass === true);
+  document.body.classList.toggle('glass-clear', localSettings.glassTint === false);
+  applyGlassVars();
   glassRefreshAll(false);
+}
+// Intensidade do vidro: 0 = mais transparente, 50 = padrão (o atual), 100 = mais opaco.
+function glassLevel(){
+  const v = Number(localSettings.glassLevel);
+  return isNaN(v) ? 50 : Math.max(0, Math.min(100, v));
+}
+function glassLevelLabel(L){ return L < 35 ? 'Mais transparente' : (L > 65 ? 'Mais opaco' : 'Padrão'); }
+function applyGlassVars(){
+  const L = glassLevel();
+  document.body.style.setProperty('--gl-k', (0.4 + 1.2 * L / 100).toFixed(3));
+  document.body.style.setProperty('--gl-b', (0.35 + 1.3 * L / 100).toFixed(3));
+}
+// Ao arrastar, só atualiza o aspeto; ao soltar, guarda.
+async function setGlassLevel(v, live){
+  localSettings.glassLevel = Number(v);
+  applyGlassVars();
+  const lab = document.querySelector('#glassControls .field label');
+  if(lab) lab.textContent = 'Intensidade: ' + glassLevelLabel(glassLevel());
+  if(!live) await persistLocalSettings();
+}
+async function toggleGlassTint(){
+  localSettings.glassTint = !(localSettings.glassTint !== false);
+  await persistLocalSettings();
+  document.body.classList.toggle('glass-clear', localSettings.glassTint === false);
+  renderGlassControls();
+  showToast(localSettings.glassTint === false ? 'Balões sem cor' : 'Balões tintados');
+}
+function renderGlassControls(){
+  const box = document.getElementById('glassControls');
+  if(!box) return;
+  const on = localSettings.liquidGlass === true;
+  box.style.display = on ? 'block' : 'none';
+  if(!on){ box.innerHTML = ''; return; }
+  const L = glassLevel();
+  const tint = localSettings.glassTint !== false;
+  box.innerHTML = `<div class="field" style="margin-top:12px;">
+      <label>Intensidade: ${glassLevelLabel(L)}</label>
+      <input type="range" min="0" max="100" step="1" value="${L}" style="width:100%;accent-color:var(--vault);"
+        oninput="setGlassLevel(this.value, true)" onchange="setGlassLevel(this.value, false)" />
+      <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--text-muted);margin-top:4px;"><span>Transparente</span><span>Padrão</span><span>Opaco</span></div>
+    </div>
+    <div class="switch-row">
+      <div class="switch-row-text">
+        <div class="switch-row-title">Balões tintados</div>
+        <div class="switch-row-sub">Ligado: a gota e os seletores usam a cor do tema. Desligado: neutros, sem cor.</div>
+      </div>
+      <div class="switch${tint ? ' on' : ''}" onclick="toggleGlassTint()"></div>
+    </div>`;
 }
 async function toggleLiquidGlass(){
   localSettings.liquidGlass = !(localSettings.liquidGlass === true);
@@ -3024,6 +3204,7 @@ function renderSettings(){
     }
   }
   renderBgImageRow();
+  renderGlassControls();
   const swGlass = document.getElementById('swGlass');
   if(swGlass) swGlass.className = 'switch' + (localSettings.liquidGlass === true ? ' on' : '');
   const swDaily = document.getElementById('swDailySummary');
