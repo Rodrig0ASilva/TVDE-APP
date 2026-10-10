@@ -714,7 +714,7 @@ body.dark button[onclick="lockSyncUrl()"] { background: var(--vault); color: #ff
       <div class="theme-color-grid" id="themeColorGrid"></div>
     </div>
 
-    <div class="section-head" style="margin-top:20px;"><div class="section-title">Opcionais</div></div>
+    <div class="section-head" style="margin-top:20px;"><div class="section-title">Configurações</div></div>
     <div class="section-sub" style="margin-bottom:6px;">Liga só o que usas. Cada opção aparece nos ecrãs e nos cálculos apenas quando estiver ativa.</div>
     <div class="switch-row">
       <div class="switch-row-text">
@@ -808,6 +808,13 @@ body.dark button[onclick="lockSyncUrl()"] { background: var(--vault); color: #ff
     <div id="customPlatformsBody" style="display:none;">
       <div class="section-sub" style="margin:10px 0;">Lista das plataformas extra que registas.</div>
       <div id="customPlatformsList"></div>
+      <div class="field" style="margin-top:4px;">
+        <label>Esta plataforma cobra IVA e comissão?</label>
+        <div class="seg" id="newCustomTaxedSeg">
+          <div class="seg-opt active" data-x="0" onclick="pickNewCustomTaxed(false)">Não (pessoal)</div>
+          <div class="seg-opt" data-x="1" onclick="pickNewCustomTaxed(true)">Sim (como Uber/Bolt)</div>
+        </div>
+      </div>
       <div class="field" style="display:flex;gap:8px;align-items:flex-end;margin-top:4px;">
         <div style="flex:1;">
           <label>Nome da plataforma</label>
@@ -815,6 +822,14 @@ body.dark button[onclick="lockSyncUrl()"] { background: var(--vault); color: #ff
         </div>
         <button onclick="addCustomPlatform()" style="padding:13px 16px;border-radius:var(--r-md);border:none;background:var(--vault);color:#fff;font-weight:700;font-size:14px;cursor:pointer;white-space:nowrap;">＋ Adicionar</button>
       </div>
+    </div>
+
+    <div class="switch-row">
+      <div class="switch-row-text">
+        <div class="switch-row-title">Resumo de ontem</div>
+        <div class="switch-row-sub">Na primeira abertura do dia, mostra o resumo do dia anterior (ganhos, despesas e lucro).</div>
+      </div>
+      <div class="switch" id="swDailySummary" onclick="toggleFeature('dailySummaryEnabled')"></div>
     </div>
 
     <div class="section-head" style="margin-top:20px;"><div class="section-title">Exportação de dados</div></div>
@@ -1104,7 +1119,7 @@ body.dark button[onclick="lockSyncUrl()"] { background: var(--vault); color: #ff
 // Esquema de versão: de volta ao pré-1.0 (0.x.x) — a v1.0.0 fica
 // reservada para o lançamento com assinatura paga completa. A numeração
 // 4.x.x usada temporariamente para a integração Firebase foi abandonada.
-const APP_VERSION = '0.4.14';
+const APP_VERSION = '0.4.16';
 // Mostra o número da versão na tela de carregamento imediatamente (sem
 // esperar por loadAll/qualquer coisa assíncrona) — sempre visível,
 // independente da mensagem dinâmica ("A carregar…", "A sincronizar…",
@@ -1778,6 +1793,7 @@ async function loadAll(){
   hideSplash();
 
   if(isFirstLoad) await maybeRunEasterEgg();
+  if(isFirstLoad && !window.__fbUser) await runDailySummaryCheck();
 
   // Verificação silenciosa de atualização: se houver uma versão mais nova
   // publicada, atualiza sozinho (recarrega a página), sem perguntar nada
@@ -1984,6 +2000,7 @@ async function initialCloudSync(uid){
     else if(stable(currentState()) !== stable(canon(resolveIncomingPayload(raw)))){ await pushToFirestore(false); }
     setSyncStatus('synced');
     refreshActiveScreen();
+    runDailySummaryCheck();
   }catch(e){
     console.warn('Falha na sincronização inicial:', e);
     setSyncStatus('nolink');
@@ -2341,6 +2358,8 @@ function renderSettings(){
   if(swIva) swIva.className = 'switch' + (ivaOn() ? ' on' : '');
   const ivaFieldsRow = document.getElementById('ivaFieldsRow');
   if(ivaFieldsRow) ivaFieldsRow.style.display = ivaOn() ? 'block' : 'none';
+  const swDaily = document.getElementById('swDailySummary');
+  if(swDaily) swDaily.className = 'switch' + (featureOn('dailySummaryEnabled') ? ' on' : '');
   const goalsSw = document.getElementById('goalsEnabledSwitch');
   if(goalsSw) goalsSw.className = 'switch' + (profile.goalsEnabled ? ' on' : '');
   const goalsFieldsRow = document.getElementById('goalsFieldsRow');
@@ -2434,7 +2453,8 @@ function renderCustomPlatformsList(){
   box.innerHTML = list.map(cp => `
     <div class="income-row-compact" style="margin-bottom:8px;">
       ${platformBadge(cp.key, 28)}
-      <div style="flex:1;"><div class="income-name">${escapeHtml(cp.label)}</div></div>
+      <div style="flex:1;"><div class="income-name">${escapeHtml(cp.label)}</div><div class="income-sub">${cp.taxed ? 'Com IVA e comissão' : 'Pessoal (sem IVA)'}</div></div>
+      <button onclick="toggleCustomTaxed('${cp.key}')" style="font-size:10px;padding:5px 10px;border-radius:var(--r-full);border:1.5px solid var(--line);background:#fff;color:var(--vault-2);font-weight:700;cursor:pointer;white-space:nowrap;">${cp.taxed ? 'tirar IVA' : 'pôr IVA'}</button>
       <div class="bill-delete" onclick="removeCustomPlatform('${cp.key}')" title="Remover">✕</div>
     </div>`).join('');
 }
@@ -2446,12 +2466,71 @@ async function addCustomPlatform(){
   profile.customPlatforms = profile.customPlatforms || [];
   const existing = profile.customPlatforms.find(cp => cp.key === key);
   if(existing && !existing.archived){ showToast('Essa plataforma já existe'); return; }
-  if(existing){ existing.archived = false; existing.label = label; }
-  else { profile.customPlatforms.push({ key, label }); }
+  if(existing){ existing.archived = false; existing.label = label; existing.taxed = window._newCustomTaxed === true; }
+  else { profile.customPlatforms.push({ key, label, taxed: window._newCustomTaxed === true }); }
   await persistProfile();
   if(input) input.value = '';
+  pickNewCustomTaxed(false);
   renderCustomPlatformsList();
   showToast(`${label} adicionada`);
+}
+function pickNewCustomTaxed(v){
+  window._newCustomTaxed = v === true;
+  document.querySelectorAll('#newCustomTaxedSeg .seg-opt').forEach(el => el.classList.toggle('active', (el.dataset.x === '1') === (v === true)));
+}
+// Resumo do dia anterior. Mostrado na primeira abertura do dia (dispositivo),
+// só quando o interruptor está ligado e existe algum registo nesse dia.
+// A data da última vez que foi mostrado fica em localSettings (não sincroniza),
+// para cada aparelho mostrar um resumo por dia.
+async function runDailySummaryCheck(){
+  if(!featureOn('dailySummaryEnabled')) return;
+  const today = isoDate(new Date());
+  if(localSettings.lastSummaryDay === today) return;
+  const y = isoDate(addDays(new Date(), -1));
+  const items = earningsInRange(y, y);
+  const expenses = variableExpensesInRange(y, y);
+  if(items.length === 0 && expenses.length === 0) return;
+  localSettings.lastSummaryDay = today;
+  await persistLocalSettings();
+  showDailySummary(y, items, expenses);
+}
+function showDailySummary(y, items, expenses){
+  const apps   = items.filter(e => isTvdePlatform(e.platform)).reduce((s,e) => s + (e.amount||0), 0);
+  const part   = items.filter(e => !isTvdePlatform(e.platform)).reduce((s,e) => s + (e.amount||0), 0);
+  const comb   = combustivelAmount(expenses);
+  const varOther = expenses.filter(e => e.category !== 'combustivel').reduce((s,e) => s + (e.amount||0), 0);
+  const iva = ivaAmount(apps), com = comissaoAmount(apps);
+  const liquido = (apps - iva - com) - comb + part;
+  const lucro = liquido - varOther;
+  const km = sumKm(items);
+  const dateStr = dateFromIso(y).toLocaleDateString('pt-BR', { weekday:'long', day:'2-digit', month:'long' });
+  const dateCap = dateStr.charAt(0).toUpperCase() + dateStr.slice(1);
+  openSheet(`
+    <div class="sheet-handle"></div>
+    <div class="sheet-title">☀️ Resumo de ontem</div>
+    <div class="sheet-sub">${escapeHtml(dateCap)}</div>
+    <div class="stat-cards">
+      <div class="stat-card"><div class="stat-card-label">🚖 Bruto TVDE</div><div class="stat-card-value">${fmt(apps)}</div></div>
+      <div class="stat-card"><div class="stat-card-label">🚘 Pessoal</div><div class="stat-card-value">${fmt(part)}</div></div>
+      ${comb > 0 ? `<div class="stat-card"><div class="stat-card-label">⛽ Combustível</div><div class="stat-card-value negative">− ${fmt(comb)}</div></div>` : ''}
+      ${varOther > 0 ? `<div class="stat-card"><div class="stat-card-label">Outras despesas</div><div class="stat-card-value negative">− ${fmt(varOther)}</div></div>` : ''}
+      ${showKm() && km > 0 ? `<div class="stat-card"><div class="stat-card-label">🛣️ Km</div><div class="stat-card-value">${km.toLocaleString('pt-BR',{maximumFractionDigits:1})} km</div></div>` : ''}
+      <div class="stat-card" style="border-color:var(--vault);grid-column:1/-1;">
+        <div class="stat-card-label">💰 Lucro do dia</div>
+        <div class="stat-card-value ${lucro < 0 ? 'negative' : ''}" style="font-size:24px;">${fmt(lucro)}</div>
+      </div>
+    </div>
+    <div class="section-sub" style="font-size:11px;margin-bottom:14px;">Não inclui despesas fixas, como nas vistas de dia.</div>
+    <button class="btn btn-primary" onclick="closeSheet()">Fechar</button>
+  `);
+}
+async function toggleCustomTaxed(key){
+  const cp = (profile.customPlatforms || []).find(x => x.key === key);
+  if(!cp) return;
+  cp.taxed = !cp.taxed;
+  await persistProfile();
+  renderSettings();
+  showToast(cp.taxed ? `${cp.label}: com IVA e comissão` : `${cp.label}: pessoal (sem IVA)`);
 }
 async function removeCustomPlatform(key){
   if(!confirm('Remover esta plataforma? Ganhos já registados com ela continuam guardados, só deixa de aparecer como opção nova.')) return;
@@ -2951,7 +3030,7 @@ function comissaoAmount(grossEarnings){
 function comissaoRate(){ return comissaoOn() ? (parseFloat(profile.comissaoRate) || 0) : 0; }
 
 function ganhosAppsAmount(items){
-  return items.filter(e => e.platform === 'uber' || e.platform === 'bolt').reduce((s,e)=>s+(e.amount||0),0);
+  return items.filter(e => isTvdePlatform(e.platform)).reduce((s,e)=>s+(e.amount||0),0);
 }
 function ganhosParticularsAmount(items){
   return items.filter(e => e.platform === 'particular' || e.platform === 'outros').reduce((s,e)=>s+(e.amount||0),0);
@@ -2968,7 +3047,7 @@ function computeLiquido(items, expenses){
   return (apps - iva - com) - comb + part;
 }
 function computeLiquidoFromEntry(entry){
-  const apps = entry.earnings.filter(e=>e.platform==='uber'||e.platform==='bolt').reduce((s,e)=>s+(e.amount||0),0);
+  const apps = entry.earnings.filter(e=>isTvdePlatform(e.platform)).reduce((s,e)=>s+(e.amount||0),0);
   const comb = entry.variableExpenses.filter(e=>e.category==='combustivel').reduce((s,e)=>s+(e.amount||0),0);
   const iva  = ivaAmount(apps);
   const com  = comissaoAmount(apps);
@@ -2992,7 +3071,7 @@ function renderStatsDay(){
   if(items.length === 0 && expenses.length === 0){
     box.innerHTML = '<div class="stats-empty">Nenhum dado neste dia ainda.</div>'; return;
   }
-  const tvde      = items.filter(e=>e.platform==='uber'||e.platform==='bolt');
+  const tvde      = items.filter(e=>isTvdePlatform(e.platform));
   const part      = items.filter(e=>!isTvdePlatform(e.platform));
   const brutoTVDE = tvde.reduce((s,e)=>s+(e.amount||0),0);
   const brutoPart = part.reduce((s,e)=>s+(e.amount||0),0);
@@ -3045,7 +3124,7 @@ function renderStatsWeek(){
   if(items.length === 0 && expenses.length === 0){
     box.innerHTML = '<div class="stats-empty">Nenhum dado nesta semana ainda.</div>'; return;
   }
-  const tvde      = items.filter(e=>e.platform==='uber'||e.platform==='bolt');
+  const tvde      = items.filter(e=>isTvdePlatform(e.platform));
   const part      = items.filter(e=>!isTvdePlatform(e.platform));
   const brutoTVDE = tvde.reduce((s,e)=>s+(e.amount||0),0);
   const brutoPart = part.reduce((s,e)=>s+(e.amount||0),0);
@@ -3088,7 +3167,7 @@ function renderStatsWeek(){
   const dayLabels=[], dayDespesas=[], dayGanhos=[];
   for(let i=0;i<7;i++){
     const d=addDays(start,i); const dIso=isoDate(d);
-    const dTVDE = items.filter(x=>x.date===dIso&&(x.platform==='uber'||x.platform==='bolt')).reduce((s,x)=>s+(x.amount||0),0);
+    const dTVDE = items.filter(x=>x.date===dIso&&(isTvdePlatform(x.platform))).reduce((s,x)=>s+(x.amount||0),0);
     const dPart = items.filter(x=>x.date===dIso&&(!isTvdePlatform(x.platform))).reduce((s,x)=>s+(x.amount||0),0);
     const dComb = expenses.filter(x=>(x.date||isoDateFromTs(x.ts))===dIso&&x.category==='combustivel').reduce((s,x)=>s+(x.amount||0),0);
     const dVar  = expenses.filter(x=>(x.date||isoDateFromTs(x.ts))===dIso&&x.category!=='combustivel').reduce((s,x)=>s+(x.amount||0),0);
@@ -3125,7 +3204,7 @@ function renderStatsMonth(){
     return;
   }
 
-  const tvdeEarnings  = entry.earnings.filter(e=>e.platform==='uber'||e.platform==='bolt');
+  const tvdeEarnings  = entry.earnings.filter(e=>isTvdePlatform(e.platform));
   const partEarnings  = entry.earnings.filter(e=>!isTvdePlatform(e.platform));
   const brutoTVDE     = tvdeEarnings.reduce((s,e)=>s+(e.amount||0),0);
   const brutoPart     = partEarnings.reduce((s,e)=>s+(e.amount||0),0);
@@ -3179,6 +3258,7 @@ function renderStatsMonth(){
     if(totalPart>0) pessoalCardsArr.push(`<div class="stat-card"><div class="stat-card-label">Particular</div><div class="stat-card-value">${fmt(totalPart)}</div></div>`);
     if(totalOut>0) pessoalCardsArr.push(`<div class="stat-card"><div class="stat-card-label">Outros</div><div class="stat-card-value">${fmt(totalOut)}</div></div>`);
     (profile.customPlatforms || []).forEach(cp => {
+      if(isTvdePlatform(cp.key)) return;
       const t = totalEarningsByPlatform(entry, cp.key);
       if(t > 0) pessoalCardsArr.push(`<div class="stat-card"><div class="stat-card-label">${escapeHtml(cp.label)}</div><div class="stat-card-value">${fmt(t)}</div></div>`);
     });
@@ -3224,7 +3304,7 @@ function renderStatsMonth(){
   entry.earnings.forEach(e => {
     const w = weekOfMonthFromDateStr(e.date) - 1;
     if(w < 0 || w >= nWeeks) return;
-    if(e.platform==='uber'||e.platform==='bolt') weekApps[w] += (e.amount||0);
+    if(isTvdePlatform(e.platform)) weekApps[w] += (e.amount||0);
     else weekPart[w] += (e.amount||0);
   });
   entry.variableExpenses.forEach(e => {
@@ -3265,7 +3345,7 @@ function renderStatsMonth(){
   if(monthKeys.length){
     const despesasVals = monthKeys.map(k => {
       const e = ensureMonthEntry(k);
-      const apps = e.earnings.filter(x=>x.platform==='uber'||x.platform==='bolt').reduce((s,x)=>s+(x.amount||0),0);
+      const apps = e.earnings.filter(x=>isTvdePlatform(x.platform)).reduce((s,x)=>s+(x.amount||0),0);
       const comb = e.variableExpenses.filter(x=>x.category==='combustivel').reduce((s,x)=>s+(x.amount||0),0);
       const varO = e.variableExpenses.filter(x=>x.category!=='combustivel').reduce((s,x)=>s+(x.amount||0),0);
       return comb + ivaAmount(apps) + comissaoAmount(apps) + totalFixedBills(e) + varO;
@@ -3310,7 +3390,7 @@ function renderStatsYear(){
   const hasAnyData = entries.some(e => e.earnings.length > 0 || e.variableExpenses.length > 0);
   if(!hasAnyData){ box.innerHTML = `<div class="stats-empty">Ainda não há dados em ${yearLabel}. 📊</div>`; return; }
 
-  let totalUber=0, totalBolt=0, totalPart=0, totalOut=0, totalCustomAno=0, combAno=0, varOtherAno=0, fixasAno=0;
+  let totalUber=0, totalBolt=0, totalPart=0, totalOut=0, totalCustomAno=0, taxedAno=0, combAno=0, varOtherAno=0, fixasAno=0;
   entries.forEach(e => {
     totalUber += e.earnings.filter(x=>x.platform==='uber').reduce((s,x)=>s+(x.amount||0),0);
     totalBolt += e.earnings.filter(x=>x.platform==='bolt').reduce((s,x)=>s+(x.amount||0),0);
@@ -3319,11 +3399,12 @@ function renderStatsYear(){
     // Plataformas personalizadas entram no mesmo balde "pessoal" — ver
     // isTvdePlatform(): só Uber/Bolt ficam de fora desta soma.
     totalCustomAno += e.earnings.filter(x=>!isTvdePlatform(x.platform) && x.platform!=='particular' && x.platform!=='outros').reduce((s,x)=>s+(x.amount||0),0);
+    taxedAno += e.earnings.filter(x=>isTvdePlatform(x.platform) && x.platform!=='uber' && x.platform!=='bolt').reduce((s,x)=>s+(x.amount||0),0);
     combAno     += e.variableExpenses.filter(x=>x.category==='combustivel').reduce((s,x)=>s+(x.amount||0),0);
     varOtherAno += e.variableExpenses.filter(x=>x.category!=='combustivel').reduce((s,x)=>s+(x.amount||0),0);
     fixasAno    += totalFixedBills(e);
   });
-  const brutoTVDE = totalUber + totalBolt;
+  const brutoTVDE = totalUber + totalBolt + taxedAno;
   const brutoPart = totalPart + totalOut + totalCustomAno;
   const ivaVal    = ivaRate();
   const comVal    = comissaoRate();
@@ -3398,7 +3479,7 @@ function renderStatsYear(){
   });
   const monthGanhos = entries.map(e => e.earnings.reduce((s,x)=>s+(x.amount||0),0));
   const monthDespesas = entries.map(e => {
-    const apps = e.earnings.filter(x=>x.platform==='uber'||x.platform==='bolt').reduce((s,x)=>s+(x.amount||0),0);
+    const apps = e.earnings.filter(x=>isTvdePlatform(x.platform)).reduce((s,x)=>s+(x.amount||0),0);
     const comb = e.variableExpenses.filter(x=>x.category==='combustivel').reduce((s,x)=>s+(x.amount||0),0);
     const varO = e.variableExpenses.filter(x=>x.category!=='combustivel').reduce((s,x)=>s+(x.amount||0),0);
     return comb + ivaAmount(apps) + comissaoAmount(apps) + totalFixedBills(e) + varO;
@@ -3507,7 +3588,7 @@ function renderLucroDay(){
   const items    = earningsInRange(dateIso, dateIso);
   const expenses = variableExpensesInRange(dateIso, dateIso);
   const box = document.getElementById('lucroContent');
-  const dApps = items.filter(e=>e.platform==='uber'||e.platform==='bolt').reduce((s,e)=>s+(e.amount||0),0);
+  const dApps = items.filter(e=>isTvdePlatform(e.platform)).reduce((s,e)=>s+(e.amount||0),0);
   const dPart = items.filter(e=>!isTvdePlatform(e.platform)).reduce((s,e)=>s+(e.amount||0),0);
   if(dApps === 0 && dPart === 0 && expenses.length === 0){
     box.innerHTML = '<div class="stats-empty">Nenhum ganho registado neste dia.</div>'; return;
@@ -3540,7 +3621,7 @@ function renderLucroWeek(){
   const items    = earningsInRange(startIso, endIso);
   const expenses = variableExpensesInRange(startIso, endIso);
   const box      = document.getElementById('lucroContent');
-  const wApps = items.filter(e=>e.platform==='uber'||e.platform==='bolt').reduce((s,e)=>s+(e.amount||0),0);
+  const wApps = items.filter(e=>isTvdePlatform(e.platform)).reduce((s,e)=>s+(e.amount||0),0);
   const wPart = items.filter(e=>!isTvdePlatform(e.platform)).reduce((s,e)=>s+(e.amount||0),0);
   if(wApps === 0 && wPart === 0 && expenses.length === 0){
     box.innerHTML = '<div class="stats-empty">Nenhum dado nesta semana.</div>'; return;
@@ -3559,7 +3640,7 @@ function renderLucroWeek(){
     const dIso = isoDate(d);
     const dayItems = items.filter(it=>it.date===dIso);
     const dayExp   = expenses.filter(e=>(e.date||isoDateFromTs(e.ts))===dIso);
-    const db = dayItems.filter(e=>e.platform==='uber'||e.platform==='bolt').reduce((s,e)=>s+(e.amount||0),0);
+    const db = dayItems.filter(e=>isTvdePlatform(e.platform)).reduce((s,e)=>s+(e.amount||0),0);
     const dp = dayItems.filter(e=>!isTvdePlatform(e.platform)).reduce((s,e)=>s+(e.amount||0),0);
     const dc = dayExp.filter(e=>e.category==='combustivel').reduce((s,e)=>s+(e.amount||0),0);
     const dv = dayExp.filter(e=>e.category!=='combustivel').reduce((s,e)=>s+(e.amount||0),0);
@@ -3577,7 +3658,7 @@ function renderLucroMonth(){
   document.getElementById('lucroLabelMes').textContent = monthNameYear;
   const box   = document.getElementById('lucroContent');
   const entry = ensureMonthEntry(currentMonthKey);
-  const mApps = entry.earnings.filter(e=>e.platform==='uber'||e.platform==='bolt').reduce((s,e)=>s+(e.amount||0),0);
+  const mApps = entry.earnings.filter(e=>isTvdePlatform(e.platform)).reduce((s,e)=>s+(e.amount||0),0);
   const mPart = entry.earnings.filter(e=>!isTvdePlatform(e.platform)).reduce((s,e)=>s+(e.amount||0),0);
   if(mApps === 0 && mPart === 0){ box.innerHTML = '<div class="stats-empty">Nenhum ganho registado este mês.</div>'; return; }
   const mComb    = entry.variableExpenses.filter(e=>e.category==='combustivel').reduce((s,e)=>s+(e.amount||0),0);
@@ -3594,7 +3675,7 @@ function renderLucroMonth(){
   entry.earnings.forEach(e=>{
     const w=weekOfMonthFromDateStr(e.date)-1;
     if(w<0||w>=nWeeks) return;
-    if(e.platform==='uber'||e.platform==='bolt') wkApps[w]+=(e.amount||0);
+    if(isTvdePlatform(e.platform)) wkApps[w]+=(e.amount||0);
     else wkPart[w]+=(e.amount||0);
   });
   entry.variableExpenses.forEach(e=>{
@@ -3615,7 +3696,7 @@ function renderLucroMonth(){
     const mLabels = monthKeys.map(monthShortLabel);
     const mLucros = monthKeys.map(k=>{
       const e = ensureMonthEntry(k);
-      const apps = e.earnings.filter(x=>x.platform==='uber'||x.platform==='bolt').reduce((s,x)=>s+(x.amount||0),0);
+      const apps = e.earnings.filter(x=>isTvdePlatform(x.platform)).reduce((s,x)=>s+(x.amount||0),0);
       const part = e.earnings.filter(x=>!isTvdePlatform(x.platform)).reduce((s,x)=>s+(x.amount||0),0);
       const comb = e.variableExpenses.filter(x=>x.category==='combustivel').reduce((s,x)=>s+(x.amount||0),0);
       const varO = e.variableExpenses.filter(x=>x.category!=='combustivel').reduce((s,x)=>s+(x.amount||0),0);
@@ -3704,7 +3785,8 @@ const FEATURE_DEFAULTS = {
   showKm: () => false,
   customPlatformsEnabled: () => (profile.customPlatforms || []).length > 0,
   ivaEnabled: () => (parseFloat(profile.ivaRate) || 0) > 0,
-  comissaoEnabled: () => (parseFloat(profile.comissaoRate) || 0) > 0
+  comissaoEnabled: () => (parseFloat(profile.comissaoRate) || 0) > 0,
+  dailySummaryEnabled: () => false
 };
 function featureOn(flag){
   return profile[flag] === undefined ? FEATURE_DEFAULTS[flag]() : !!profile[flag];
@@ -3718,7 +3800,7 @@ async function toggleFeature(flag){
   profile[flag] = !featureOn(flag);
   await persistProfile();
   renderSettings();
-  const msgs = { showTurno: 'Turno', showKm: 'Km', customPlatformsEnabled: 'Outras plataformas', ivaEnabled: 'IVA', comissaoEnabled: 'Comissão' };
+  const msgs = { showTurno: 'Turno', showKm: 'Km', customPlatformsEnabled: 'Outras plataformas', ivaEnabled: 'IVA', comissaoEnabled: 'Comissão', dailySummaryEnabled: 'Resumo de ontem' };
   showToast(`${msgs[flag]} ${profile[flag] ? 'ativado' : 'desativado'}`);
 }
 async function toggleUidVisibility(){
@@ -3727,7 +3809,11 @@ async function toggleUidVisibility(){
   renderSettings();
 }
 function currentPhotoUrl(){ return profile.photo || (window.__fbUser && window.__fbUser.photoURL) || null; }
-function isTvdePlatform(platform){ return platform === 'uber' || platform === 'bolt'; }
+function isTvdePlatform(platform){
+  if(platform === 'uber' || platform === 'bolt') return true;
+  const cp = findCustomPlatform(platform);
+  return !!(cp && cp.taxed);
+}
 function findCustomPlatform(platform){ return (profile.customPlatforms || []).find(cp => cp.key === platform); }
 
 function platformBadge(platform, size){
@@ -3816,8 +3902,10 @@ function renderEarningsCardsAndSummary(items, fixedTotal, expenses){
   // todas entram no mesmo balde "pessoal" para efeitos de IVA/líquido.
   const customPlatforms = profile.customPlatforms || [];
   const customTotals = customPlatforms.map(cp => ({ cp, total: sumByPlatform(items, cp.key) })).filter(c => c.total > 0);
-  const totalCustom = customTotals.reduce((s,c)=>s+c.total,0);
-  const apps      = totalUber + totalBolt;
+  const totalCustom = customTotals.filter(c => !isTvdePlatform(c.cp.key)).reduce((s,c)=>s+c.total,0);
+  const totalCustomTax = customTotals.filter(c => isTvdePlatform(c.cp.key)).reduce((s,c)=>s+c.total,0);
+  const totalCustomAll = totalCustom + totalCustomTax;
+  const apps      = totalUber + totalBolt + totalCustomTax;
   const part      = totalPart + totalOut + totalCustom;
   const comb      = (expenses && Array.isArray(expenses)) ? combustivelAmount(expenses) : 0;
   const varOther  = (expenses && Array.isArray(expenses)) ? expenses.filter(e=>e.category!=='combustivel').reduce((s,e)=>s+(e.amount||0),0) : 0;
@@ -3837,14 +3925,14 @@ function renderEarningsCardsAndSummary(items, fixedTotal, expenses){
   customTotals.forEach(({cp, total}) => {
     cardsHtml += `<div class="stat-card"><div class="stat-card-label">${platformBadge(cp.key,16)} ${escapeHtml(cp.label)}</div><div class="stat-card-value" style="font-size:22px;">${fmt(total)}</div></div>`;
   });
-  const totalGeral = totalUber + totalBolt + totalPart + totalOut + totalCustom;
+  const totalGeral = totalUber + totalBolt + totalPart + totalOut + totalCustomAll;
   cardsHtml += `<div class="stat-card" style="border-color:var(--vault);grid-column:1/-1;padding:18px 20px;">
     <div class="stat-card-label" style="font-size:11px;margin-bottom:8px;">💰 Total bruto</div>
     <div style="font-family:'JetBrains Mono',monospace;font-weight:700;font-size:32px;color:var(--ink);letter-spacing:-0.02em;margin-bottom:12px;">${fmt(totalGeral)}</div>
     <div style="display:flex;gap:20px;flex-wrap:wrap;">
       <div style="display:flex;flex-direction:column;gap:2px;">
         <span style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;color:var(--text-muted);">TVDE</span>
-        <span style="font-family:'JetBrains Mono',monospace;font-weight:700;font-size:16px;color:var(--ink);">${fmt(totalUber + totalBolt)}</span>
+        <span style="font-family:'JetBrains Mono',monospace;font-weight:700;font-size:16px;color:var(--ink);">${fmt(apps)}</span>
       </div>
       ${part > 0 ? `<div style="display:flex;flex-direction:column;gap:2px;">
         <span style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;color:var(--text-muted);">Pessoal</span>
@@ -4449,7 +4537,7 @@ function weeklyFixedBills(weekStart){
 }
 
 function renderMonthSummary(entry){
-  const apps      = entry.earnings.filter(e=>e.platform==='uber'||e.platform==='bolt').reduce((s,e)=>s+(e.amount||0),0);
+  const apps      = entry.earnings.filter(e=>isTvdePlatform(e.platform)).reduce((s,e)=>s+(e.amount||0),0);
   const part      = entry.earnings.filter(e=>!isTvdePlatform(e.platform)).reduce((s,e)=>s+(e.amount||0),0);
   const ganhos    = apps + part;
   const comb      = entry.variableExpenses.filter(e=>e.category==='combustivel').reduce((s,e)=>s+(e.amount||0),0);
