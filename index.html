@@ -647,10 +647,14 @@ html.soft-change, html.soft-change * {
               box-shadow 0.5s ease, fill 0.5s ease !important;
 }
 .theme-color-swatch:active { transform: scale(0.9); }
+/* Imagem de fundo: aparece e desaparece com fade */
+#customBg { opacity: 0; transition: opacity 0.45s ease; }
+#customBg.on { opacity: 1; }
+html.soft-change #customBg { transition: opacity 0.45s ease !important; }
 </style>
 </head>
 <body>
-<div id="customBg" style="display:none;position:fixed;inset:0;z-index:0;pointer-events:none;"></div>
+<div id="customBg" style="position:fixed;inset:0;z-index:0;pointer-events:none;"></div>
 
 <div id="splashScreen" style="
   position:fixed;inset:0;
@@ -1330,7 +1334,7 @@ html.soft-change, html.soft-change * {
 // Esquema de versão: de volta ao pré-1.0 (0.x.x) — a v1.0.0 fica
 // reservada para o lançamento com assinatura paga completa. A numeração
 // 4.x.x usada temporariamente para a integração Firebase foi abandonada.
-const APP_VERSION = '0.51';
+const APP_VERSION = '0.53';
 // Mostra o número da versão na tela de carregamento imediatamente (sem
 // esperar por loadAll/qualquer coisa assíncrona) — sempre visível,
 // independente da mensagem dinâmica ("A carregar…", "A sincronizar…",
@@ -2703,16 +2707,33 @@ function applyAllAppearance(){
   applyCustomBackground();
 }
 // Imagem de fundo: preferência deste aparelho (localSettings.bgImage).
+let bgTimer = null;
 function applyCustomBackground(){
   const el = document.getElementById('customBg');
   if(!el) return;
   const img = localSettings.bgImage;
-  if(!img){ el.style.display = 'none'; el.style.backgroundImage = ''; return; }
-  const veil = document.body.classList.contains('dark') ? 'rgba(14,14,18,0.62)' : 'rgba(246,239,226,0.55)';
-  el.style.backgroundImage = `linear-gradient(${veil}, ${veil}), url("${img}")`;
-  el.style.backgroundSize = 'cover';
-  el.style.backgroundPosition = 'center';
-  el.style.display = 'block';
+  const dark = document.body.classList.contains('dark');
+  const veil = dark ? 'rgba(14,14,18,0.62)' : 'rgba(20,16,12,0.22)';
+  const want = img ? `linear-gradient(${veil}, ${veil}), url("${img}")` : '';
+  if((el.dataset.bg || '') === want) return;
+  clearTimeout(bgTimer);
+  el.classList.remove('on');
+  // Se já havia imagem, espera que saia antes de trocar; senão entra logo.
+  const delay = el.dataset.bg ? 260 : 30;
+  bgTimer = setTimeout(() => {
+    el.dataset.bg = want;
+    el.style.backgroundImage = want;
+    el.style.backgroundSize = 'cover';
+    el.style.backgroundPosition = 'center';
+    if(want) el.classList.add('on');
+  }, delay);
+}
+// Ao ativar ou desativar o efeito transparente, a imagem entra de novo com fade.
+function replayCustomBg(){
+  const el = document.getElementById('customBg');
+  if(!el || !el.dataset.bg) return;
+  el.classList.remove('on');
+  setTimeout(() => el.classList.add('on'), 30);
 }
 // Reduz a imagem para no máximo 1080 px no lado maior, sem cortar (ao contrário do avatar).
 function resizeBgToDataUrl(file){
@@ -2789,6 +2810,7 @@ function softChange(fn){
 function applyLiquidGlass(){
   document.body.classList.toggle('glass', localSettings.liquidGlass === true);
   glassRefreshAll(false);
+  replayCustomBg();
 }
 async function toggleLiquidGlass(){
   localSettings.liquidGlass = !(localSettings.liquidGlass === true);
