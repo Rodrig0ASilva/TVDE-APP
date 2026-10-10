@@ -1167,7 +1167,7 @@ body.basic-mode #statsViewSeg .seg-opt:not([data-v="mes"]) { display:none; }
 // Esquema de versão: de volta ao pré-1.0 (0.x.x) — a v1.0.0 fica
 // reservada para o lançamento com assinatura paga completa. A numeração
 // 4.x.x usada temporariamente para a integração Firebase foi abandonada.
-const APP_VERSION = '0.4.36';
+const APP_VERSION = '0.4.37';
 // Mostra o número da versão na tela de carregamento imediatamente (sem
 // esperar por loadAll/qualquer coisa assíncrona) — sempre visível,
 // independente da mensagem dinâmica ("A carregar…", "A sincronizar…",
@@ -4282,10 +4282,40 @@ async function welcomeChoice(login){
   closeSheet();
   if(login) handleGoogleSignIn();
 }
-// Abre o email com o endereço de suporte e os dados da conta já preenchidos.
-function openSupportEmail(){
+// Texto do log para o suporte: só as últimas 24 horas (ou tudo, se não houver nada recente).
+function buildSupportLogText(entries){
+  const linhas = entries.map(e => {
+    const iso = new Date(e.ts).toISOString();
+    return `[${iso}] [${String(e.type).toUpperCase()}] ${e.message}${e.extra ? ' — ' + e.extra : ''}`;
+  });
+  const cabecalho = `Corrida+ v${APP_VERSION} — log de sincronização\nDispositivo: ${navigator.userAgent}\nGerado em: ${new Date().toISOString()}\nEventos: ${entries.length}\n\n`;
+  return cabecalho + (linhas.length ? linhas.join('\n') : 'Sem eventos registados.');
+}
+function downloadTextFile(name, text){
+  const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = name;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+// Suporte: abre o email com o endereço e os dados da conta. O log das últimas
+// 24 horas vai como ficheiro. Se o aparelho permitir partilhar ficheiros, a folha
+// de partilha leva o ficheiro já anexado; senão, o ficheiro é transferido e o email
+// pede para o anexar (o email não consegue anexar ficheiros).
+async function openSupportEmail(){
   const u = window.__fbUser;
-  const linhas = [
+  const agora = Date.now();
+  const recentes = syncLog.filter(e => agora - e.ts <= 24 * 60 * 60 * 1000);
+  const logText = buildSupportLogText(recentes);
+  const agoraDate = new Date();
+  const stamp = isoDate(agoraDate) + '-' + String(agoraDate.getHours()).padStart(2, '0') + String(agoraDate.getMinutes()).padStart(2, '0');
+  const nomeFicheiro = `corridaplus-log-${stamp}.txt`;
+  const assunto = 'Suporte Corrida+ — ' + (u && u.email ? u.email : 'sem conta');
+  const cabecalhoEmail = [
     'Olá,',
     '',
     'Preciso de ajuda com a Corrida+.',
@@ -4294,13 +4324,24 @@ function openSupportEmail(){
     'ID da conta: ' + (u ? u.uid : '—'),
     'Versão da app: ' + APP_VERSION,
     '',
-    'Descreve o problema:',
+    'Mensagem:',
     ''
   ];
-  const assunto = 'Suporte Corrida+ — ' + (u && u.email ? u.email : 'sem conta');
+  const file = new File([logText], nomeFicheiro, { type: 'text/plain' });
+  if(navigator.canShare && navigator.canShare({ files: [file] })){
+    const corpo = [...cabecalhoEmail, `Log das últimas 24 horas em anexo (${nomeFicheiro}).`, '', 'Para: rodrigo_almeida1410@proton.me'].join('\n');
+    try{
+      await navigator.share({ files: [file], title: assunto, text: corpo });
+      return;
+    }catch(e){
+      if(e && e.name === 'AbortError') return;
+    }
+  }
+  downloadTextFile(nomeFicheiro, logText);
+  const corpo = [...cabecalhoEmail, `Log das últimas 24 horas: anexe o ficheiro ${nomeFicheiro} que acabou de ser transferido.`].join('\n');
   window.location.href = 'mailto:rodrigo_almeida1410@proton.me'
     + '?subject=' + encodeURIComponent(assunto)
-    + '&body=' + encodeURIComponent(linhas.join('\n'));
+    + '&body=' + encodeURIComponent(corpo);
 }
 function isTvdePlatform(platform){
   if(platform === 'uber' || platform === 'bolt') return true;
