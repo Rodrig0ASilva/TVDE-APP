@@ -1305,7 +1305,7 @@ body.glass .seg-opt.active, body.glass.dark .seg-opt.active {
 // Esquema de versão: de volta ao pré-1.0 (0.x.x) — a v1.0.0 fica
 // reservada para o lançamento com assinatura paga completa. A numeração
 // 4.x.x usada temporariamente para a integração Firebase foi abandonada.
-const APP_VERSION = '0.47';
+const APP_VERSION = '0.48';
 // Mostra o número da versão na tela de carregamento imediatamente (sem
 // esperar por loadAll/qualquer coisa assíncrona) — sempre visível,
 // independente da mensagem dinâmica ("A carregar…", "A sincronizar…",
@@ -2455,7 +2455,7 @@ function glassPlace(c, opt, animate){
   p.style.height = opt.offsetHeight + 'px';
   if(anim){
     // chega achatada no sentido do movimento e recupera a forma normal com mola
-    p.style.transform = glassIsHorizontal(c) ? 'scale(1.14, 0.9)' : 'scale(0.9, 1.14)';
+    p.style.transform = glassIsHorizontal(c) ? 'scale(1.16, 0.82)' : 'scale(0.82, 1.16)';
     void p.offsetWidth;
     p.style.transform = '';
   } else {
@@ -2489,9 +2489,9 @@ function glassDragTo(c, d, pt){
   const clamped = Math.max(lo, Math.min(hi, pos));
   const over = Math.max(0, lo - pos, pos - hi);
   const squash = Math.min(0.2, over / 160);
-  const stretch = Math.min(0.16, Math.abs(d.v) * 0.0011);
+  const stretch = Math.min(0.2, Math.abs(d.v) * 0.0013);
   const along = 1 + stretch - squash;
-  const cross = 1 - stretch * 0.45 + squash * 0.45;
+  const cross = 1 - stretch * 0.9 + squash * 0.35;
   p.style.transition = 'none';
   if(horiz){
     p.style.left = clamped + 'px';
