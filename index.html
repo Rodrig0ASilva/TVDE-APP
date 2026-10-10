@@ -1444,7 +1444,7 @@ body.dark .brand-name, body.dark .screen-title, body.dark .tabbar-inner::before 
 // Esquema de versão: de volta ao pré-1.0 (0.x.x) — a v1.0.0 fica
 // reservada para o lançamento com assinatura paga completa. A numeração
 // 4.x.x usada temporariamente para a integração Firebase foi abandonada.
-const APP_VERSION = '0.83';
+const APP_VERSION = '0.84';
 // Mostra o número da versão na tela de carregamento imediatamente (sem
 // esperar por loadAll/qualquer coisa assíncrona) — sempre visível,
 // independente da mensagem dinâmica ("A carregar…", "A sincronizar…",
@@ -2028,24 +2028,35 @@ function renderSubscriptionCard(){
   }
 
   const sub = window.__fbSubscription;
-  // current_period_end vem como Timestamp do Firestore (tem .toDate()) ou,
-  // conforme a versão da extensão Stripe, como string/número — cobre os
-  // dois casos.
   let endDate = null;
   const raw = sub.current_period_end;
   if(raw){
     if(typeof raw.toDate === 'function') endDate = raw.toDate();
     else endDate = new Date(raw);
   }
-  const endStr = (endDate && !isNaN(endDate)) ? endDate.toLocaleDateString('pt-BR', { day:'2-digit', month:'long', year:'numeric' }) : null;
+  if(endDate && isNaN(endDate)) endDate = null;
+  const endStr = endDate ? endDate.toLocaleDateString('pt-BR', { day:'2-digit', month:'long', year:'numeric' }) : null;
+  const agora = Date.now();
+  // O estado pode continuar "active" depois da data de fim (ex.: renovação não processada). Compara sempre com a data de hoje.
+  if(endDate && endDate.getTime() <= agora){
+    statusEl.textContent = '⛔ Assinatura expirada';
+    if(detailEl) detailEl.textContent = `O período terminou em ${endStr}. Renova a assinatura para continuar com todas as funções.`;
+    return;
+  }
+  const diasRestantes = endDate ? Math.ceil((endDate.getTime() - agora) / 86400000) : null;
   const isTrial = sub.status === 'trialing';
   statusEl.textContent = isTrial ? '🎁 Período de teste' : '✅ Assinatura ativa';
   if(detailEl){
     if(!endStr){ detailEl.textContent = ''; }
     else if(sub.cancel_at_period_end){ detailEl.textContent = `Termina em ${endStr} (cancelamento agendado)`; }
     else { detailEl.textContent = `${isTrial ? 'Teste termina' : 'Ativa até'} ${endStr}`; }
+    if(diasRestantes !== null && diasRestantes <= 7){
+      detailEl.textContent += ` · ⚠️ faltam ${diasRestantes} ${diasRestantes === 1 ? 'dia' : 'dias'}`;
+    }
   }
 }
+// Reavalia a data de validade de tempos em tempos, mesmo sem nenhuma alteração no Firestore.
+setInterval(() => { try{ renderSubscriptionCard(); }catch(e){} }, 60 * 1000);
 
 let unsubUserData = null;
 let unsubSubscription = null;
