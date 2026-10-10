@@ -754,6 +754,9 @@ html.soft-change .glass-pill {
 #glassRange::-moz-range-progress { background: transparent; }
 body.dark #glassRange::-webkit-slider-runnable-track { background: rgba(255,255,255,0.3); }
 body.dark #glassRange::-moz-range-track { background: rgba(255,255,255,0.3); }
+/* Distintivo de plataforma: único em todo o app */
+.plat-badge { display: inline-flex; align-items: center; justify-content: center; border-radius: 8px; font-weight: 800; line-height: 1; flex-shrink: 0; vertical-align: middle; font-family: 'Inter', sans-serif; box-sizing: border-box; }
+.stat-card-label .plat-badge { margin-right: 4px; }
 </style>
 </head>
 <body>
@@ -1438,7 +1441,7 @@ body.dark #glassRange::-moz-range-track { background: rgba(255,255,255,0.3); }
 // Esquema de versão: de volta ao pré-1.0 (0.x.x) — a v1.0.0 fica
 // reservada para o lançamento com assinatura paga completa. A numeração
 // 4.x.x usada temporariamente para a integração Firebase foi abandonada.
-const APP_VERSION = '0.78';
+const APP_VERSION = '0.79';
 // Mostra o número da versão na tela de carregamento imediatamente (sem
 // esperar por loadAll/qualquer coisa assíncrona) — sempre visível,
 // independente da mensagem dinâmica ("A carregar…", "A sincronizar…",
@@ -4240,8 +4243,8 @@ function renderStatsMonth(){
   const totalOut      = totalEarningsByPlatform(entry,'outros');
 
   const tvdeCardsArr = [];
-  if(totalUber>0) tvdeCardsArr.push(`<div class="stat-card"><div class="stat-card-label">${platformBadge('uber',14)} Uber</div><div class="stat-card-value">${fmt(totalUber)}</div></div>`);
-  if(totalBolt>0) tvdeCardsArr.push(`<div class="stat-card"><div class="stat-card-label">${platformBadge('bolt',14)} Bolt</div><div class="stat-card-value">${fmt(totalBolt)}</div></div>`);
+  if(totalUber>0) tvdeCardsArr.push(`<div class="stat-card"><div class="stat-card-label">${platformBadge('uber', 16)} Uber</div><div class="stat-card-value">${fmt(totalUber)}</div></div>`);
+  if(totalBolt>0) tvdeCardsArr.push(`<div class="stat-card"><div class="stat-card-label">${platformBadge('bolt', 16)} Bolt</div><div class="stat-card-value">${fmt(totalBolt)}</div></div>`);
   tvdeCardsArr.push(`<div class="stat-card"><div class="stat-card-label">Bruto TVDE</div><div class="stat-card-value">${fmt(brutoTVDE)}</div></div>`);
   if(ivaVal>0) tvdeCardsArr.push(`<div class="stat-card"><div class="stat-card-label">IVA (${ivaVal}%)</div><div class="stat-card-value negative">− ${fmt(iva)}</div></div>`);
   if(comVal>0) tvdeCardsArr.push(`<div class="stat-card"><div class="stat-card-label">Comissão (${comVal}%)</div><div class="stat-card-value negative">− ${fmt(com)}</div></div>`);
@@ -4430,8 +4433,8 @@ function renderStatsYear(){
   const lucroAno    = liquido - fixasAno - varOtherAno;
 
   const tvdeCardsArr = [];
-  if(totalUber>0) tvdeCardsArr.push(`<div class="stat-card"><div class="stat-card-label">${platformBadge('uber',14)} Uber</div><div class="stat-card-value">${fmt(totalUber)}</div></div>`);
-  if(totalBolt>0) tvdeCardsArr.push(`<div class="stat-card"><div class="stat-card-label">${platformBadge('bolt',14)} Bolt</div><div class="stat-card-value">${fmt(totalBolt)}</div></div>`);
+  if(totalUber>0) tvdeCardsArr.push(`<div class="stat-card"><div class="stat-card-label">${platformBadge('uber', 16)} Uber</div><div class="stat-card-value">${fmt(totalUber)}</div></div>`);
+  if(totalBolt>0) tvdeCardsArr.push(`<div class="stat-card"><div class="stat-card-label">${platformBadge('bolt', 16)} Bolt</div><div class="stat-card-value">${fmt(totalBolt)}</div></div>`);
   tvdeCardsArr.push(`<div class="stat-card"><div class="stat-card-label">Bruto TVDE</div><div class="stat-card-value">${fmt(brutoTVDE)}</div></div>`);
   if(ivaVal>0) tvdeCardsArr.push(`<div class="stat-card"><div class="stat-card-label">IVA (${ivaVal}%)</div><div class="stat-card-value negative">− ${fmt(iva)}</div></div>`);
   if(comVal>0) tvdeCardsArr.push(`<div class="stat-card"><div class="stat-card-label">Comissão (${comVal}%)</div><div class="stat-card-value negative">− ${fmt(com)}</div></div>`);
@@ -5068,17 +5071,22 @@ function isTvdePlatform(platform){
 }
 function findCustomPlatform(platform){ return (profile.customPlatforms || []).find(cp => cp.key === platform); }
 
+// Distintivo de plataforma padronizado: mesma forma, letra, cor e alinhamento em todo o app.
+// Tamanhos: 16px dentro de títulos e 28px nas listas.
 function platformBadge(platform, size){
-  size = size || 22;
-  if(platform === 'uber'){ return `<div class="platform-badge uber" style="width:${size}px;height:${size}px;font-size:${size*0.55}px;">U</div>`; }
-  if(platform === 'bolt'){ return `<div class="platform-badge bolt" style="width:${size}px;height:${size}px;font-size:${size*0.6}px;">⚡</div>`; }
-  if(platform === 'particular'){ return `<div class="platform-badge" style="width:${size}px;height:${size}px;font-size:${size*0.55}px;background:#5A6B8A;color:#fff;">P</div>`; }
-  const custom = findCustomPlatform(platform);
-  if(custom){
-    const letter = custom.emoji || (custom.label||'?').trim().charAt(0).toUpperCase();
-    return `<div class="platform-badge" style="width:${size}px;height:${size}px;font-size:${size*0.5}px;background:#6B5A8A;color:#fff;">${letter}</div>`;
+  size = size || 28;
+  let letra, cor;
+  if(platform === 'uber'){ letra = 'U'; cor = '#06060a'; }
+  else if(platform === 'bolt'){ letra = 'B'; cor = '#34D17B'; }
+  else if(platform === 'particular'){ letra = 'P'; cor = '#5A6B8A'; }
+  else if(platform === 'outros'){ letra = 'O'; cor = '#8A6B5A'; }
+  else {
+    const c = findCustomPlatform(platform);
+    letra = c ? (c.label || '?').trim().charAt(0).toUpperCase() : 'O';
+    cor = '#6B5A8A';
   }
-  return `<div class="platform-badge" style="width:${size}px;height:${size}px;font-size:${size*0.55}px;background:#8A6B5A;color:#fff;">O</div>`;
+  const fg = cor === '#34D17B' ? '#06060a' : '#fff';
+  return `<span class="plat-badge" style="width:${size}px;height:${size}px;font-size:${Math.round(size * 0.46)}px;background:${cor};color:${fg};">${escapeHtml(letra)}</span>`;
 }
 function platformLabel(platform){
   if(platform === 'uber') return 'Uber';
@@ -5165,14 +5173,14 @@ function renderEarningsCardsAndSummary(items, fixedTotal, expenses){
   const saldo     = liquido - fixedTotal - varOther;
 
   let cardsHtml = `
-    <div class="stat-card"><div class="stat-card-label">${platformBadge('uber',16)} Uber</div><div class="stat-card-value" style="font-size:22px;">${fmt(totalUber)}</div></div>
-    <div class="stat-card"><div class="stat-card-label">${platformBadge('bolt',16)} Bolt</div><div class="stat-card-value" style="font-size:22px;">${fmt(totalBolt)}</div></div>`;
+    <div class="stat-card"><div class="stat-card-label">${platformBadge('uber', 16)} Uber</div><div class="stat-card-value" style="font-size:22px;">${fmt(totalUber)}</div></div>
+    <div class="stat-card"><div class="stat-card-label">${platformBadge('bolt', 16)} Bolt</div><div class="stat-card-value" style="font-size:22px;">${fmt(totalBolt)}</div></div>`;
   const partStyle = (totalPart > 0 && totalOut === 0) ? 'grid-column:1/-1;' : '';
   const outStyle  = (totalOut  > 0 && totalPart === 0) ? 'grid-column:1/-1;' : '';
   if(totalPart > 0) cardsHtml += `<div class="stat-card" style="${partStyle}"><div class="stat-card-label">🚘 Particular</div><div class="stat-card-value" style="font-size:22px;">${fmt(totalPart)}</div></div>`;
   if(totalOut  > 0) cardsHtml += `<div class="stat-card" style="${outStyle}"><div class="stat-card-label">📦 Outros</div><div class="stat-card-value" style="font-size:22px;">${fmt(totalOut)}</div></div>`;
   customTotals.forEach(({cp, total}) => {
-    cardsHtml += `<div class="stat-card"><div class="stat-card-label">${platformBadge(cp.key,16)} ${escapeHtml(cp.label)}</div><div class="stat-card-value" style="font-size:22px;">${fmt(total)}</div></div>`;
+    cardsHtml += `<div class="stat-card"><div class="stat-card-label">${platformBadge(cp.key, 16)} ${escapeHtml(cp.label)}</div><div class="stat-card-value" style="font-size:22px;">${fmt(total)}</div></div>`;
   });
   const totalGeral = totalUber + totalBolt + totalPart + totalOut + totalCustomAll;
   cardsHtml += `<div class="stat-card" style="border-color:var(--vault);grid-column:1/-1;padding:18px 20px;">
