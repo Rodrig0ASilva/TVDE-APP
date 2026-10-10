@@ -570,12 +570,12 @@ body.glass .seg {
   box-shadow: inset 0 1px 0 rgba(255,255,255,0.6), 0 4px 14px rgba(20,16,12,0.08);
 }
 body.glass .seg-opt.active {
-  background: rgba(255,255,255,0.6);
-  color: var(--vault);
+  background: var(--vault);
+  color: #fff;
   box-shadow: inset 0 1px 0 rgba(255,255,255,0.8), 0 2px 8px rgba(20,16,12,0.12);
 }
 body.glass.dark .seg { background: rgba(40,40,52,0.4); border-color: rgba(255,255,255,0.12); }
-body.glass.dark .seg-opt.active { background: rgba(255,255,255,0.14); color: var(--vault-text, #fff); }
+body.glass.dark .seg-opt.active { background: var(--vault); color: #fff; }
 /* Setas laterais de mês/dia/semana/ano */
 body.glass .month-nav-btn {
   background: rgba(255,255,255,0.45);
@@ -592,6 +592,7 @@ body.glass.dark .switch { background: rgba(255,255,255,0.18); }
 </style>
 </head>
 <body>
+<div id="customBg" style="display:none;position:fixed;inset:0;z-index:0;pointer-events:none;"></div>
 
 <div id="splashScreen" style="
   position:fixed;inset:0;
@@ -835,8 +836,10 @@ body.glass.dark .switch { background: rgba(255,255,255,0.18); }
       </div>
       <div class="switch" id="swGlass" onclick="toggleLiquidGlass()"></div>
     </div>
+    <div id="bgImageRow"></div>
 
-    <div class="section-head" style="margin-top:20px;"><div class="section-title">Configurações</div></div>
+    <div style="height:1px;background:var(--line);margin:26px 0 0;"></div>
+    <div class="section-head" style="margin-top:22px;"><div class="section-title">Configurações</div></div>
     <div class="section-sub" style="margin-bottom:6px;">Liga só o que usas. Cada opção aparece nos ecrãs e nos cálculos apenas quando estiver ativa.</div>
     <div class="switch-row">
       <div class="switch-row-text">
@@ -1269,7 +1272,7 @@ body.glass.dark .switch { background: rgba(255,255,255,0.18); }
 // Esquema de versão: de volta ao pré-1.0 (0.x.x) — a v1.0.0 fica
 // reservada para o lançamento com assinatura paga completa. A numeração
 // 4.x.x usada temporariamente para a integração Firebase foi abandonada.
-const APP_VERSION = '0.4.40';
+const APP_VERSION = '0.4.42';
 // Mostra o número da versão na tela de carregamento imediatamente (sem
 // esperar por loadAll/qualquer coisa assíncrona) — sempre visível,
 // independente da mensagem dinâmica ("A carregar…", "A sincronizar…",
@@ -2449,12 +2452,90 @@ async function setDarkMode(mode){
   localSettings.darkMode = mode;
   await persistLocalSettings();
   applyDarkModeClass();
+  applyCustomBackground();
   renderSettings();
 }
 function applyAllAppearance(){
   applyThemeColor(localSettings.themeColor || 'green');
   applyDarkModeClass();
   applyLiquidGlass();
+  applyCustomBackground();
+}
+// Imagem de fundo: preferência deste aparelho (localSettings.bgImage).
+function applyCustomBackground(){
+  const el = document.getElementById('customBg');
+  if(!el) return;
+  const img = localSettings.bgImage;
+  if(!img){ el.style.display = 'none'; el.style.backgroundImage = ''; return; }
+  const veil = document.body.classList.contains('dark') ? 'rgba(14,14,18,0.62)' : 'rgba(246,239,226,0.55)';
+  el.style.backgroundImage = `linear-gradient(${veil}, ${veil}), url("${img}")`;
+  el.style.backgroundSize = 'cover';
+  el.style.backgroundPosition = 'center';
+  el.style.display = 'block';
+}
+// Reduz a imagem para no máximo 1080 px no lado maior, sem cortar (ao contrário do avatar).
+function resizeBgToDataUrl(file){
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onerror = () => reject(new Error('leitura'));
+    reader.onload = () => {
+      const img = new Image();
+      img.onerror = () => reject(new Error('imagem'));
+      img.onload = () => {
+        try{
+          const k = Math.min(1, 1080 / Math.max(img.naturalWidth, img.naturalHeight));
+          const c = document.createElement('canvas');
+          c.width = Math.round(img.naturalWidth * k);
+          c.height = Math.round(img.naturalHeight * k);
+          c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+          let d = c.toDataURL('image/jpeg', 0.8);
+          if(d.length > 900000) d = c.toDataURL('image/jpeg', 0.6);
+          if(d.length > 900000) return reject(new Error('grande'));
+          resolve(d);
+        }catch(err){ reject(err); }
+      };
+      img.src = reader.result;
+    };
+    reader.readAsDataURL(file);
+  });
+}
+async function handleBgImage(input){
+  const file = input.files && input.files[0];
+  input.value = '';
+  if(!file || !file.type || !file.type.startsWith('image/')){ showToast('Escolhe um ficheiro de imagem'); return; }
+  try{
+    localSettings.bgImage = await resizeBgToDataUrl(file);
+    await persistLocalSettings();
+    applyCustomBackground();
+    renderSettings();
+    showToast('Imagem de fundo aplicada');
+  }catch(e){
+    showToast('Não foi possível usar essa imagem (demasiado grande?)');
+  }
+}
+async function removeBgImage(){
+  delete localSettings.bgImage;
+  await persistLocalSettings();
+  applyCustomBackground();
+  renderSettings();
+  showToast('Imagem de fundo removida');
+}
+function renderBgImageRow(){
+  const row = document.getElementById('bgImageRow');
+  if(!row) return;
+  const tem = !!localSettings.bgImage;
+  row.innerHTML = `<div class="field" style="margin-top:12px;">
+    <label>Imagem de fundo</label>
+    <div id="bgPreview" style="height:72px;border-radius:var(--r-md);border:1.5px solid var(--line);background:var(--cream-2);background-size:cover;background-position:center;margin-bottom:10px;"></div>
+    <div style="display:flex;gap:8px;">
+      <label style="flex:1;display:block;margin:0;text-align:center;padding:12px;border-radius:var(--r-md);background:var(--vault);color:#fff;font-weight:700;font-size:13px;text-transform:none;letter-spacing:0;cursor:pointer;">Escolher imagem<input type="file" accept="image/*" style="display:none;" onchange="handleBgImage(this)" /></label>
+      ${tem ? `<button onclick="removeBgImage()" style="padding:12px 16px;border-radius:var(--r-md);border:1.5px solid var(--line);background:transparent;color:var(--terracotta);font-weight:700;font-size:13px;cursor:pointer;">Remover</button>` : ''}
+    </div>
+  </div>`;
+  if(tem){
+    const pv = document.getElementById('bgPreview');
+    if(pv){ pv.style.backgroundImage = `url("${localSettings.bgImage}")`; }
+  }
 }
 function applyLiquidGlass(){
   document.body.classList.toggle('glass', localSettings.liquidGlass === true);
@@ -2612,6 +2693,7 @@ function renderSettings(){
       tnRow.innerHTML = '';
     }
   }
+  renderBgImageRow();
   const swGlass = document.getElementById('swGlass');
   if(swGlass) swGlass.className = 'switch' + (localSettings.liquidGlass === true ? ' on' : '');
   const swDaily = document.getElementById('swDailySummary');
