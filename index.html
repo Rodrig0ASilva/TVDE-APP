@@ -757,6 +757,8 @@ body.dark #glassRange::-moz-range-track { background: rgba(255,255,255,0.3); }
 /* Distintivo de plataforma: único em todo o app */
 .plat-badge { display: inline-flex; align-items: center; justify-content: center; border-radius: 8px; font-weight: 800; line-height: 1; flex-shrink: 0; vertical-align: middle; font-family: 'Inter', sans-serif; box-sizing: border-box; }
 .stat-card-label .plat-badge { margin-right: 4px; }
+/* Títulos (Corrida+ na barra lateral e títulos das telas) legíveis no modo escuro */
+body.dark .brand-name, body.dark .screen-title, body.dark .tabbar-inner::before { color: var(--vault-text, var(--vault-light)); }
 </style>
 </head>
 <body>
@@ -1441,7 +1443,7 @@ body.dark #glassRange::-moz-range-track { background: rgba(255,255,255,0.3); }
 // Esquema de versão: de volta ao pré-1.0 (0.x.x) — a v1.0.0 fica
 // reservada para o lançamento com assinatura paga completa. A numeração
 // 4.x.x usada temporariamente para a integração Firebase foi abandonada.
-const APP_VERSION = '0.79';
+const APP_VERSION = '0.80'
 // Mostra o número da versão na tela de carregamento imediatamente (sem
 // esperar por loadAll/qualquer coisa assíncrona) — sempre visível,
 // independente da mensagem dinâmica ("A carregar…", "A sincronizar…",
