@@ -683,11 +683,6 @@ body.glass.dark .seg { background: rgba(40,40,52, min(0.97, calc(0.4 * var(--gl-
 body.glass .month-nav-btn { background: rgba(255,255,255, min(0.97, calc(0.45 * var(--gl-k)))); backdrop-filter: blur(calc(14px * var(--gl-b))) saturate(170%); -webkit-backdrop-filter: blur(calc(14px * var(--gl-b))) saturate(170%); }
 body.glass.dark .month-nav-btn { background: rgba(40,40,52, min(0.97, calc(0.45 * var(--gl-k)))); }
 /* Balões sem cor (interruptor "Balões tintados" desligado) */
-body.glass-clear .seg > .glass-pill { background: rgba(255,255,255,0.75); border-color: rgba(255,255,255,0.85); box-shadow: 0 2px 8px rgba(20,16,12,0.12); }
-body.glass-clear.dark .seg > .glass-pill { background: rgba(255,255,255,0.22); border-color: rgba(255,255,255,0.25); }
-body.glass-clear .seg-opt.active, body.glass-clear.dark .seg-opt.active { color: var(--ink); }
-body.glass-clear .glass-pill { background: rgba(255,255,255,0.45); }
-body.glass-clear.dark .glass-pill { background: rgba(255,255,255,0.14); }
 /* Só a área das telas rola. A página não rola, por isso a barra de endereço
    do navegador (Android e iOS) não faz a barra de abas saltar. */
 html, body { height: 100%; overflow: hidden; }
@@ -703,6 +698,39 @@ body { height: 100dvh; }
 @media (min-width: 860px) {
   /* Barra lateral (computador): padding 18px 12px -> 8px */
   .tab, .tabbar-inner > .glass-pill { border-radius: calc(var(--r-xl) - 13px); }
+}
+/* Barras deslizantes: polegar visível, preenchimento na cor do tema (nos dois modos) */
+input[type=range].gl-range { -webkit-appearance: none; appearance: none; width: 100%; height: 30px; margin: 4px 0 2px; background: transparent; cursor: pointer; }
+input[type=range].gl-range:focus { outline: none; }
+input[type=range].gl-range::-webkit-slider-runnable-track {
+  height: 8px; border-radius: 8px;
+  background: linear-gradient(to right, var(--vault) var(--fill, 50%), rgba(42,36,32,0.25) var(--fill, 50%));
+}
+input[type=range].gl-range::-webkit-slider-thumb {
+  -webkit-appearance: none; appearance: none; width: 26px; height: 26px; border-radius: 50%;
+  background: #fff; border: 3px solid var(--vault); box-shadow: 0 2px 8px rgba(0,0,0,0.35); margin-top: -9px;
+}
+input[type=range].gl-range::-moz-range-track { height: 8px; border-radius: 8px; background: rgba(42,36,32,0.25); }
+input[type=range].gl-range::-moz-range-progress { height: 8px; border-radius: 8px; background: var(--vault); }
+input[type=range].gl-range::-moz-range-thumb {
+  width: 22px; height: 22px; border-radius: 50%; background: #fff; border: 3px solid var(--vault); box-shadow: 0 2px 8px rgba(0,0,0,0.35);
+}
+body.dark input[type=range].gl-range::-webkit-slider-runnable-track {
+  background: linear-gradient(to right, var(--vault-text, var(--vault-light)) var(--fill, 50%), rgba(255,255,255,0.3) var(--fill, 50%));
+}
+body.dark input[type=range].gl-range::-webkit-slider-thumb { border-color: var(--vault-text, var(--vault-light)); }
+body.dark input[type=range].gl-range::-moz-range-track { background: rgba(255,255,255,0.3); }
+body.dark input[type=range].gl-range::-moz-range-progress { background: var(--vault-text, var(--vault-light)); }
+body.dark input[type=range].gl-range::-moz-range-thumb { border-color: var(--vault-text, var(--vault-light)); }
+.range-title { font-size: 13px; font-weight: 700; color: var(--ink); margin: 6px 0 0; }
+.range-ends { display: flex; justify-content: space-between; font-size: 11px; font-weight: 600; color: var(--ink); opacity: 0.7; margin-top: 2px; }
+/* Cantos concêntricos: raio interno = raio externo − (borda + espaçamento) */
+.seg { --seg-inner: calc(var(--r-md) - 4.5px); }
+.seg-opt, .seg > .glass-pill { border-radius: var(--seg-inner); }
+.tabbar-inner { --tab-inner: calc(var(--r-xl) - 8px); }
+.tab, .tabbar-inner > .glass-pill { border-radius: var(--tab-inner); }
+@media (min-width: 860px) {
+  .tabbar-inner { --tab-inner: calc(var(--r-xl) - 13px); }
 }
 </style>
 </head>
@@ -1388,7 +1416,7 @@ body { height: 100dvh; }
 // Esquema de versão: de volta ao pré-1.0 (0.x.x) — a v1.0.0 fica
 // reservada para o lançamento com assinatura paga completa. A numeração
 // 4.x.x usada temporariamente para a integração Firebase foi abandonada.
-const APP_VERSION = '0.68';
+const APP_VERSION = '0.71';
 // Mostra o número da versão na tela de carregamento imediatamente (sem
 // esperar por loadAll/qualquer coisa assíncrona) — sempre visível,
 // independente da mensagem dinâmica ("A carregar…", "A sincronizar…",
@@ -2743,7 +2771,16 @@ function applyAllAppearance(){
   applyLiquidGlass();
   applyCustomBackground();
 }
-// Imagem de fundo: preferência deste aparelho (localSettings.bgImage).
+// Imagem de fundo: preferência deste aparelho (localSettings.bgImage). Ativa por omissão; o interruptor só a esconde.
+function bgActive(){ return localSettings.bgImage && localSettings.bgEnabled !== false ? localSettings.bgImage : null; }
+async function toggleBgImage(){
+  localSettings.bgEnabled = !(localSettings.bgEnabled !== false);
+  await persistLocalSettings();
+  applyBodyTone();
+  applyCustomBackground();
+  renderBgImageRow();
+  showToast(localSettings.bgEnabled !== false ? 'Imagem de fundo ativada' : 'Imagem de fundo desativada');
+}
 // Decide se a imagem é clara ou escura (média de luminosidade, já com o véu leve).
 function imageTone(dataUrl){
   return new Promise(resolve => {
@@ -2769,7 +2806,7 @@ function imageTone(dataUrl){
 }
 // Liga/desliga o texto claro sobre o fundo, conforme o tom da imagem (só modo claro).
 function applyBodyTone(){
-  const img = localSettings.bgImage;
+  const img = bgActive();
   document.body.classList.toggle('bg-ink-light', !!img && localSettings.bgTone === 'dark');
   document.body.classList.toggle('bg-img', !!img);
 }
@@ -2797,7 +2834,7 @@ function applyBgEffects(el){
 function applyCustomBackground(){
   const el = document.getElementById('customBg');
   if(!el) return;
-  const img = localSettings.bgImage;
+  const img = bgActive();
   if(img && !localSettings.bgTone){
     imageTone(img).then(async t => { localSettings.bgTone = t; await persistLocalSettings(); applyBodyTone(); });
   }
@@ -2885,6 +2922,8 @@ async function removeBgImage(){
 }
 async function setBgSetting(key, v, live){
   localSettings[key] = Number(v);
+  const rg = document.getElementById(key === 'bgVeil' ? 'bgVeilRange' : 'bgBlurRange');
+  if(rg){ rg.style.setProperty('--fill', bgNum(key) + '%'); }
   applyCustomBackground();
   const lab = document.querySelector(`#bgImageRow [data-bglabel="${key}"]`);
   if(lab) lab.textContent = (key === 'bgVeil' ? 'Véu sobre a imagem: ' : 'Desfoque com granulação: ') + bgNum(key) + '%';
@@ -2894,28 +2933,43 @@ function renderBgImageRow(){
   const row = document.getElementById('bgImageRow');
   if(!row) return;
   const tem = !!localSettings.bgImage;
-  const slider = (key, titulo, a, b) => `
-    <div data-bglabel="${key}" style="font-size:12px;font-weight:600;margin:14px 0 6px;">${titulo}: ${bgNum(key)}%</div>
-    <input type="range" min="0" max="100" step="1" value="${bgNum(key)}" style="width:100%;accent-color:var(--vault);"
+  const on = localSettings.bgEnabled !== false;
+  const sl = (key, id, titulo, a, b) => `
+    <div class="range-title" data-bglabel="${key}">${titulo}: ${bgNum(key)}%</div>
+    <input id="${id}" class="gl-range" type="range" min="0" max="100" step="1" value="${bgNum(key)}" style="--fill:${bgNum(key)}%;"
       oninput="setBgSetting('${key}', this.value, true)" onchange="setBgSetting('${key}', this.value, false)" />
-    <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--text-muted);margin-top:2px;"><span>${a}</span><span>${b}</span></div>`;
-  row.innerHTML = `<div class="field" style="margin-top:12px;">
-    <label>Imagem de fundo</label>
-    <div id="bgPreview" style="height:72px;border-radius:var(--r-md);border:1.5px solid var(--line);background:var(--cream-2);background-size:cover;background-position:center;margin-bottom:10px;"></div>
-    <div style="display:flex;gap:8px;">
-      <label style="flex:1;display:block;margin:0;text-align:center;padding:12px;border-radius:var(--r-md);background:var(--vault);color:#fff;font-weight:700;font-size:13px;text-transform:none;letter-spacing:0;cursor:pointer;">Escolher imagem<input type="file" accept="image/*" style="display:none;" onchange="handleBgImage(this)" /></label>
-      ${tem ? `<button onclick="removeBgImage()" style="padding:12px 16px;border-radius:var(--r-md);border:1.5px solid var(--line);background:transparent;color:var(--terracotta);font-weight:700;font-size:13px;cursor:pointer;">Remover</button>` : ''}
+    <div class="range-ends"><span>${a}</span><span>${b}</span></div>`;
+  row.innerHTML = `
+    <div class="switch-row" style="margin-top:12px;">
+      <div class="switch-row-text">
+        <div class="switch-row-title">Imagem de fundo</div>
+        <div class="switch-row-sub">Mostra a imagem atrás da app. Desligada, a imagem fica guardada neste aparelho.</div>
+      </div>
+      <div class="switch${on ? ' on' : ''}" onclick="toggleBgImage()"></div>
     </div>
-    ${tem ? slider('bgVeil', 'Véu sobre a imagem', 'Normal', 'Opaco') + slider('bgBlur', 'Desfoque com granulação', 'Nítido', 'Desfocado') : ''}
-  </div>`;
-  if(tem){
+    ${on ? `<div class="field" style="margin-top:10px;">
+      <div id="bgPreview" style="height:72px;border-radius:var(--r-md);border:1.5px solid var(--line);background:var(--cream-2);background-size:cover;background-position:center;margin-bottom:10px;"></div>
+      <div style="display:flex;gap:8px;">
+        <label style="flex:1;display:block;margin:0;text-align:center;padding:12px;border-radius:var(--r-md);background:var(--vault);color:#fff;font-weight:700;font-size:13px;text-transform:none;letter-spacing:0;cursor:pointer;">Escolher imagem<input type="file" accept="image/*" style="display:none;" onchange="handleBgImage(this)" /></label>
+        ${tem ? `<button onclick="removeBgImage()" style="padding:12px 16px;border-radius:var(--r-md);border:1.5px solid var(--line);background:transparent;color:var(--terracotta);font-weight:700;font-size:13px;cursor:pointer;">Remover</button>` : ''}
+      </div>
+      ${tem ? `<div class="chart-box" style="margin-top:12px;">${sl('bgVeil', 'bgVeilRange', 'Véu sobre a imagem', 'Normal', 'Opaco')}${sl('bgBlur', 'bgBlurRange', 'Desfoque com granulação', 'Nítido', 'Desfocado')}</div>` : ''}
+    </div>` : ''}`;
+  if(on && tem){
     const pv = document.getElementById('bgPreview');
     if(pv){ pv.style.backgroundImage = `url("${localSettings.bgImage}")`; }
   }
 }
+// Liga a transição suave de cores durante a mudança; desliga depois de a animação acabar.
+let softTimer = null;
+function softChange(fn){
+  document.documentElement.classList.add('soft-change');
+  fn();
+  clearTimeout(softTimer);
+  softTimer = setTimeout(() => document.documentElement.classList.remove('soft-change'), 650);
+}
 function applyLiquidGlass(){
   document.body.classList.toggle('glass', localSettings.liquidGlass === true);
-  document.body.classList.toggle('glass-clear', localSettings.glassTint === false);
   applyGlassVars();
   glassRefreshAll(false);
 }
@@ -2942,19 +2996,12 @@ function snapGlass(v){
 async function setGlassLevel(v, live){
   const L = snapGlass(v);
   localSettings.glassLevel = L;
-  const inp = document.querySelector('#glassControls input[type=range]');
-  if(inp && Number(inp.value) !== L) inp.value = L;
+  const inp = document.getElementById('glassRange');
+  if(inp){ inp.value = L; inp.style.setProperty('--fill', L + '%'); }
   applyGlassVars();
-  const lab = document.querySelector('#glassControls .field label');
+  const lab = document.getElementById('glassTitle');
   if(lab) lab.textContent = 'Intensidade: ' + glassLevelLabel(L);
   if(!live) await persistLocalSettings();
-}
-async function toggleGlassTint(){
-  localSettings.glassTint = !(localSettings.glassTint !== false);
-  await persistLocalSettings();
-  document.body.classList.toggle('glass-clear', localSettings.glassTint === false);
-  renderGlassControls();
-  showToast(localSettings.glassTint === false ? 'Balões sem cor' : 'Balões tintados');
 }
 function renderGlassControls(){
   const box = document.getElementById('glassControls');
@@ -2963,19 +3010,11 @@ function renderGlassControls(){
   box.style.display = on ? 'block' : 'none';
   if(!on){ box.innerHTML = ''; return; }
   const L = glassLevel();
-  const tint = localSettings.glassTint !== false;
-  box.innerHTML = `<div class="field" style="margin-top:12px;">
-      <label>Intensidade: ${glassLevelLabel(L)}</label>
-      <input type="range" min="0" max="100" step="1" value="${L}" style="width:100%;accent-color:var(--vault);"
+  box.innerHTML = `<div class="chart-box" style="margin-top:12px;">
+      <div class="range-title" id="glassTitle">Intensidade: ${glassLevelLabel(L)}</div>
+      <input id="glassRange" class="gl-range" type="range" min="0" max="100" step="1" value="${L}" style="--fill:${L}%;"
         oninput="setGlassLevel(this.value, true)" onchange="setGlassLevel(this.value, false)" />
-      <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--text-muted);margin-top:4px;"><span>Transparente</span><span>Padrão</span><span>Opaco</span></div>
-    </div>
-    <div class="switch-row">
-      <div class="switch-row-text">
-        <div class="switch-row-title">Balões tintados</div>
-        <div class="switch-row-sub">Ligado: a gota e os seletores usam a cor do tema. Desligado: neutros, sem cor.</div>
-      </div>
-      <div class="switch${tint ? ' on' : ''}" onclick="toggleGlassTint()"></div>
+      <div class="range-ends"><span>Transparente</span><span>Padrão</span><span>Opaco</span></div>
     </div>`;
 }
 async function toggleLiquidGlass(){
