@@ -1444,7 +1444,7 @@ body.dark .brand-name, body.dark .screen-title, body.dark .tabbar-inner::before 
 // Esquema de versão: de volta ao pré-1.0 (0.x.x) — a v1.0.0 fica
 // reservada para o lançamento com assinatura paga completa. A numeração
 // 4.x.x usada temporariamente para a integração Firebase foi abandonada.
-const APP_VERSION = '0.84';
+const APP_VERSION = '0.85';
 // Mostra o número da versão na tela de carregamento imediatamente (sem
 // esperar por loadAll/qualquer coisa assíncrona) — sempre visível,
 // independente da mensagem dinâmica ("A carregar…", "A sincronizar…",
@@ -2055,8 +2055,42 @@ function renderSubscriptionCard(){
     }
   }
 }
+// Modo só leitura: assinatura com data de fim já passada. Só se aplica a contas com login.
+// (Sem assinatura nenhuma, por enquanto, o acesso continua livre — ver DOCUMENTATION.md, v0.85.)
+function subscriptionEndDate(){
+  const s = window.__fbSubscription;
+  if(!s || !s.current_period_end) return null;
+  const raw = s.current_period_end;
+  const d = (typeof raw.toDate === 'function') ? raw.toDate() : new Date(raw);
+  return isNaN(d) ? null : d;
+}
+function accessExpired(){
+  if(!window.__fbUser) return false;
+  const end = subscriptionEndDate();
+  return !!end && end.getTime() <= Date.now();
+}
+function readOnlyGuard(){
+  if(!accessExpired()) return false;
+  showToast('Modo só leitura: renova a assinatura para registar ou editar');
+  return true;
+}
+function renderReadOnlyBanner(){
+  const app = document.getElementById('app');
+  let el = document.getElementById('readOnlyBanner');
+  if(!accessExpired()){ if(el) el.remove(); return; }
+  if(!el){
+    el = document.createElement('div');
+    el.id = 'readOnlyBanner';
+    el.style.cssText = 'position:sticky;top:0;z-index:45;margin:8px 0 12px;padding:12px 14px;border-radius:var(--r-md);background:rgba(168,83,63,0.14);border:1px solid rgba(168,83,63,0.45);font-size:12px;line-height:1.5;color:var(--ink);';
+    app.prepend(el);
+  }
+  const end = subscriptionEndDate();
+  const endStr = end ? end.toLocaleDateString('pt-BR', { day:'2-digit', month:'long', year:'numeric' }) : '';
+  el.innerHTML = `<div><strong>⛔ Assinatura expirada${endStr ? ' em ' + endStr : ''}.</strong> Estás em modo só leitura: podes ver os teus dados, mas não registar, editar nem apagar.</div>
+    <button onclick="goSettings()" style="margin-top:8px;padding:8px 14px;border-radius:var(--r-full);border:none;background:var(--terracotta);color:#fff;font-weight:700;font-size:12px;cursor:pointer;">Renovar assinatura</button>`;
+}
 // Reavalia a data de validade de tempos em tempos, mesmo sem nenhuma alteração no Firestore.
-setInterval(() => { try{ renderSubscriptionCard(); }catch(e){} }, 60 * 1000);
+setInterval(() => { try{ renderSubscriptionCard(); renderReadOnlyBanner(); }catch(e){} }, 60 * 1000);
 
 let unsubUserData = null;
 let unsubSubscription = null;
@@ -2105,6 +2139,7 @@ async function loadAll(){
       unsubSubscription = window.fbListenSubscription(uid, (sub) => {
         window.__fbSubscription = sub;
         renderSettings();
+        renderReadOnlyBanner();
       });
     }
     initialCloudSync(uid).then(() => {
@@ -3315,12 +3350,14 @@ function renderSettings(){
 }
 
 function updateIvaRate(value){
+  if(readOnlyGuard()) return;
   profile.ivaRate = parseFloat(value) || 0;
   persistProfile();
   renderGanhos(); renderDespesas();
   showToast(`IVA ${profile.ivaRate > 0 ? profile.ivaRate + '%' : 'desativado'}`);
 }
 function updateComissaoRate(value){
+  if(readOnlyGuard()) return;
   profile.comissaoRate = parseFloat(value) || 0;
   persistProfile();
   renderGanhos(); renderDespesas();
@@ -3331,17 +3368,20 @@ function updateComissaoRate(value){
 // gráfico de progresso em Estatísticas (ver renderStatsMonth/renderStatsWeek
 // e goalProgressHTML). Guardadas em profile, sincronizadas normalmente.
 async function toggleGoalsEnabled(){
+  if(readOnlyGuard()) return;
   profile.goalsEnabled = !profile.goalsEnabled;
   await persistProfile();
   renderSettings();
   showToast(profile.goalsEnabled ? '🎯 Metas ativadas' : 'Metas desativadas');
 }
 async function updateMonthlyGoal(value){
+  if(readOnlyGuard()) return;
   profile.monthlyGoal = parseFloat(value) || 0;
   await persistProfile();
   showToast(profile.monthlyGoal > 0 ? `Meta mensal: ${fmt(profile.monthlyGoal)}` : 'Meta mensal removida');
 }
 async function updateWeeklyGoal(value){
+  if(readOnlyGuard()) return;
   profile.weeklyGoal = parseFloat(value) || 0;
   await persistProfile();
   showToast(profile.weeklyGoal > 0 ? `Meta semanal: ${fmt(profile.weeklyGoal)}` : 'Meta semanal removida');
@@ -3365,6 +3405,7 @@ function renderCustomPlatformsList(){
     </div>`).join('');
 }
 async function addCustomPlatform(){
+  if(readOnlyGuard()) return;
   const input = document.getElementById('newCustomPlatformName');
   const label = (input?.value || '').trim();
   if(!label){ showToast('Digite o nome da plataforma'); return; }
@@ -3444,6 +3485,7 @@ function toggleForceDailySummary(){
   showToast(devForceDailySummary ? '📊 Vai mostrar o resumo na próxima abertura' : 'Forçar resumo desativado');
 }
 async function toggleCustomTaxed(key){
+  if(readOnlyGuard()) return;
   const cp = (profile.customPlatforms || []).find(x => x.key === key);
   if(!cp) return;
   cp.taxed = !cp.taxed;
@@ -3452,6 +3494,7 @@ async function toggleCustomTaxed(key){
   showToast(cp.taxed ? `${cp.label}: com IVA e comissão` : `${cp.label}: pessoal (sem IVA)`);
 }
 async function removeCustomPlatform(key){
+  if(readOnlyGuard()) return;
   if(!confirm('Remover esta plataforma? Ganhos já registados com ela continuam guardados, só deixa de aparecer como opção nova.')) return;
   profile.customPlatforms = (profile.customPlatforms || []).map(cp => cp.key === key ? { ...cp, archived: true } : cp);
   await persistProfile();
@@ -3482,6 +3525,7 @@ function goalProgressHTML(current, goal, label){
 }
 
 function commitProfileName(value){
+  if(readOnlyGuard()) return;
   const name = (value || '').trim();
   if(name === (profile.name || '')) return;
   profile.name = name;
@@ -3658,6 +3702,7 @@ async function scheduleMigrationUrl(){
 }
 
 async function importFromJson(){
+  if(readOnlyGuard()) return;
   let raw = (document.getElementById('importJsonInput')?.value || '').trim();
   if(!raw){ showToast('Cole o JSON antes de importar'); return; }
   let data;
@@ -3786,6 +3831,7 @@ function exportDataToExcel(){
 }
 
 function confirmResetAll(){
+  if(readOnlyGuard()) return;
   const opt = (scope, title, desc, danger) => `
     <button class="btn theme-card" onclick="openResetCodeSheet('${scope}')" style="text-align:left;border:1.5px solid ${danger ? 'var(--terracotta)' : 'var(--line)'};color:${danger ? 'var(--terracotta)' : 'var(--ink)'};margin-bottom:10px;padding:14px;">
       <div style="font-weight:800;font-size:14px;">${title}</div>
@@ -3840,6 +3886,7 @@ function checkResetCode(value){
   if(btn){ btn.disabled = !ok; btn.style.opacity = ok ? '1' : '0.4'; }
 }
 async function executeResetAll(){
+  if(readOnlyGuard()) return;
   const scope = window._resetScope;
   const typed = (document.getElementById('resetCodeInput')?.value || '').trim().toUpperCase();
   if(!scope || !window._resetCode || typed !== window._resetCode) return;
@@ -4887,6 +4934,7 @@ function customPlatformsOn(){ return featureOn('customPlatformsEnabled'); }
 function ivaOn(){ return featureOn('ivaEnabled'); }
 function comissaoOn(){ return featureOn('comissaoEnabled'); }
 async function toggleFeature(flag){
+  if(readOnlyGuard()) return;
   profile[flag] = !featureOn(flag);
   await persistProfile();
   renderSettings();
@@ -4925,6 +4973,7 @@ function repairTurnoList(){
 // Volta aos 4 turnos padrão. Os turnos personalizados ficam arquivados, para
 // os ganhos antigos continuarem com o nome certo.
 async function restoreDefaultTurnos(){
+  if(readOnlyGuard()) return;
   if(!confirm('Repor os turnos padrão? Os turnos que criaste ficam arquivados, e os ganhos antigos mantêm o nome que tinham.')) return;
   const custom = getTurnos().filter(t => !TURNOS.some(x => x.key === t.key)).map(t => ({ ...t, archived: true }));
   profile.turnoList = TURNOS.map(t => ({ key: t.key, label: t.label, emoji: t.emoji })).concat(custom);
@@ -4947,6 +4996,7 @@ async function saveTurnos(msg){
 }
 // Atualiza o nome ou o emoji de um turno. Vazio no nome = volta ao original.
 async function updateTurnoField(key, field, value){
+  if(readOnlyGuard()) return;
   const list = ensureTurnoList();
   const t = list.find(x => x.key === key);
   if(!t) return;
@@ -4964,6 +5014,7 @@ async function updateTurnoField(key, field, value){
   await saveTurnos('Turno atualizado');
 }
 async function addTurno(){
+  if(readOnlyGuard()) return;
   const name = (document.getElementById('newTurnoName')?.value || '').trim().slice(0, 14);
   const emoji = firstGrapheme((document.getElementById('newTurnoEmoji')?.value || '').trim()) || '🕒';
   if(!name){ showToast('Dá um nome ao turno'); return; }
@@ -4971,12 +5022,14 @@ async function addTurno(){
   await saveTurnos('Turno adicionado');
 }
 async function removeTurno(key){
+  if(readOnlyGuard()) return;
   if(!confirm('Remover este turno? Os ganhos já registados continuam com ele nos relatórios, mas deixa de aparecer nos novos ganhos.')) return;
   const t = ensureTurnoList().find(x => x.key === key);
   if(t) t.archived = true;
   await saveTurnos('Turno removido');
 }
 async function restoreTurno(key){
+  if(readOnlyGuard()) return;
   const t = ensureTurnoList().find(x => x.key === key);
   if(t) t.archived = false;
   await saveTurnos('Turno reativado');
@@ -5178,6 +5231,7 @@ function renderEarningsList(items, emptyMsg){
 // todos os meses porque a lista de Ganhos pode incluir dias de um mês
 // vizinho (visão Semana pode atravessar a fronteira de mês).
 async function updateEarningAmount(id, value){
+  if(readOnlyGuard()) return;
   const amount = parseFloat(value) || 0;
   if(amount <= 0){ showToast('Digite um valor válido'); renderGanhos(); return; }
   let found = false;
@@ -5322,6 +5376,7 @@ function renderGanhos(){
 }
 
 function openAddIncomeSheet(){
+  if(readOnlyGuard()) return;
   let defaultDate, sheetSub;
   if(ganhosView === 'dia'){
     defaultDate = isoDate(ganhosRefDate);
@@ -5407,6 +5462,7 @@ function pickIncomeTurno(t){
   document.querySelectorAll('#incTurnoSeg .seg-opt').forEach(el => el.classList.toggle('active', el.dataset.t === t));
 }
 async function confirmAddIncome(){
+  if(readOnlyGuard()) return;
   const date = document.getElementById('incDate').value;
   if(!date){ showToast('Selecione a data'); return; }
   const turno = showTurno() ? (window._pendingTurno || '') : '';
@@ -5444,6 +5500,7 @@ async function confirmAddIncome(){
   await persistMonthData(); closeSheet(); renderGanhos();
 }
 async function removeEarning(id){
+  if(readOnlyGuard()) return;
   if(!confirm('Remover este ganho?')) return;
   Object.keys(monthData).forEach(k => { monthData[k].earnings = (monthData[k].earnings||[]).filter(e => e.id !== id); });
   markDeleted(`earning:${id}`);
@@ -5484,6 +5541,7 @@ function renderDespesas(){
 // sem argumento (ou null), abre em modo "nova"; quando recebe o objeto da
 // despesa existente, pré-preenche os campos e muda para modo "editar".
 function openExpenseSheet(existingExp){
+  if(readOnlyGuard()) return;
   const isEdit = !!existingExp;
   const today = isoDate(new Date());
   const cat = existingExp ? existingExp.category : EXPENSE_CATEGORIES[0].key;
@@ -5522,6 +5580,7 @@ function onExpenseCategoryChange(){
   document.getElementById('fuelLitersField').style.display = cat === 'combustivel' ? 'block' : 'none';
 }
 async function confirmNewExpense(){
+  if(readOnlyGuard()) return;
   const category = document.getElementById('newExpenseCategory').value;
   const amount    = parseFloat(document.getElementById('newExpenseAmount').value);
   const note      = document.getElementById('newExpenseNote').value.trim();
@@ -5542,6 +5601,7 @@ async function confirmNewExpense(){
 // original). Se a data mudar para um mês diferente, a despesa é movida do
 // mês antigo para o novo automaticamente.
 async function confirmEditExpense(id){
+  if(readOnlyGuard()) return;
   const category = document.getElementById('newExpenseCategory').value;
   const amount    = parseFloat(document.getElementById('newExpenseAmount').value);
   const note      = document.getElementById('newExpenseNote').value.trim();
@@ -5567,6 +5627,7 @@ async function confirmEditExpense(id){
   await persistMonthData(); closeSheet(); showToast('Despesa atualizada'); renderDespesas();
 }
 async function deleteVariableExpense(id){
+  if(readOnlyGuard()) return;
   if(!confirm('Remover esta despesa?')) return;
   Object.keys(monthData).forEach(k => {
     if(monthData[k].variableExpenses){ monthData[k].variableExpenses = monthData[k].variableExpenses.filter(e => e.id !== id); }
@@ -5615,18 +5676,21 @@ function renderBills(entry){
 }
 
 async function payBill(billId){
+  if(readOnlyGuard()) return;
   const entry = ensureMonthEntry(currentMonthKey);
   const bill  = bills.find(x => x.id === billId); if(!bill) return;
   entry.billsPaid[billId] = { amount: billAmount(entry, bill), ts: Date.now() };
   await persistMonthData(); showToast('Conta paga'); renderDespesas();
 }
 async function unpayBill(billId){
+  if(readOnlyGuard()) return;
   const entry = ensureMonthEntry(currentMonthKey);
   delete entry.billsPaid[billId];
   markDeleted(`billsPaidKey:${currentMonthKey}:${billId}`);
   await persistMonthData(); renderDespesas();
 }
 async function updateBillAmount(billId, value){
+  if(readOnlyGuard()) return;
   const entry = ensureMonthEntry(currentMonthKey);
   entry.billOverrides[billId] = parseFloat(value) || 0;
   await persistMonthData(); renderDespesas();
@@ -5636,6 +5700,7 @@ async function updateBillAmount(billId, value){
 // semana. Não afeta o total do mês, só como esse total é repartido nos
 // gráficos/cartões "por semana" (ver weekBucketFixedBills/weeklyFixedBills).
 async function updateBillWeeklySplit(billId, value){
+  if(readOnlyGuard()) return;
   const bill = bills.find(b => b.id === billId);
   if(!bill) return;
   bill.weeklySplit = value;
@@ -5645,6 +5710,7 @@ async function updateBillWeeklySplit(billId, value){
   renderLucro();
 }
 async function deleteBill(billId){
+  if(readOnlyGuard()) return;
   if(!confirm('Apagar esta despesa fixa?')) return;
   bills = bills.filter(b => b.id !== billId);
   Object.keys(monthData).forEach(k => {
@@ -5659,6 +5725,7 @@ async function deleteBill(billId){
   renderSettings();
 }
 function openNewBillSheet(){
+  if(readOnlyGuard()) return;
   openSheet(`
     <div class="sheet-handle"></div>
     <div class="sheet-title">Nova despesa fixa</div>
@@ -5706,6 +5773,7 @@ function pickBillWeeklySplit(s){
   document.querySelectorAll('#newBillWeeklySplitSeg .seg-opt').forEach(el => el.classList.toggle('active', el.dataset.s === s));
 }
 async function createBill(){
+  if(readOnlyGuard()) return;
   const name   = document.getElementById('newBillName').value.trim();
   const amount = parseFloat(document.getElementById('newBillAmount').value) || 0;
   const frequency = window._pendingBillFreq || 'mensal';
@@ -5716,6 +5784,7 @@ async function createBill(){
   await persistBills(); closeSheet(); showToast('Adicionado com sucesso'); renderDespesas();
 }
 function importPreviousMonthBills(){
+  if(readOnlyGuard()) return;
   const prevKey   = previousMonthKey(currentMonthKey);
   const prevEntry = monthData[prevKey];
   if(!prevEntry){ showToast('Nenhum dado do mês anterior para importar.'); return; }
@@ -6419,6 +6488,7 @@ function renderHiddenDataList() {
 async function removeEarningFromSettings(id) { await removeEarning(id); renderSettings(); }
 async function removeExpenseFromSettings(id) { await deleteVariableExpense(id); renderSettings(); }
 async function restoreHiddenBill(billId) {
+  if(readOnlyGuard()) return;
   const entry = ensureMonthEntry(currentMonthKey);
   delete entry.hiddenBills[billId];
   markDeleted(`hiddenBillsKey:${currentMonthKey}:${billId}`);
