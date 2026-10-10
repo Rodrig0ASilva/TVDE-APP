@@ -651,6 +651,13 @@ html.soft-change, html.soft-change * {
 #customBg { opacity: 0; transition: opacity 0.45s ease; }
 #customBg.on { opacity: 1; }
 html.soft-change #customBg { transition: opacity 0.45s ease !important; }
+/* Imagem de fundo escura no modo claro: texto sobre o fundo fica claro; cartões mantêm texto escuro */
+body.bg-ink-light:not(.dark) #app :is(.screen-title, .month-nav-label, .month-nav-hint, .section-title, .section-sub, .section-head, .empty-note, .no-income-title, .no-income-sub, .bill-name, .bill-sub, .bill-amount, .bill-amount-edit, .income-name, .income-sub, .switch-row-title, .switch-row-sub, .field label, .add-dashed-btn, .sync-pill span, .stats-empty, .loading, .brand-name) { color: #F6EFE2; }
+body.bg-ink-light:not(.dark) #app :is(.stat-card, .chart-box, .loans-box, .income-row-compact, .profile-card, .seg) { color: var(--ink); }
+body.bg-ink-light:not(.dark) #app :is(.stat-card, .chart-box, .loans-box, .income-row-compact, .profile-card, .seg) :is(.screen-title, .month-nav-label, .month-nav-hint, .section-title, .section-sub, .section-head, .empty-note, .no-income-title, .no-income-sub, .bill-name, .bill-sub, .bill-amount, .bill-amount-edit, .income-name, .income-sub, .switch-row-title, .switch-row-sub, .field label, .add-dashed-btn, .sync-pill span, .stats-empty, .loading, .brand-name) { color: var(--ink); }
+body.bg-ink-light:not(.dark) #app input, body.bg-ink-light:not(.dark) #app select, body.bg-ink-light:not(.dark) #app textarea { color: var(--ink); }
+body.bg-ink-light:not(.dark) #app .add-dashed-btn { background: rgba(20,16,12,0.3); border-color: rgba(246,239,226,0.5); }
+body.bg-ink-light:not(.dark) #app .sync-pill { background: rgba(20,16,12,0.35); }
 </style>
 </head>
 <body>
@@ -1334,7 +1341,7 @@ html.soft-change #customBg { transition: opacity 0.45s ease !important; }
 // Esquema de versão: de volta ao pré-1.0 (0.x.x) — a v1.0.0 fica
 // reservada para o lançamento com assinatura paga completa. A numeração
 // 4.x.x usada temporariamente para a integração Firebase foi abandonada.
-const APP_VERSION = '0.53';
+const APP_VERSION = '0.55';
 // Mostra o número da versão na tela de carregamento imediatamente (sem
 // esperar por loadAll/qualquer coisa assíncrona) — sempre visível,
 // independente da mensagem dinâmica ("A carregar…", "A sincronizar…",
@@ -2707,6 +2714,34 @@ function applyAllAppearance(){
   applyCustomBackground();
 }
 // Imagem de fundo: preferência deste aparelho (localSettings.bgImage).
+// Decide se a imagem é clara ou escura (média de luminosidade, já com o véu leve).
+function imageTone(dataUrl){
+  return new Promise(resolve => {
+    const img = new Image();
+    img.onload = () => {
+      try{
+        const c = document.createElement('canvas');
+        c.width = 24; c.height = 24;
+        const ctx = c.getContext('2d');
+        ctx.drawImage(img, 0, 0, 24, 24);
+        const d = ctx.getImageData(0, 0, 24, 24).data;
+        let sum = 0, n = 0;
+        for(let i = 0; i < d.length; i += 4){
+          sum += (0.2126 * d[i] + 0.7152 * d[i + 1] + 0.0722 * d[i + 2]) / 255;
+          n++;
+        }
+        resolve((sum / n) * 0.78 < 0.5 ? 'dark' : 'light');
+      }catch(e){ resolve('light'); }
+    };
+    img.onerror = () => resolve('light');
+    img.src = dataUrl;
+  });
+}
+// Liga/desliga o texto claro sobre o fundo, conforme o tom da imagem (só modo claro).
+function applyBodyTone(){
+  const img = localSettings.bgImage;
+  document.body.classList.toggle('bg-ink-light', !!img && localSettings.bgTone === 'dark');
+}
 let bgTimer = null;
 function applyCustomBackground(){
   const el = document.getElementById('customBg');
@@ -2715,6 +2750,10 @@ function applyCustomBackground(){
   const dark = document.body.classList.contains('dark');
   const veil = dark ? 'rgba(14,14,18,0.62)' : 'rgba(20,16,12,0.22)';
   const want = img ? `linear-gradient(${veil}, ${veil}), url("${img}")` : '';
+  if(img && !localSettings.bgTone){
+    imageTone(img).then(async t => { localSettings.bgTone = t; await persistLocalSettings(); applyBodyTone(); });
+  }
+  applyBodyTone();
   if((el.dataset.bg || '') === want) return;
   clearTimeout(bgTimer);
   el.classList.remove('on');
@@ -2767,6 +2806,7 @@ async function handleBgImage(input){
   if(!file || !file.type || !file.type.startsWith('image/')){ showToast('Escolhe um ficheiro de imagem'); return; }
   try{
     localSettings.bgImage = await resizeBgToDataUrl(file);
+    localSettings.bgTone = await imageTone(localSettings.bgImage);
     await persistLocalSettings();
     applyCustomBackground();
     renderSettings();
@@ -2777,6 +2817,7 @@ async function handleBgImage(input){
 }
 async function removeBgImage(){
   delete localSettings.bgImage;
+  delete localSettings.bgTone;
   await persistLocalSettings();
   applyCustomBackground();
   renderSettings();
@@ -2810,13 +2851,13 @@ function softChange(fn){
 function applyLiquidGlass(){
   document.body.classList.toggle('glass', localSettings.liquidGlass === true);
   glassRefreshAll(false);
-  replayCustomBg();
 }
 async function toggleLiquidGlass(){
   localSettings.liquidGlass = !(localSettings.liquidGlass === true);
   await persistLocalSettings();
   softChange(() => applyLiquidGlass());
-  renderSettings();
+  const swG = document.getElementById('swGlass');
+  if(swG) swG.className = 'switch' + (localSettings.liquidGlass === true ? ' on' : '');
   showToast(localSettings.liquidGlass ? '🪟 Liquid glass ativado' : 'Liquid glass desativado');
 }
 
