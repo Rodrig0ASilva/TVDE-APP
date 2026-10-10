@@ -494,6 +494,64 @@ body.basic-mode #customPlatformsBody button,
 body.basic-mode #screen-settings .bill-amount-input { pointer-events:none; opacity:0.4; filter:grayscale(1); }
 body.basic-mode #statsViewSeg .seg-opt:not([data-v="mes"]) { display:none; }
 #basicBanner { display:none; background:rgba(184,134,43,0.14); border:1px solid rgba(184,134,43,0.35); border-radius:var(--r-md); padding:12px 14px; margin:8px 0 4px; font-size:12px; line-height:1.5; }
+/* ---------- Liquid glass (Modo Dev) ----------
+   Camada de cor estática por trás de tudo, para o vidro ter o que refratar.
+   Os elementos ficam translúcidos e com desfoque. Sem o modo ativo, nada muda. */
+body.glass { background: #EFE7D6; }
+body.glass::before {
+  content: ''; position: fixed; inset: 0; z-index: 0; pointer-events: none;
+  background:
+    radial-gradient(circle at 12% 18%, rgba(217,169,73,0.75) 0, transparent 38%),
+    radial-gradient(circle at 88% 30%, rgba(62,102,80,0.65) 0, transparent 42%),
+    radial-gradient(circle at 35% 88%, rgba(201,114,89,0.6) 0, transparent 44%),
+    radial-gradient(circle at 92% 92%, rgba(90,64,160,0.35) 0, transparent 36%),
+    linear-gradient(160deg, #F6EFE2 0%, #E6DCC6 100%);
+}
+body.glass.dark { background: #0E0E12; }
+body.glass.dark::before {
+  background:
+    radial-gradient(circle at 12% 18%, rgba(217,169,73,0.35) 0, transparent 38%),
+    radial-gradient(circle at 88% 30%, rgba(62,102,80,0.45) 0, transparent 42%),
+    radial-gradient(circle at 35% 88%, rgba(201,114,89,0.28) 0, transparent 44%),
+    radial-gradient(circle at 92% 92%, rgba(90,64,160,0.3) 0, transparent 36%),
+    linear-gradient(160deg, #16161B 0%, #0A0A0E 100%);
+}
+body.glass .app { position: relative; z-index: 1; }
+body.glass .tabbar { background: none; }
+body.glass .tabbar-inner,
+body.glass.dark .tabbar-inner {
+  background: rgba(255,255,255,0.28);
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  border: 1px solid rgba(255,255,255,0.55);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.6), 0 10px 30px rgba(20,16,12,0.16);
+}
+body.glass.dark .tabbar-inner {
+  background: rgba(40,40,52,0.38);
+  border-color: rgba(255,255,255,0.14);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.12), 0 10px 30px rgba(0,0,0,0.45);
+}
+body.glass .tab.active { background: rgba(255,255,255,0.45); }
+body.glass.dark .tab.active { background: rgba(255,255,255,0.12); }
+body.glass .stat-card, body.glass .chart-box, body.glass .profile-card, body.glass .income-row-compact {
+  background: rgba(255,255,255,0.5);
+  backdrop-filter: blur(18px) saturate(160%);
+  -webkit-backdrop-filter: blur(18px) saturate(160%);
+  border-color: rgba(255,255,255,0.6);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.55), 0 6px 20px rgba(20,16,12,0.08);
+}
+body.glass.dark .stat-card, body.glass.dark .chart-box, body.glass.dark .profile-card, body.glass.dark .income-row-compact {
+  background: rgba(30,30,40,0.5);
+  border-color: rgba(255,255,255,0.1);
+}
+body.glass .sheet {
+  background: rgba(246,239,226,0.82);
+  backdrop-filter: blur(30px) saturate(170%);
+  -webkit-backdrop-filter: blur(30px) saturate(170%);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.7), 0 -8px 40px rgba(20,16,12,0.18);
+}
+body.glass.dark .sheet { background: rgba(26,26,33,0.82); box-shadow: inset 0 1px 0 rgba(255,255,255,0.1), 0 -8px 40px rgba(0,0,0,0.5); }
+body.glass .overlay { background: rgba(20,16,12,0.25); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); }
 </style>
 </head>
 <body>
@@ -1005,6 +1063,15 @@ body.basic-mode #statsViewSeg .seg-opt:not([data-v="mes"]) { display:none; }
       </div>
       <button onclick="toggleForceBirthday()" id="forceBirthdayBtn" style="width:100%;padding:13px;border-radius:var(--r-md);border:1.5px solid var(--line);background:transparent;color:var(--ink);font-weight:700;font-size:14px;cursor:pointer;">🎉 Forçar na próxima abertura</button>
 
+      <div class="section-head" style="margin-top:20px;"><div class="section-title">🪟 Visual</div></div>
+      <div class="switch-row">
+        <div class="switch-row-text">
+          <div class="switch-row-title">Liquid glass (iPhone)</div>
+          <div class="switch-row-sub">Barra, folhas e cartões translúcidos sobre um fundo colorido. Só neste aparelho. Aproximação web do estilo, não o material nativo da Apple.</div>
+        </div>
+        <div class="switch" id="swGlass" onclick="toggleLiquidGlass()"></div>
+      </div>
+
       <div class="section-head" style="margin-top:20px;"><div class="section-title">📊 Resumo de ontem</div></div>
       <div class="section-sub" style="margin-bottom:10px;">Mostra o resumo do dia anterior na próxima abertura, mesmo que o interruptor esteja desligado ou o resumo já tenha sido mostrado hoje. Usa km e turno se estiverem ativos.</div>
       <button onclick="toggleForceDailySummary()" id="forceDailySummaryBtn" style="width:100%;padding:13px;border-radius:var(--r-md);border:1.5px solid var(--line);background:transparent;color:var(--ink);font-weight:700;font-size:14px;cursor:pointer;">📊 Forçar resumo na próxima abertura</button>
@@ -1167,7 +1234,7 @@ body.basic-mode #statsViewSeg .seg-opt:not([data-v="mes"]) { display:none; }
 // Esquema de versão: de volta ao pré-1.0 (0.x.x) — a v1.0.0 fica
 // reservada para o lançamento com assinatura paga completa. A numeração
 // 4.x.x usada temporariamente para a integração Firebase foi abandonada.
-const APP_VERSION = '0.4.38';
+const APP_VERSION = '0.4.39';
 // Mostra o número da versão na tela de carregamento imediatamente (sem
 // esperar por loadAll/qualquer coisa assíncrona) — sempre visível,
 // independente da mensagem dinâmica ("A carregar…", "A sincronizar…",
@@ -2352,6 +2419,17 @@ async function setDarkMode(mode){
 function applyAllAppearance(){
   applyThemeColor(localSettings.themeColor || 'green');
   applyDarkModeClass();
+  applyLiquidGlass();
+}
+function applyLiquidGlass(){
+  document.body.classList.toggle('glass', localSettings.liquidGlass === true);
+}
+async function toggleLiquidGlass(){
+  localSettings.liquidGlass = !(localSettings.liquidGlass === true);
+  await persistLocalSettings();
+  applyLiquidGlass();
+  renderSettings();
+  showToast(localSettings.liquidGlass ? '🪟 Liquid glass ativado' : 'Liquid glass desativado');
 }
 
 // --- SETTINGS & PROFILE ---
@@ -2499,6 +2577,8 @@ function renderSettings(){
       tnRow.innerHTML = '';
     }
   }
+  const swGlass = document.getElementById('swGlass');
+  if(swGlass) swGlass.className = 'switch' + (localSettings.liquidGlass === true ? ' on' : '');
   const swDaily = document.getElementById('swDailySummary');
   if(swDaily) swDaily.className = 'switch' + (featureOn('dailySummaryEnabled') ? ' on' : '');
   const goalsSw = document.getElementById('goalsEnabledSwitch');
