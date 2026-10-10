@@ -697,36 +697,13 @@ body.dark button[onclick="lockSyncUrl()"] { background: var(--vault); color: #ff
       </div>
     </div>
 
-    <div class="section-head" style="margin-top:6px;"><div class="section-title">Conta</div></div>
-    <div id="accountCardSignedIn" style="background:rgba(31,58,46,0.06);border-radius:var(--r-md);padding:14px;margin-bottom:6px;display:none;align-items:center;gap:12px;">
-      <div id="accountAvatar" style="width:40px;height:40px;min-width:40px;border-radius:50%;background:var(--vault-light);background-size:cover;background-position:center;"></div>
-      <div style="flex:1;min-width:0;">
-        <div id="accountEmail" style="font-weight:700;font-size:var(--text-sm);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">—</div>
-        <div style="font-size:11px;color:var(--text-muted);">Conta Google</div>
-      </div>
-      <button onclick="fbDoSignOut()" style="font-size:11px;padding:7px 14px;border-radius:var(--r-full);border:1.5px solid var(--line);background:#fff;cursor:pointer;color:var(--terracotta);font-weight:700;white-space:nowrap;">Sair</button>
-    </div>
-    <div id="accountCardSignedOut" style="background:rgba(31,58,46,0.06);border-radius:var(--r-md);padding:14px;margin-bottom:6px;display:flex;flex-direction:column;align-items:center;gap:10px;text-align:center;">
-      <div style="font-size:12px;color:var(--text-muted);line-height:1.5;">Ligar uma conta Google é opcional por agora — sincroniza os teus dados na nuvem via Firestore, além (ou em vez) da sincronização por planilha.</div>
-      <button id="settingsGoogleSignInBtn" onclick="handleGoogleSignIn()" style="display:flex;align-items:center;gap:8px;background:#fff;color:#2A2420;border:1.5px solid var(--line);padding:10px 18px;border-radius:100px;font-weight:700;font-size:13px;cursor:pointer;">
-        <svg width="16" height="16" viewBox="0 0 48 48">
-          <path fill="#FFC107" d="M43.611 20.083H42V20H24v8h11.303c-1.649 4.657-6.08 8-11.303 8-6.627 0-12-5.373-12-12s5.373-12 12-12c3.059 0 5.842 1.154 7.961 3.039l5.657-5.657C34.046 6.053 29.268 4 24 4 12.955 4 4 12.955 4 24s8.955 20 20 20 20-8.955 20-20c0-1.341-.138-2.65-.389-3.917z"/>
-          <path fill="#FF3D00" d="M6.306 14.691l6.571 4.819C14.655 15.108 18.961 12 24 12c3.059 0 5.842 1.154 7.961 3.039l5.657-5.657C34.046 6.053 29.268 4 24 4 16.318 4 9.656 8.337 6.306 14.691z"/>
-          <path fill="#4CAF50" d="M24 44c5.166 0 9.86-1.977 13.409-5.192l-6.19-5.238A11.91 11.91 0 0 1 24 36c-5.202 0-9.619-3.317-11.283-7.946l-6.522 5.025C9.505 39.556 16.227 44 24 44z"/>
-          <path fill="#1976D2" d="M43.611 20.083H42V20H24v8h11.303a12.04 12.04 0 0 1-4.087 5.571l.003-.002 6.19 5.238C36.971 39.205 44 34 44 24c0-1.341-.138-2.65-.389-3.917z"/>
-        </svg>
-        Continuar com Google
-      </button>
-      <div id="settingsGoogleSignInError" style="font-size:11px;color:var(--terracotta);"></div>
-    </div>
-
     <div class="section-head" style="margin-top:6px;"><div class="section-title">Assinatura</div></div>
     <div id="subscriptionCard" style="background:rgba(31,58,46,0.06);border-radius:var(--r-md);padding:14px;margin-bottom:12px;">
       <div id="subscriptionStatus" style="font-weight:700;font-size:var(--text-sm);">—</div>
       <div id="subscriptionDetail" style="font-size:11px;color:var(--text-muted);margin-top:3px;line-height:1.5;"></div>
     </div>
 
-    <div class="section-head" style="margin-top:6px;"><div class="section-title">Perfis</div></div>
+    <div class="section-head" style="margin-top:6px;"><div class="section-title">Perfil e conta</div></div>
     <div id="profileCardsList"></div>
 
     <div class="section-head" style="margin-top:20px;"><div class="section-title">Aparência</div></div>
@@ -863,13 +840,6 @@ body.dark button[onclick="lockSyncUrl()"] { background: var(--vault); color: #ff
         Cole aqui a URL do seu Google Apps Script. Após guardar, bloqueie para evitar apagar acidentalmente.
       </div>
     </div>
-
-      <div class="section-head" style="margin-top:20px;"><div class="section-title">👤 Conta (suporte)</div></div>
-      <div style="background:rgba(31,58,46,0.06);border-radius:var(--r-md);padding:12px 14px;font-size:12px;line-height:1.7;">
-        <div><strong>Email:</strong> <span id="devAccountEmail">—</span></div>
-        <div style="word-break:break-all;"><strong>UID:</strong> <span id="devAccountUid" style="font-family:'JetBrains Mono',monospace;font-size:11px;">—</span></div>
-        <button onclick="copyDevAccountInfo()" style="margin-top:8px;font-size:12px;padding:8px 14px;border-radius:var(--r-full);border:1.5px solid var(--line);background:#fff;color:var(--vault-2);font-weight:700;cursor:pointer;">📋 Copiar email + UID</button>
-      </div>
 
       <div class="section-head" style="margin-top:0;"><div class="section-title">🕵️ Dados Ocultos e Limpeza</div></div>
       <div class="switch-row" style="margin-bottom:12px;">
@@ -1121,7 +1091,7 @@ body.dark button[onclick="lockSyncUrl()"] { background: var(--vault); color: #ff
 // Esquema de versão: de volta ao pré-1.0 (0.x.x) — a v1.0.0 fica
 // reservada para o lançamento com assinatura paga completa. A numeração
 // 4.x.x usada temporariamente para a integração Firebase foi abandonada.
-const APP_VERSION = '0.4.6';
+const APP_VERSION = '0.4.7';
 // Mostra o número da versão na tela de carregamento imediatamente (sem
 // esperar por loadAll/qualquer coisa assíncrona) — sempre visível,
 // independente da mensagem dinâmica ("A carregar…", "A sincronizar…",
@@ -2124,43 +2094,47 @@ function renderSettings(){
   renderSyncUrlUI();
   renderCustomPlatformsList();
 
-  const signedInCard  = document.getElementById('accountCardSignedIn');
-  const signedOutCard = document.getElementById('accountCardSignedOut');
-  if(window.__fbUser){
-    if(signedInCard)  signedInCard.style.display  = 'flex';
-    if(signedOutCard) signedOutCard.style.display = 'none';
-    const emailEl = document.getElementById('accountEmail');
-    if(emailEl) emailEl.textContent = window.__fbUser.email || window.__fbUser.displayName || 'Conta ligada';
-    const avEl = document.getElementById('accountAvatar');
-    if(avEl && window.__fbUser.photoURL) avEl.style.backgroundImage = `url(${window.__fbUser.photoURL})`;
-  } else {
-    if(signedInCard)  signedInCard.style.display  = 'none';
-    if(signedOutCard) signedOutCard.style.display = 'flex';
-  }
-
   renderSubscriptionCard();
 
-  const avatarBg = profile.photo ? `url(${profile.photo})` : '';
-  const avatarText = profile.photo ? '' : ((profile.name||'').trim().charAt(0) || '?').toUpperCase();
+  const photoSrc = currentPhotoUrl();
+  const avatarText = photoSrc ? '' : ((profile.name||'').trim().charAt(0) || '?').toUpperCase();
+  const u = window.__fbUser;
+  const accountBlock = u
+    ? `<div style="font-size:11px;color:var(--text-muted);line-height:1.7;margin-top:12px;word-break:break-all;">
+         <div>📧 ${escapeHtml(u.email || '—')}</div>
+         <div style="font-family:'JetBrains Mono',monospace;">🆔 ${escapeHtml(u.uid)}</div>
+       </div>`
+    : `<div style="font-size:11px;color:var(--text-muted);line-height:1.5;margin-top:12px;">Sem conta Google ligada. Liga uma para usar a tua foto e sincronizar na nuvem.</div>
+       <button id="settingsGoogleSignInBtn" onclick="handleGoogleSignIn()" style="display:flex;align-items:center;gap:8px;background:#fff;color:#2A2420;border:1.5px solid var(--line);padding:10px 18px;border-radius:100px;font-weight:700;font-size:13px;cursor:pointer;margin-top:10px;">Continuar com Google</button>
+       <div id="settingsGoogleSignInError" style="font-size:11px;color:var(--terracotta);margin-top:6px;"></div>`;
   document.getElementById('profileCardsList').innerHTML = `
     <div class="profile-card">
       <div class="profile-card-head">
         <label style="cursor:pointer;">
-          <div class="profile-card-avatar" style="background-color:var(--vault-light); ${avatarBg ? 'background-image:'+avatarBg+';background-size:contain;background-position:center;background-repeat:no-repeat;' : ''}" id="profileAvatar">
+          <div class="profile-card-avatar" id="profileAvatar" style="background-color:var(--vault-light);">
             ${avatarText}
-            <div class="profile-card-avatar-label">foto</div>
+            <div class="profile-card-avatar-label">trocar</div>
           </div>
           <input type="file" accept="image/*" style="display:none;" onchange="handleProfilePhotoChange(this)" />
         </label>
         <div class="profile-card-info">
-          <input class="profile-card-name-input" type="text" value="${escapeHtml(profile.name||'')}" placeholder="Seu nome" maxlength="30"
+          <input class="profile-card-name-input" type="text" value="${escapeHtml(profile.name||'')}" placeholder="${escapeHtml((u && u.displayName) || 'Seu nome')}" maxlength="30"
             oninput="updateProfileName(this.value)" />
         </div>
       </div>
       <div class="profile-card-actions">
-        ${profile.photo ? `<button class="profile-action-btn danger" onclick="removeProfilePhoto()">Remover foto</button>` : ''}
+        ${profile.photo ? `<button class="profile-action-btn danger" onclick="removeProfilePhoto()">Repor foto do Google</button>` : ''}
+        ${u ? `<button class="profile-action-btn danger" onclick="fbDoSignOut()">Sair da conta</button>` : ''}
       </div>
+      ${accountBlock}
     </div>`;
+  const avEl = document.getElementById('profileAvatar');
+  if(avEl && photoSrc){
+    avEl.style.backgroundImage = `url("${photoSrc}")`;
+    avEl.style.backgroundSize = 'cover';
+    avEl.style.backgroundPosition = 'center';
+    avEl.style.backgroundRepeat = 'no-repeat';
+  }
 
   const currentDark = localSettings.darkMode || 'system';
   document.querySelectorAll('#darkModeSeg .seg-opt').forEach(el => el.classList.toggle('active', el.dataset.m === currentDark));
@@ -2230,10 +2204,6 @@ function renderSettings(){
     if(forceBdayBtn) forceBdayBtn.textContent = devForceBirthday ? '✅ Vai forçar na próxima abertura' : '🎉 Forçar na próxima abertura';
     // Data de aniversário: campo fica vazio se nunca foi configurada — não
     // pré-preenche com nenhuma data padrão (ver shouldTriggerBirthday).
-    const devEmailEl = document.getElementById('devAccountEmail');
-    if(devEmailEl) devEmailEl.textContent = window.__fbUser ? (window.__fbUser.email || '—') : 'Sem sessão iniciada';
-    const devUidEl = document.getElementById('devAccountUid');
-    if(devUidEl) devUidEl.textContent = window.__fbUser ? window.__fbUser.uid : '—';
     const bdayInput = document.getElementById('birthdayDateInput');
     if(bdayInput) bdayInput.value = profile.birthdayDate || '';
     const ta = document.getElementById('importJsonInput');
@@ -2400,7 +2370,7 @@ async function removeProfilePhoto(){
 }
 
 function syncAllAvatars(){
-  const photo = profile.photo || null;
+  const photo = currentPhotoUrl();
   const initial = ((profile.name||'').trim().charAt(0) || '?').toUpperCase();
   document.querySelectorAll('.income-avatar').forEach(av => {
     if(photo){
@@ -3533,15 +3503,7 @@ async function toggleFeature(flag){
   const msgs = { showTurno: 'Turno', showKm: 'Km', customPlatformsEnabled: 'Outras plataformas' };
   showToast(`${msgs[flag]} ${profile[flag] ? 'ativado' : 'desativado'}`);
 }
-function copyDevAccountInfo(){
-  const u = window.__fbUser;
-  if(!u){ showToast('Sem sessão iniciada'); return; }
-  const text = `Email: ${u.email || '—'}\nUID: ${u.uid}`;
-  if(!navigator.clipboard){ showToast('Copie manualmente'); return; }
-  navigator.clipboard.writeText(text)
-    .then(() => showToast('📋 Copiado'))
-    .catch(() => showToast('Não foi possível copiar'));
-}
+function currentPhotoUrl(){ return profile.photo || (window.__fbUser && window.__fbUser.photoURL) || null; }
 function isTvdePlatform(platform){ return platform === 'uber' || platform === 'bolt'; }
 function findCustomPlatform(platform){ return (profile.customPlatforms || []).find(cp => cp.key === platform); }
 
