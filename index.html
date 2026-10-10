@@ -1163,7 +1163,7 @@ body.basic-mode #statsViewSeg .seg-opt:not([data-v="mes"]) { display:none; }
 // Esquema de versão: de volta ao pré-1.0 (0.x.x) — a v1.0.0 fica
 // reservada para o lançamento com assinatura paga completa. A numeração
 // 4.x.x usada temporariamente para a integração Firebase foi abandonada.
-const APP_VERSION = '0.4.31';
+const APP_VERSION = '0.4.32';
 // Mostra o número da versão na tela de carregamento imediatamente (sem
 // esperar por loadAll/qualquer coisa assíncrona) — sempre visível,
 // independente da mensagem dinâmica ("A carregar…", "A sincronizar…",
@@ -1413,7 +1413,7 @@ const PRE_PUSH_PULL_TIMEOUT_MS = 6000;
 
 async function _doCloudSync(attempt) {
   attempt = attempt || 1;
-  if (!syncUrl) { setSyncStatus('nolink'); return; }
+  if (!syncUrl || basicMode()) { setSyncStatus('nolink'); return; }
   const startTime = Date.now();
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), SYNC_TIMEOUT_MS);
@@ -1817,11 +1817,9 @@ async function loadAll(){
     }
     initialCloudSync(uid);
   } else if(syncUrl){
-    // Sem sessão Google, com URL de sincronização guardado. Corre em segundo plano:
-    // esperar aqui deixava a tela de carregamento presa enquanto a ligação falhava
-    // ou demorava (até 15 s por tentativa).
-    setSyncStatus('saving');
-    _doCloudSync().catch(e => console.warn('Falha na sincronização com a planilha:', e));
+    // Sem sessão Google (modo básico): a planilha só existe para contas com login.
+    // Nada é lido nem enviado.
+    setSyncStatus('nolink');
   } else {
     setSyncStatus('nolink');
   }
@@ -1871,6 +1869,7 @@ async function safeSet(key, value){
 
 function scheduleCloudPush(){
   if(window.__fbUser){ scheduleFirestorePush(); return; }
+  if(basicMode()){ setSyncStatus('nolink'); return; }
   if(!syncUrl){ setSyncStatus('nolink'); return; }
   setSyncStatus('saving');
   clearTimeout(syncPushTimer);
@@ -2199,7 +2198,7 @@ async function pullLatestAndMergeBeforePush(){
 }
 
 async function pushToCloud(migrationUrl, skipMerge){
-  if(!syncUrl) return;
+  if(!syncUrl || basicMode()) return;
 
   // Busca e mescla a versão mais recente da nuvem ANTES de montar o payload
   // a enviar — assim a edição do utilizador é aplicada sobre dados frescos,
