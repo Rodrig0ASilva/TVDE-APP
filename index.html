@@ -724,6 +724,12 @@ body.dark input[type=range].gl-range::-moz-range-progress { background: var(--va
 body.dark input[type=range].gl-range::-moz-range-thumb { border-color: var(--vault-text, var(--vault-light)); }
 .range-title { font-size: 13px; font-weight: 700; color: var(--ink); margin: 6px 0 0; }
 .range-ends { display: flex; justify-content: space-between; font-size: 11px; font-weight: 600; color: var(--ink); opacity: 0.7; margin-top: 2px; }
+/* Três rótulos: o do meio fica exatamente na posição 50% (ímã do padrão) */
+.range-3 { position: relative; display: block; height: 16px; }
+.range-3 span { position: absolute; top: 0; white-space: nowrap; }
+.range-3 span:nth-child(1) { left: 0; }
+.range-3 span:nth-child(2) { left: 50%; transform: translateX(-50%); }
+.range-3 span:nth-child(3) { right: 0; }
 /* Cantos concêntricos: raio interno = raio externo − (borda + espaçamento) */
 .seg { --seg-inner: calc(var(--r-md) - 4.5px); }
 .seg-opt, .seg > .glass-pill { border-radius: var(--seg-inner); }
@@ -732,6 +738,22 @@ body.dark input[type=range].gl-range::-moz-range-thumb { border-color: var(--vau
 @media (min-width: 860px) {
   .tabbar-inner { --tab-inner: calc(var(--r-xl) - 13px); }
 }
+/* Raios concêntricos com prioridade sobre as regras do modo transparente (que definiam 14px) */
+body.glass .seg > .glass-pill { border-radius: var(--seg-inner); }
+body.glass .tabbar-inner > .glass-pill { border-radius: var(--tab-inner); }
+body.glass .seg-opt { border-radius: var(--seg-inner); }
+body.glass .tab { border-radius: var(--tab-inner); }
+/* A gota continua a deslizar durante a mudança suave de cores (não é só cor) */
+html.soft-change .glass-pill {
+  transition: left 0.38s cubic-bezier(.34,1.56,.64,1), top 0.38s cubic-bezier(.34,1.56,.64,1),
+              width 0.38s cubic-bezier(.34,1.56,.64,1), height 0.38s cubic-bezier(.34,1.56,.64,1),
+              transform 0.42s cubic-bezier(.34,1.56,.64,1), opacity 0.2s ease !important;
+}
+/* Intensidade do efeito transparente: sem preenchimento colorido, só o trilho neutro e a bolinha */
+#glassRange::-webkit-slider-runnable-track { background: rgba(42,36,32,0.25); }
+#glassRange::-moz-range-progress { background: transparent; }
+body.dark #glassRange::-webkit-slider-runnable-track { background: rgba(255,255,255,0.3); }
+body.dark #glassRange::-moz-range-track { background: rgba(255,255,255,0.3); }
 </style>
 </head>
 <body>
@@ -1416,7 +1438,7 @@ body.dark input[type=range].gl-range::-moz-range-thumb { border-color: var(--vau
 // Esquema de versão: de volta ao pré-1.0 (0.x.x) — a v1.0.0 fica
 // reservada para o lançamento com assinatura paga completa. A numeração
 // 4.x.x usada temporariamente para a integração Firebase foi abandonada.
-const APP_VERSION = '0.71';
+const APP_VERSION = '0.75';
 // Mostra o número da versão na tela de carregamento imediatamente (sem
 // esperar por loadAll/qualquer coisa assíncrona) — sempre visível,
 // independente da mensagem dinâmica ("A carregar…", "A sincronizar…",
@@ -3014,7 +3036,7 @@ function renderGlassControls(){
       <div class="range-title" id="glassTitle">Intensidade: ${glassLevelLabel(L)}</div>
       <input id="glassRange" class="gl-range" type="range" min="0" max="100" step="1" value="${L}" style="--fill:${L}%;"
         oninput="setGlassLevel(this.value, true)" onchange="setGlassLevel(this.value, false)" />
-      <div class="range-ends"><span>Transparente</span><span>Padrão</span><span>Opaco</span></div>
+      <div class="range-ends range-3"><span>Transparente</span><span>Padrão</span><span>Opaco</span></div>
     </div>`;
 }
 async function toggleLiquidGlass(){
