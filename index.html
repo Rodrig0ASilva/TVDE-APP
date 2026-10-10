@@ -691,9 +691,12 @@ body.dark button[onclick="lockSyncUrl()"] { background: var(--vault); color: #ff
         </div>
         <div class="screen-title">Você</div>
       </div>
-      <div class="sync-pill" id="syncPill-settings" onclick="loadAll()" title="Toque para sincronizar agora">
-        <span class="sync-dot" id="syncDot-settings"></span>
-        <span id="syncStatus-settings">sincronizando</span>
+      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;">
+        <div class="sync-pill" id="syncPill-settings" onclick="loadAll()" title="Toque para sincronizar agora">
+          <span class="sync-dot" id="syncDot-settings"></span>
+          <span id="syncStatus-settings">sincronizando</span>
+        </div>
+        <div onclick="tapVersion()" style="font-size:10px;color:var(--text-faint);font-weight:700;letter-spacing:0.04em;cursor:pointer;">v<span id="appVersionDisplay"></span></div>
       </div>
     </div>
 
@@ -984,7 +987,6 @@ body.dark button[onclick="lockSyncUrl()"] { background: var(--vault); color: #ff
       <div style="font-size:11px;color:var(--text-muted);text-align:center;margin-top:8px;line-height:1.5;">Ação permanente. Pede um código de confirmação antes de apagar.</div>
     </div>
 
-    <div style="text-align:center;padding:24px 0 8px;font-size:11px;color:var(--text-faint);" onclick="tapVersion()">Corrida+ v<span id="appVersionDisplay"></span></div>
     <div style="height:24px;"></div>
   </div>
 
@@ -1128,7 +1130,7 @@ body.dark button[onclick="lockSyncUrl()"] { background: var(--vault); color: #ff
 // Esquema de versão: de volta ao pré-1.0 (0.x.x) — a v1.0.0 fica
 // reservada para o lançamento com assinatura paga completa. A numeração
 // 4.x.x usada temporariamente para a integração Firebase foi abandonada.
-const APP_VERSION = '0.4.21';
+const APP_VERSION = '0.4.22';
 // Mostra o número da versão na tela de carregamento imediatamente (sem
 // esperar por loadAll/qualquer coisa assíncrona) — sempre visível,
 // independente da mensagem dinâmica ("A carregar…", "A sincronizar…",
@@ -2371,8 +2373,18 @@ function renderSettings(){
   const tnRow = document.getElementById('turnoNamesRow');
   if(tnRow){
     tnRow.style.display = showTurno() ? 'block' : 'none';
-    tnRow.innerHTML = showTurno() ? `<div class="section-sub" style="margin-bottom:8px;">Nomes dos turnos (máx. 14 letras). Deixa em branco para usar o nome original.</div>` + TURNOS.map(t => `
-      <div class="field" style="margin-bottom:8px;"><label>${t.emoji} ${escapeHtml(t.label)}</label><input type="text" maxlength="14" value="${escapeHtml((profile.turnoNames || {})[t.key] || '')}" placeholder="${escapeHtml(t.label)}" onchange="updateTurnoName('${t.key}', this.value)" /></div>`).join('') : '';
+    tnRow.innerHTML = showTurno()
+      ? `<div class="section-sub" style="margin-bottom:8px;">Muda o nome e o emoji de cada turno. Os novos valores aparecem no formulário de ganho, nos gráficos e na exportação. Em branco, volta ao original.</div>` +
+        getTurnos().map(t => {
+          const orig = TURNOS.find(x => x.key === t.key);
+          return `<div style="display:flex;gap:8px;align-items:flex-end;margin-bottom:10px;">
+            <div style="width:64px;"><label style="display:block;font-size:10px;font-weight:700;color:var(--vault-2);margin-bottom:6px;text-transform:uppercase;">Emoji</label>
+              <input type="text" maxlength="4" value="${escapeHtml(t.emoji)}" onchange="updateTurnoField('${t.key}','emoji',this.value)" style="width:100%;text-align:center;font-size:18px;padding:10px 4px;border:1.5px solid var(--line);border-radius:var(--r-md);background:#fff;" /></div>
+            <div style="flex:1;min-width:0;"><label style="display:block;font-size:10px;font-weight:700;color:var(--vault-2);margin-bottom:6px;text-transform:uppercase;">Nome</label>
+              <input type="text" maxlength="14" value="${escapeHtml(t.label)}" placeholder="${escapeHtml(orig ? orig.label : '')}" onchange="updateTurnoField('${t.key}','name',this.value)" style="width:100%;padding:10px 12px;border:1.5px solid var(--line);border-radius:var(--r-md);background:#fff;font-size:14px;" /></div>
+          </div>`;
+        }).join('')
+      : '';
   }
   const swDaily = document.getElementById('swDailySummary');
   if(swDaily) swDaily.className = 'switch' + (featureOn('dailySummaryEnabled') ? ' on' : '');
@@ -3662,7 +3674,7 @@ function lucroBreakdownHTML(apps, comb, part, fixas, varOther, km, hours, contex
   if(ivaVal > 0) html += lucroLineHTML(`IVA (${ivaVal}%)`, -iva, true);
   if(comVal > 0) html += lucroLineHTML(`Comissão plataforma (${comVal}%)`, -com, true);
   if(ivaVal > 0 || comVal > 0){
-    html += `<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;margin:4px 0;border-top:none;border-bottom:1.5px dashed var(--line);">
+    html += `<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;margin:4px 0;">
       <span style="font-size:12px;font-weight:600;color:var(--text-muted);">Líquido TVDE (após taxas)</span>
       <span style="font-family:'JetBrains Mono',monospace;font-weight:700;font-size:13px;">${fmt(apps - iva - com)}</span>
     </div>`;
@@ -3921,15 +3933,25 @@ async function toggleUidVisibility(){
 function currentPhotoUrl(){ return profile.photo || (window.__fbUser && window.__fbUser.photoURL) || null; }
 function getTurnos(){
   const names = profile.turnoNames || {};
-  return TURNOS.map(t => ({ ...t, label: names[t.key] || t.label }));
+  const emojis = profile.turnoEmojis || {};
+  return TURNOS.map(t => ({ ...t, label: names[t.key] || t.label, emoji: emojis[t.key] || t.emoji }));
 }
-async function updateTurnoName(key, value){
-  const v = (value || '').trim().slice(0, 14);
+// Atualiza o nome ou o emoji de um turno. Vazio = volta ao original.
+async function updateTurnoField(key, field, value){
   profile.turnoNames = profile.turnoNames || {};
-  if(v) profile.turnoNames[key] = v; else delete profile.turnoNames[key];
+  profile.turnoEmojis = profile.turnoEmojis || {};
+  const bag = field === 'emoji' ? profile.turnoEmojis : profile.turnoNames;
+  let v = (value || '').trim();
+  if(field === 'emoji'){
+    const parts = (typeof Intl !== 'undefined' && Intl.Segmenter) ? [...new Intl.Segmenter().segment(v)].map(x => x.segment) : [...v];
+    v = parts[0] || '';
+  } else {
+    v = v.slice(0, 14);
+  }
+  if(v) bag[key] = v; else delete bag[key];
   await persistProfile();
   renderSettings();
-  showToast('Nome do turno atualizado');
+  showToast('Turno atualizado');
 }
 function isTvdePlatform(platform){
   if(platform === 'uber' || platform === 'bolt') return true;
