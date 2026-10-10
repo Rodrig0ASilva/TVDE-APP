@@ -867,6 +867,10 @@ body.basic-mode #statsViewSeg .seg-opt:not([data-v="mes"]) { display:none; }
       <div style="font-size:11px;color:var(--text-muted);text-align:center;margin-top:8px;line-height:1.5;">Ação permanente. Pede um código de confirmação antes de apagar.</div>
     </div>
 
+    <button onclick="openSupportEmail()" style="display:flex;align-items:center;justify-content:center;gap:8px;width:100%;margin-top:28px;padding:14px;border-radius:var(--r-md);border:1.5px solid var(--line);background:transparent;color:var(--ink);font-weight:700;font-size:14px;cursor:pointer;">
+      ✉️ Suporte
+    </button>
+
     <div style="height:24px;"></div>
   </div>
 
@@ -1163,7 +1167,7 @@ body.basic-mode #statsViewSeg .seg-opt:not([data-v="mes"]) { display:none; }
 // Esquema de versão: de volta ao pré-1.0 (0.x.x) — a v1.0.0 fica
 // reservada para o lançamento com assinatura paga completa. A numeração
 // 4.x.x usada temporariamente para a integração Firebase foi abandonada.
-const APP_VERSION = '0.4.34';
+const APP_VERSION = '0.4.36';
 // Mostra o número da versão na tela de carregamento imediatamente (sem
 // esperar por loadAll/qualquer coisa assíncrona) — sempre visível,
 // independente da mensagem dinâmica ("A carregar…", "A sincronizar…",
@@ -4254,11 +4258,49 @@ function showWelcomeSheet(){
     <button class="btn btn-ghost" onclick="welcomeChoice(false)">Continuar em modo básico</button>
   `);
 }
+function showUpdateSheet(remoteVersion){
+  // Primeiro as boas-vindas; o alerta aparece na abertura seguinte.
+  if(!localSettings.welcomeDone) return;
+  const v = escapeHtml(remoteVersion);
+  openSheet(`
+    <div class="sheet-handle"></div>
+    <div class="sheet-title">🆕 Nova versão disponível</div>
+    <div class="sheet-sub">Versão ${v} (estás na ${APP_VERSION}).</div>
+    <div style="font-size:13px;line-height:1.6;margin-bottom:14px;">Sem login, a app pode demorar a atualizar neste aparelho. Entra com a tua conta Google para receberes as atualizações automaticamente.</div>
+    <button class="btn btn-primary" onclick="applyUpdateNow('${v}')">Atualizar agora</button>
+    <button class="btn btn-ghost" onclick="closeSheet(); handleGoogleSignIn();">Entrar com Google</button>
+    <button class="btn btn-ghost" onclick="closeSheet()">Mais tarde</button>
+  `);
+}
+async function applyUpdateNow(v){
+  try{ await window.storage.set('pendingUpdateNotice', v); }catch(e){}
+  location.replace(location.href.split('?')[0] + '?v=' + Date.now());
+}
 async function welcomeChoice(login){
   localSettings.welcomeDone = true;
   await persistLocalSettings();
   closeSheet();
   if(login) handleGoogleSignIn();
+}
+// Abre o email com o endereço de suporte e os dados da conta já preenchidos.
+function openSupportEmail(){
+  const u = window.__fbUser;
+  const linhas = [
+    'Olá,',
+    '',
+    'Preciso de ajuda com a Corrida+.',
+    '',
+    'Email da conta: ' + (u ? (u.email || '—') : 'sem conta Google ligada'),
+    'ID da conta: ' + (u ? u.uid : '—'),
+    'Versão da app: ' + APP_VERSION,
+    '',
+    'Descreve o problema:',
+    ''
+  ];
+  const assunto = 'Suporte Corrida+ — ' + (u && u.email ? u.email : 'sem conta');
+  window.location.href = 'mailto:rodrigo_almeida1410@proton.me'
+    + '?subject=' + encodeURIComponent(assunto)
+    + '&body=' + encodeURIComponent(linhas.join('\n'));
 }
 function isTvdePlatform(platform){
   if(platform === 'uber' || platform === 'bolt') return true;
@@ -5485,6 +5527,8 @@ async function checkForUpdatesOnStartup(){
     const match = html.match(/const APP_VERSION\s*=\s*'([^']+)'/);
     const remoteVersion = match ? match[1] : null;
     if(!remoteVersion || remoteVersion === APP_VERSION) return;
+    // Sem sessão: a app não recarrega sozinha. Mostra o alerta, com a opção de entrar.
+    if(basicMode()){ showUpdateSheet(remoteVersion); return; }
 
     try{ await window.storage.set('pendingUpdateNotice', remoteVersion); }catch(e){}
     location.replace(location.href.split('?')[0] + '?v=' + Date.now());
