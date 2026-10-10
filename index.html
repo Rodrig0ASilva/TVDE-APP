@@ -792,7 +792,7 @@ body.dark button[onclick="lockSyncUrl()"] { background: var(--vault); color: #ff
         <label>Meta de lucro semanal (€)</label>
         <div class="field-money"><input type="number" id="weeklyGoalInput" placeholder="0,00" inputmode="decimal" onchange="updateWeeklyGoal(this.value)" /></div>
       </div>
-      <div class="section-sub" style="margin-top:-8px; margin-bottom:6px; font-size:11px; line-height:1.5;">
+      <div class="section-sub" style="margin-top:6px; font-size:11px; line-height:1.5;">
         Comparado com o lucro líquido do mês/semana em curso. Em branco (ou 0) usa as despesas fixas do período como mínimo. Na semana entram despesas fixas semanais (valor cheio) e diárias (só nos dias com registro) — as mensais não são divididas, ficam só na visão Mês.
       </div>
     </div>
@@ -806,16 +806,16 @@ body.dark button[onclick="lockSyncUrl()"] { background: var(--vault); color: #ff
       <div class="switch" id="swCustomPlat" onclick="toggleFeature('customPlatformsEnabled')"></div>
     </div>
     <div id="customPlatformsBody" style="display:none;">
-      <div class="section-sub" style="margin:10px 0;">Lista das plataformas extra que registas.</div>
+      <div class="section-sub" style="margin:8px 0 10px;">Lista das plataformas extra que registas.</div>
       <div id="customPlatformsList"></div>
-      <div class="field" style="margin-top:4px;">
+      <div class="field" style="margin-top:8px;">
         <label>Esta plataforma cobra IVA e comissão?</label>
         <div class="seg" id="newCustomTaxedSeg">
           <div class="seg-opt active" data-x="0" onclick="pickNewCustomTaxed(false)">Não (pessoal)</div>
           <div class="seg-opt" data-x="1" onclick="pickNewCustomTaxed(true)">Sim (como Uber/Bolt)</div>
         </div>
       </div>
-      <div class="field" style="display:flex;gap:8px;align-items:flex-end;margin-top:4px;">
+      <div class="field" style="display:flex;gap:8px;align-items:flex-end;margin-top:8px;">
         <div style="flex:1;">
           <label>Nome da plataforma</label>
           <input type="text" id="newCustomPlatformName" placeholder="ex: 99, InDrive" maxlength="20" />
@@ -833,10 +833,10 @@ body.dark button[onclick="lockSyncUrl()"] { background: var(--vault); color: #ff
     </div>
 
     <div class="section-head" style="margin-top:20px;"><div class="section-title">Exportação de dados</div></div>
-    <div class="section-sub" style="margin-bottom:10px;">Gera uma planilha Excel (.xlsx) com o detalhamento completo de ganhos, despesas e impostos — útil para a declaração de IRS ou para guardar como backup.</div>
-    <button onclick="exportDataToExcel()" id="exportExcelBtn" style="width:100%;padding:13px;border-radius:var(--r-md);border:1.5px solid var(--line);background:transparent;color:var(--ink);font-weight:700;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;">
+    <div class="section-sub" style="margin-bottom:10px;">Exporta uma planilha Excel (.xlsx) para a declaração de IRS, ou um arquivo de configurações (.json) com dados e configurações para guardar ou importar noutro aparelho.</div>
+    <button onclick="openExportChoice()" id="exportExcelBtn" style="width:100%;padding:13px;border-radius:var(--r-md);border:1.5px solid var(--line);background:transparent;color:var(--ink);font-weight:700;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;">
       <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M9 13h1m4 0h1M9 17h1m4 0h1" stroke-linecap="round"/></svg>
-      Exportar para Excel
+      Exportar dados
     </button>
 
     <div style="text-align:center;padding:18px 0 4px;font-size:11px;color:var(--text-faint);" onclick="tapVersion()">Corrida+ v<span id="appVersionDisplay"></span></div>
@@ -963,6 +963,10 @@ body.dark button[onclick="lockSyncUrl()"] { background: var(--vault); color: #ff
       </div>
       <button onclick="toggleForceBirthday()" id="forceBirthdayBtn" style="width:100%;padding:13px;border-radius:var(--r-md);border:1.5px solid var(--line);background:transparent;color:var(--ink);font-weight:700;font-size:14px;cursor:pointer;">🎉 Forçar na próxima abertura</button>
 
+      <div class="section-head" style="margin-top:20px;"><div class="section-title">📊 Resumo de ontem</div></div>
+      <div class="section-sub" style="margin-bottom:10px;">Mostra o resumo do dia anterior na próxima abertura, mesmo que o interruptor esteja desligado ou o resumo já tenha sido mostrado hoje. Usa km e turno se estiverem ativos.</div>
+      <button onclick="toggleForceDailySummary()" id="forceDailySummaryBtn" style="width:100%;padding:13px;border-radius:var(--r-md);border:1.5px solid var(--line);background:transparent;color:var(--ink);font-weight:700;font-size:14px;cursor:pointer;">📊 Forçar resumo na próxima abertura</button>
+
       <div class="section-head" style="margin-top:20px;"><div class="section-title">📥 Importar dados</div></div>
       <div class="section-sub" style="margin-bottom:10px;">Se a sincronização automática não funcionar, cole aqui o JSON copiado do Google Sheets para importar os seus dados.</div>
       <textarea id="importJsonInput" placeholder='Cole o JSON aqui… {"bills":[…],"monthData":{…},"profile":{…}}' style="width:100%;min-height:90px;border:1.5px solid var(--line);border-radius:var(--r-md);padding:12px;font-size:12px;font-family:'JetBrains Mono',monospace;background:#fff;color:var(--ink);resize:vertical;" oninput="this.style.borderColor=''"></textarea>
@@ -974,7 +978,11 @@ body.dark button[onclick="lockSyncUrl()"] { background: var(--vault); color: #ff
       </a>
     </div>
 
-    <button class="delete-all-btn" onclick="confirmResetAll()">Apagar todos os dados</button>
+    <div style="margin-top:28px;padding-top:18px;border-top:2px dashed var(--terracotta);">
+      <div style="font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:0.06em;color:var(--terracotta);margin-bottom:10px;">Zona de perigo</div>
+      <button class="delete-all-btn" onclick="confirmResetAll()" style="margin-top:0;background:var(--terracotta);color:#fff;border-radius:var(--r-md);padding:16px;font-size:15px;font-weight:800;box-shadow:0 4px 14px rgba(168,83,63,0.3);">🗑️ Apagar dados ou configurações</button>
+      <div style="font-size:11px;color:var(--text-muted);text-align:center;margin-top:8px;line-height:1.5;">Ação permanente. Pede um código de confirmação antes de apagar.</div>
+    </div>
 
     <div style="height:24px;"></div>
   </div>
@@ -1119,7 +1127,7 @@ body.dark button[onclick="lockSyncUrl()"] { background: var(--vault); color: #ff
 // Esquema de versão: de volta ao pré-1.0 (0.x.x) — a v1.0.0 fica
 // reservada para o lançamento com assinatura paga completa. A numeração
 // 4.x.x usada temporariamente para a integração Firebase foi abandonada.
-const APP_VERSION = '0.4.16';
+const APP_VERSION = '0.4.19';
 // Mostra o número da versão na tela de carregamento imediatamente (sem
 // esperar por loadAll/qualquer coisa assíncrona) — sempre visível,
 // independente da mensagem dinâmica ("A carregar…", "A sincronizar…",
@@ -2000,10 +2008,11 @@ async function initialCloudSync(uid){
     else if(stable(currentState()) !== stable(canon(resolveIncomingPayload(raw)))){ await pushToFirestore(false); }
     setSyncStatus('synced');
     refreshActiveScreen();
-    runDailySummaryCheck();
   }catch(e){
     console.warn('Falha na sincronização inicial:', e);
     setSyncStatus('nolink');
+  } finally {
+    runDailySummaryCheck();
   }
 }
 // Grava o estado atual na conta Firebase. Por omissão, funde primeiro com a
@@ -2397,7 +2406,9 @@ function renderSettings(){
     if(eggRateInput) eggRateInput.value = (typeof profile.easterEggRate === 'number' ? profile.easterEggRate * 100 : 3);
     const forceBtn = document.getElementById('forceEasterEggBtn');
     if(forceBtn) forceBtn.textContent = devForceEasterEgg ? '✅ Vai forçar na próxima abertura' : '🎭 Forçar na próxima abertura';
-    const forceBdayBtn = document.getElementById('forceBirthdayBtn');
+    const forceSumBtn = document.getElementById('forceDailySummaryBtn');
+    if(forceSumBtn) forceSumBtn.textContent = devForceDailySummary ? '✅ Vai forçar o resumo na próxima abertura' : '📊 Forçar resumo na próxima abertura';
+  const forceBdayBtn = document.getElementById('forceBirthdayBtn');
     if(forceBdayBtn) forceBdayBtn.textContent = devForceBirthday ? '✅ Vai forçar na próxima abertura' : '🎉 Forçar na próxima abertura';
     // Data de aniversário: campo fica vazio se nunca foi configurada — não
     // pré-preenche com nenhuma data padrão (ver shouldTriggerBirthday).
@@ -2483,15 +2494,22 @@ function pickNewCustomTaxed(v){
 // A data da última vez que foi mostrado fica em localSettings (não sincroniza),
 // para cada aparelho mostrar um resumo por dia.
 async function runDailySummaryCheck(){
-  if(!featureOn('dailySummaryEnabled')) return;
+  const forced = devForceDailySummary;
   const today = isoDate(new Date());
-  if(localSettings.lastSummaryDay === today) return;
+  if(!forced){
+    if(!featureOn('dailySummaryEnabled')) return;
+    if(localSettings.lastSummaryDay === today) return;
+  }
   const y = isoDate(addDays(new Date(), -1));
   const items = earningsInRange(y, y);
   const expenses = variableExpensesInRange(y, y);
-  if(items.length === 0 && expenses.length === 0) return;
-  localSettings.lastSummaryDay = today;
-  await persistLocalSettings();
+  if(!forced && items.length === 0 && expenses.length === 0) return;
+  if(forced){
+    devForceDailySummary = false;
+  } else {
+    localSettings.lastSummaryDay = today;
+    await persistLocalSettings();
+  }
   showDailySummary(y, items, expenses);
 }
 function showDailySummary(y, items, expenses){
@@ -2514,15 +2532,21 @@ function showDailySummary(y, items, expenses){
       <div class="stat-card"><div class="stat-card-label">🚘 Pessoal</div><div class="stat-card-value">${fmt(part)}</div></div>
       ${comb > 0 ? `<div class="stat-card"><div class="stat-card-label">⛽ Combustível</div><div class="stat-card-value negative">− ${fmt(comb)}</div></div>` : ''}
       ${varOther > 0 ? `<div class="stat-card"><div class="stat-card-label">Outras despesas</div><div class="stat-card-value negative">− ${fmt(varOther)}</div></div>` : ''}
-      ${showKm() && km > 0 ? `<div class="stat-card"><div class="stat-card-label">🛣️ Km</div><div class="stat-card-value">${km.toLocaleString('pt-BR',{maximumFractionDigits:1})} km</div></div>` : ''}
+      ${showKm() ? `<div class="stat-card"><div class="stat-card-label">🛣️ Km</div><div class="stat-card-value">${km.toLocaleString('pt-BR',{maximumFractionDigits:1})} km</div></div>` : ''}
       <div class="stat-card" style="border-color:var(--vault);grid-column:1/-1;">
         <div class="stat-card-label">💰 Lucro do dia</div>
         <div class="stat-card-value ${lucro < 0 ? 'negative' : ''}" style="font-size:24px;">${fmt(lucro)}</div>
       </div>
     </div>
+    ${showTurno() ? (turnoBreakdownHTML(items) || '<div class="section-sub" style="font-size:11px;margin-bottom:10px;">Sem turno registado ontem.</div>') : ''}
     <div class="section-sub" style="font-size:11px;margin-bottom:14px;">Não inclui despesas fixas, como nas vistas de dia.</div>
     <button class="btn btn-primary" onclick="closeSheet()">Fechar</button>
   `);
+}
+function toggleForceDailySummary(){
+  devForceDailySummary = !devForceDailySummary;
+  renderSettings();
+  showToast(devForceDailySummary ? '📊 Vai mostrar o resumo na próxima abertura' : 'Forçar resumo desativado');
 }
 async function toggleCustomTaxed(key){
   const cp = (profile.customPlatforms || []).find(x => x.key === key);
@@ -2826,54 +2850,133 @@ function exportDataToExcel(){
 }
 
 function confirmResetAll(){
+  const opt = (scope, title, desc, danger) => `
+    <button class="btn" onclick="openResetCodeSheet('${scope}')" style="text-align:left;background:#fff;border:1.5px solid ${danger ? 'var(--terracotta)' : 'var(--line)'};color:${danger ? 'var(--terracotta)' : 'var(--ink)'};margin-bottom:10px;padding:14px;">
+      <div style="font-weight:800;font-size:14px;">${title}</div>
+      <div style="font-size:11px;font-weight:500;color:var(--text-muted);margin-top:4px;line-height:1.5;">${desc}</div>
+    </button>`;
+  openSheet(`
+    <div class="sheet-handle"></div>
+    <div class="sheet-title">O que queres apagar?</div>
+    <div class="sheet-sub">Escolhe uma opção. Cada uma pede um código de confirmação.</div>
+    ${opt('data', '🧾 Apagar só os dados', 'Ganhos, despesas variáveis, despesas fixas e o histórico. Mantém as configurações, o nome e a foto.')}
+    ${opt('settings', '⚙️ Redefinir só as configurações', 'Tema, IVA, comissão, metas, plataformas extra, opcionais, resumo de ontem, encriptação e biometria. Mantém os dados, o nome e a foto.')}
+    ${opt('all', '🗑️ Apagar tudo', 'Dados, configurações, nome e foto. Recomeça como se fosse uma app nova.', true)}
+    <button class="btn btn-ghost" onclick="closeSheet()">Cancelar</button>
+  `);
+}
+const RESET_TEXTS = {
+  data:     { title: 'Apagar os dados', what: 'ganhos, despesas variáveis, despesas fixas e o histórico, neste aparelho e na nuvem. As configurações, o nome e a foto são mantidos.' },
+  settings: { title: 'Redefinir as configurações', what: 'tema, IVA, comissão, metas, plataformas extra, opcionais, resumo de ontem, encriptação e biometria, neste aparelho e na nuvem. Os dados, o nome e a foto são mantidos.' },
+  all:      { title: 'Apagar tudo', what: 'todos os dados, todas as configurações, o nome e a foto, neste aparelho e na nuvem.' }
+};
+function openResetCodeSheet(scope){
+  const t = RESET_TEXTS[scope];
+  if(!t) return;
   const alphabet = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
   const bytes = crypto.getRandomValues(new Uint8Array(8));
   let code = '';
   for(const b of bytes) code += alphabet[b % alphabet.length];
   window._resetCode = code;
+  window._resetScope = scope;
   openSheet(`
     <div class="sheet-handle"></div>
-    <div class="sheet-title" style="color:var(--terracotta);">⚠️ Apagar todos os dados</div>
+    <div class="sheet-title" style="color:var(--terracotta);">⚠️ ${t.title}</div>
     <div class="sheet-sub">Esta ação é permanente e não pode ser desfeita.</div>
     <div style="font-size:12px;line-height:1.6;margin-bottom:14px;">
-      Vão ser apagados, neste aparelho e na nuvem: ganhos, despesas variáveis, despesas fixas, perfil e foto.<br><br>
-      Não existe cópia de segurança automática nem forma de recuperar os dados depois de confirmar. Recomenda-se exportar para Excel antes de continuar.<br><br>
-      A Corrida+ não se responsabiliza por perdas de dados resultantes desta ação.
+      Vão ser apagados: ${t.what}<br><br>
+      Não existe cópia de segurança automática nem forma de recuperar depois de confirmar. Recomenda-se exportar antes de continuar.<br><br>
+      A Corrida+ não se responsabiliza por perdas de dados ou de configurações resultantes desta ação.
     </div>
     <div class="field">
       <label>Para confirmar, escreve este código</label>
       <div style="font-family:'JetBrains Mono',monospace;font-weight:700;font-size:20px;letter-spacing:0.2em;text-align:center;padding:10px;background:var(--cream-2);border-radius:var(--r-md);margin-bottom:10px;user-select:all;">${code}</div>
       <input type="text" id="resetCodeInput" autocomplete="off" autocapitalize="characters" maxlength="8" placeholder="Escreve o código" oninput="checkResetCode(this.value)" style="text-transform:uppercase;letter-spacing:0.15em;text-align:center;font-family:'JetBrains Mono',monospace;" />
     </div>
-    <button class="btn btn-primary danger" id="resetConfirmBtn" onclick="executeResetAll()" disabled style="opacity:0.4;">Apagar tudo permanentemente</button>
-    <button class="btn btn-ghost" onclick="closeSheet()">Cancelar</button>
+    <button class="btn btn-primary danger" id="resetConfirmBtn" onclick="executeResetAll()" disabled style="opacity:0.4;">Apagar permanentemente</button>
+    <button class="btn btn-ghost" onclick="openResetChoiceAgain()">Voltar</button>
   `);
 }
+function openResetChoiceAgain(){ confirmResetAll(); }
 function checkResetCode(value){
   const ok = (value || '').trim().toUpperCase() === window._resetCode;
   const btn = document.getElementById('resetConfirmBtn');
   if(btn){ btn.disabled = !ok; btn.style.opacity = ok ? '1' : '0.4'; }
 }
 async function executeResetAll(){
-  if(!window._resetCode) return;
+  const scope = window._resetScope;
   const typed = (document.getElementById('resetCodeInput')?.value || '').trim().toUpperCase();
-  if(typed !== window._resetCode) return;
+  if(!scope || !window._resetCode || typed !== window._resetCode) return;
   window._resetCode = null;
+  window._resetScope = null;
   closeSheet();
-  bills = []; monthData = {};
-  try{ await window.storage.set('bills', JSON.stringify(bills)); }catch(e){}
-  try{ await window.storage.set('monthData', JSON.stringify(monthData)); }catch(e){}
-  // Apagar tudo é uma sobrescrita intencional — envia direto, sem passar
-  // pelo merge de pré-push (senão os dados que acabaram de ser apagados
-  // voltariam da nuvem antes do envio). Cancela também qualquer push
-  // debounced pendente para não haver uma segunda gravação por cima.
+  await performReset(scope);
+}
+// Aplica a redefinição. Os dados e as configurações são limpos localmente e
+// depois enviados para a nuvem com substituição (sem fusão), para não voltarem.
+async function performReset(scope){
+  const eraseData = scope === 'data' || scope === 'all';
+  const eraseSettings = scope === 'settings' || scope === 'all';
+  if(eraseData){ bills = []; monthData = {}; }
+  if(eraseSettings){
+    const keepIdentity = scope === 'settings';
+    profile = { name: keepIdentity ? (profile.name || '') : '', photo: keepIdentity ? (profile.photo || null) : null };
+    localSettings = { darkMode: 'system', themeColor: 'green' };
+    encryptionEnabled = false;
+    encryptionPassword = '';
+    biometricUnlockEnabled = false;
+    requireUnlockEachSync = false;
+    useNormalizedSchema = true;
+    devForceEasterEgg = false;
+    devForceBirthday = false;
+    for(const [k, v] of [['encryptionEnabled', false], ['encryptionPassword', ''], ['biometricUnlockEnabled', false], ['requireUnlockEachSync', false], ['useNormalizedSchema', true]]){
+      try{ await window.storage.set(k, v); }catch(e){}
+    }
+    try{ await window.storage.delete('biometricCredentialId'); }catch(e){}
+  }
+  await saveSyncBase(null);
+  await persistLocalOnlySilently();
   clearTimeout(syncPushTimer);
   clearTimeout(firestorePushTimer);
-  deletedIds = new Set();
-  try{ await window.storage.set('deletedIds', JSON.stringify([])); }catch(e){}
   if(window.__fbUser){ setSyncStatus('saving'); await pushToFirestore(true); }
   else if(syncUrl){ setSyncStatus('saving'); await pushToCloud(undefined, true); }
-  showToast('Tudo apagado'); goGanhos();
+  applyAllAppearance();
+  renderSettings();
+  showToast(scope === 'data' ? 'Dados apagados' : scope === 'settings' ? 'Configurações redefinidas' : 'Tudo apagado');
+  goGanhos();
+}
+
+// Exportação: escolhe entre a planilha Excel e o arquivo de configurações (.json),
+// que pode ser importado em Modo Dev → Importar dados.
+function openExportChoice(){
+  openSheet(`
+    <div class="sheet-handle"></div>
+    <div class="sheet-title">Exportar</div>
+    <div class="sheet-sub">Escolhe o formato.</div>
+    <button class="btn btn-primary" onclick="closeSheet(); exportDataToExcel()" style="text-align:left;margin-bottom:10px;">
+      <div style="font-weight:800;">📊 Planilha Excel (.xlsx)</div>
+      <div style="font-size:11px;font-weight:500;opacity:0.85;margin-top:3px;">Para a declaração de IRS: ganhos, despesas, despesas fixas e resumo mensal.</div>
+    </button>
+    <button class="btn" onclick="closeSheet(); exportSettingsJson()" style="text-align:left;background:#fff;border:1.5px solid var(--line);color:var(--ink);">
+      <div style="font-weight:800;">🗂️ Arquivo de configurações (.json)</div>
+      <div style="font-size:11px;font-weight:500;color:var(--text-muted);margin-top:3px;">Cópia completa de dados e configurações. Pode ser importada em Modo Dev → Importar dados.</div>
+    </button>
+    <button class="btn btn-ghost" onclick="closeSheet()">Cancelar</button>
+  `);
+}
+function exportSettingsJson(){
+  const schema = normalizeToSchemaV1(currentState());
+  const text = JSON.stringify(schema, null, 2);
+  const blob = new Blob([text], { type: 'application/json;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `corridaplus-config-${isoDate(new Date())}.json`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  showToast('✅ Arquivo de configurações exportado');
 }
 
 // --- STATS / CHARTS helpers ---
@@ -4691,6 +4794,7 @@ async function toggleRequireUnlockEachSync(){
 // =================================================================
 const EASTER_EGG_TARGET_NAME = 'ARTHUR SANTOS';
 let devForceBirthday = false;
+let devForceDailySummary = false;
 
 // Desativada por padrão: só dispara com profile.easterEggDisabled === false
 // (ativação explícita, feita pelo interruptor no Modo Dev).
