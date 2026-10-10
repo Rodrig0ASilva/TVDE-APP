@@ -658,6 +658,16 @@ body.bg-ink-light:not(.dark) #app :is(.stat-card, .chart-box, .loans-box, .incom
 body.bg-ink-light:not(.dark) #app input, body.bg-ink-light:not(.dark) #app select, body.bg-ink-light:not(.dark) #app textarea { color: var(--ink); }
 body.bg-ink-light:not(.dark) #app .add-dashed-btn { background: rgba(20,16,12,0.3); border-color: rgba(246,239,226,0.5); }
 body.bg-ink-light:not(.dark) #app .sync-pill { background: rgba(20,16,12,0.35); }
+/* Textos com cor fixa no HTML, sobre a imagem (modo claro): ficam claros; dentro de cartões, voltam ao normal */
+body.bg-ink-light:not(.dark) #app [style*="color:var(--text-muted)"],
+body.bg-ink-light:not(.dark) #app [style*="color:var(--text-faint)"] { color: #F6EFE2 !important; }
+body.bg-ink-light:not(.dark) #app :is(.stat-card, .chart-box, .loans-box, .income-row-compact, .profile-card, .seg) [style*="color:var(--text-muted)"],
+body.bg-ink-light:not(.dark) #app :is(.stat-card, .chart-box, .loans-box, .income-row-compact, .profile-card, .seg) [style*="color:var(--text-faint)"] { color: var(--text-muted) !important; }
+/* Botão "Adicionar" no modo escuro com imagem */
+body.dark.bg-img #app .add-dashed-btn { background: rgba(14,14,18,0.6); border-color: rgba(255,255,255,0.3); color: #F0EDE6; }
+/* Fade da interface e do menu ao ligar/desligar o efeito */
+#app, .tabbar { transition: opacity 0.22s ease; }
+#app.fade-out, .tabbar.fade-out { opacity: 0; }
 </style>
 </head>
 <body>
@@ -1341,7 +1351,7 @@ body.bg-ink-light:not(.dark) #app .sync-pill { background: rgba(20,16,12,0.35); 
 // Esquema de versão: de volta ao pré-1.0 (0.x.x) — a v1.0.0 fica
 // reservada para o lançamento com assinatura paga completa. A numeração
 // 4.x.x usada temporariamente para a integração Firebase foi abandonada.
-const APP_VERSION = '0.55';
+const APP_VERSION = '0.56';
 // Mostra o número da versão na tela de carregamento imediatamente (sem
 // esperar por loadAll/qualquer coisa assíncrona) — sempre visível,
 // independente da mensagem dinâmica ("A carregar…", "A sincronizar…",
@@ -2741,6 +2751,7 @@ function imageTone(dataUrl){
 function applyBodyTone(){
   const img = localSettings.bgImage;
   document.body.classList.toggle('bg-ink-light', !!img && localSettings.bgTone === 'dark');
+  document.body.classList.toggle('bg-img', !!img);
 }
 let bgTimer = null;
 function applyCustomBackground(){
@@ -2855,9 +2866,15 @@ function applyLiquidGlass(){
 async function toggleLiquidGlass(){
   localSettings.liquidGlass = !(localSettings.liquidGlass === true);
   await persistLocalSettings();
-  softChange(() => applyLiquidGlass());
-  const swG = document.getElementById('swGlass');
-  if(swG) swG.className = 'switch' + (localSettings.liquidGlass === true ? ' on' : '');
+  // Sai com fade, troca o efeito e volta com fade (interface e menu)
+  const fadeEls = [document.getElementById('app'), document.querySelector('.tabbar')].filter(Boolean);
+  fadeEls.forEach(el => el.classList.add('fade-out'));
+  setTimeout(() => {
+    softChange(() => applyLiquidGlass());
+    const swG = document.getElementById('swGlass');
+    if(swG) swG.className = 'switch' + (localSettings.liquidGlass === true ? ' on' : '');
+    fadeEls.forEach(el => el.classList.remove('fade-out'));
+  }, 220);
   showToast(localSettings.liquidGlass ? '🪟 Liquid glass ativado' : 'Liquid glass desativado');
 }
 
@@ -4381,7 +4398,7 @@ function lucroBreakdownHTML(apps, comb, part, fixas, varOther, km, hours, contex
       ${km > 0 ? `<div style="font-size:12px;opacity:0.8;margin-top:4px;">${lucroKm !== null ? fmt(lucroKm) + '/km' : ''} ${lucroHora !== null ? '· ' + fmt(lucroHora) + '/h' : ''}</div>` : ''}
     </div>`;
 
-  html += `<div style="background:var(--card);border:1px solid var(--line);border-radius:var(--r-xl);padding:16px 18px;margin-bottom:18px;box-shadow:var(--shadow-sm);">
+  html += `<div class="chart-box" style="border-radius:var(--r-xl);padding:16px 18px;margin-bottom:18px;">
     <div style="font-weight:700;font-size:var(--text-md);margin-bottom:14px;">Detalhamento</div>`;
 
   html += lucroLineHTML('Faturamento bruto (apps)', apps, false, '#fff', true);
