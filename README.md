@@ -2,7 +2,7 @@
 
 Gestão financeira para motoristas TVDE (Uber, Bolt) e corridas particulares. É uma aplicação web de ficheiro único (`corridaplus.html`), pensada para usar como app no telemóvel, com aspeto nativo (estilo iOS) e suporte ao efeito transparente ("liquid glass").
 
-**Versão atual:** 0.79 (ver a secção 10 da documentação, `corridaplus-docs.md`).
+**Versão atual:** 0.80 (ver o histórico na Parte II de `DOCUMENTATION.md`).
 
 ---
 
@@ -52,7 +52,7 @@ Gestão financeira para motoristas TVDE (Uber, Bolt) e corridas particulares. É
 | Ficheiro | Conteúdo |
 |---|---|
 | `corridaplus.html` | A aplicação completa (HTML, CSS e JavaScript num só ficheiro) |
-| `corridaplus-docs.md` | Documentação técnica e histórico de alterações |
+| `DOCUMENTATION.md` | Documentação técnica (Parte I) e histórico de alterações por versão (Parte II) |
 | `corridaplus-firebase-plan.md` | Plano e regras do Firebase (login, Firestore, App Check, cobrança) |
 | `corridaplus-security-review.md` | Revisão de segurança (OWASP Top 10) |
 | `LICENSE.md` | Licença de uso (uso comercial reservado ao autor) |
