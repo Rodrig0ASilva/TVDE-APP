@@ -714,37 +714,8 @@ body.dark button[onclick="lockSyncUrl()"] { background: var(--vault); color: #ff
       <div class="theme-color-grid" id="themeColorGrid"></div>
     </div>
 
-    <div class="section-head" style="margin-top:20px;"><div class="section-title">Comissão da plataforma</div></div>
-    <div class="field" style="margin-top:8px;">
-      <label>Taxa de comissão (%)</label>
-      <div style="position:relative; display:flex; align-items:center;">
-        <input type="number" id="comissaoRate" placeholder="0" inputmode="decimal" min="0" max="100" step="0.1"
-          onchange="updateComissaoRate(this.value)" style="padding-right:32px;" />
-        <span style="position:absolute;right:12px;font-size:13px;font-weight:700;color:var(--text-muted);">%</span>
-      </div>
-    </div>
-    <div class="section-sub" style="margin-top:6px; font-size:11px; line-height:1.5;">
-      Descontada após o IVA. Cobrada pela Uber/Bolt sobre o valor bruto.
-    </div>
-
     <div class="section-head" style="margin-top:20px;"><div class="section-title">Opcionais</div></div>
     <div class="section-sub" style="margin-bottom:6px;">Liga só o que usas. Cada opção aparece nos ecrãs e nos cálculos apenas quando estiver ativa.</div>
-
-    <div class="switch-row">
-      <div class="switch-row-text">
-        <div class="switch-row-title">Turno de trabalho</div>
-        <div class="switch-row-sub">Mostra o seletor de turno ao registar ganhos e o gráfico "Ganhos por turno" nas Estatísticas.</div>
-      </div>
-      <div class="switch" id="swTurno" onclick="toggleFeature('showTurno')"></div>
-    </div>
-    <div class="switch-row">
-      <div class="switch-row-text">
-        <div class="switch-row-title">Quilómetros (km)</div>
-        <div class="switch-row-sub">Campo opcional de km ao registar ganhos. Se preenchido, aparece nas Estatísticas (km totais e lucro por km).</div>
-      </div>
-      <div class="switch" id="swKm" onclick="toggleFeature('showKm')"></div>
-    </div>
-
     <div class="switch-row">
       <div class="switch-row-text">
         <div class="switch-row-title">IVA / Imposto</div>
@@ -766,6 +737,43 @@ body.dark button[onclick="lockSyncUrl()"] { background: var(--vault); color: #ff
       Descontado diretamente do faturamento bruto das apps (Uber/Bolt).
     </div>
 
+    </div>
+    <div class="switch-row">
+      <div class="switch-row-text">
+        <div class="switch-row-title">Comissão da plataforma</div>
+        <div class="switch-row-sub">Desconta a comissão cobrada pela Uber/Bolt sobre o bruto, depois do IVA. Desligada, a comissão não entra nos cálculos.</div>
+      </div>
+      <div class="switch" id="swComissao" onclick="toggleFeature('comissaoEnabled')"></div>
+    </div>
+    <div id="comissaoFieldsRow">
+
+    <div class="field" style="margin-top:8px;">
+      <label>Taxa de comissão (%)</label>
+      <div style="position:relative; display:flex; align-items:center;">
+        <input type="number" id="comissaoRate" placeholder="0" inputmode="decimal" min="0" max="100" step="0.1"
+          onchange="updateComissaoRate(this.value)" style="padding-right:32px;" />
+        <span style="position:absolute;right:12px;font-size:13px;font-weight:700;color:var(--text-muted);">%</span>
+      </div>
+    </div>
+    <div class="section-sub" style="margin-top:6px; font-size:11px; line-height:1.5;">
+      Descontada após o IVA. Cobrada pela Uber/Bolt sobre o valor bruto.
+    </div>
+
+    </div>
+
+    <div class="switch-row">
+      <div class="switch-row-text">
+        <div class="switch-row-title">Turno de trabalho</div>
+        <div class="switch-row-sub">Mostra o seletor de turno ao registar ganhos e o gráfico "Ganhos por turno" nas Estatísticas.</div>
+      </div>
+      <div class="switch" id="swTurno" onclick="toggleFeature('showTurno')"></div>
+    </div>
+    <div class="switch-row">
+      <div class="switch-row-text">
+        <div class="switch-row-title">Quilómetros (km)</div>
+        <div class="switch-row-sub">Campo opcional de km ao registar ganhos. Se preenchido, aparece nas Estatísticas (km totais e lucro por km).</div>
+      </div>
+      <div class="switch" id="swKm" onclick="toggleFeature('showKm')"></div>
     </div>
 
     <div class="switch-row">
@@ -1096,7 +1104,7 @@ body.dark button[onclick="lockSyncUrl()"] { background: var(--vault); color: #ff
 // Esquema de versão: de volta ao pré-1.0 (0.x.x) — a v1.0.0 fica
 // reservada para o lançamento com assinatura paga completa. A numeração
 // 4.x.x usada temporariamente para a integração Firebase foi abandonada.
-const APP_VERSION = '0.4.12a';
+const APP_VERSION = '0.4.14';
 // Mostra o número da versão na tela de carregamento imediatamente (sem
 // esperar por loadAll/qualquer coisa assíncrona) — sempre visível,
 // independente da mensagem dinâmica ("A carregar…", "A sincronizar…",
@@ -1933,40 +1941,6 @@ async function loadSyncBase(){
 async function saveSyncBase(state){
   try{ await window.storage.set('syncBase', JSON.stringify({ source: sourceKey(), state })); }catch(e){}
 }
-// Decisão quando a conta já tem dados e este aparelho ainda não sincronizou
-// com ela: o utilizador escolhe. Devolve 'cloud' | 'local' | null (decidir depois).
-function askCloudConflict(localSt, cloudSt, stamp){
-  return new Promise(resolve => {
-    window._conflictResolve = resolve;
-    const when = stamp
-      ? new Date(stamp).toLocaleString('pt-BR', { day:'2-digit', month:'2-digit', year:'numeric', hour:'2-digit', minute:'2-digit' })
-      : 'data desconhecida';
-    openSheet(`
-      <div class="sheet-handle"></div>
-      <div class="sheet-title">Dados diferentes</div>
-      <div class="sheet-sub">Esta conta já tem dados guardados na nuvem. Escolhe quais manter.</div>
-      <div class="chart-box" style="margin-bottom:10px;">
-        <div class="chart-box-title">☁️ Dados da nuvem</div>
-        <div class="chart-box-sub">Guardados em ${escapeHtml(when)}</div>
-        <div style="font-size:12px;">${escapeHtml(summarizeState(cloudSt))}</div>
-      </div>
-      <div class="chart-box" style="margin-bottom:14px;">
-        <div class="chart-box-title">📱 Este aparelho</div>
-        <div class="chart-box-sub">Dados atuais deste aparelho</div>
-        <div style="font-size:12px;">${escapeHtml(summarizeState(localSt))}</div>
-      </div>
-      <button class="btn btn-primary" onclick="resolveCloudConflict('cloud')">Usar os dados da nuvem</button>
-      <button class="btn btn-danger-text" onclick="resolveCloudConflict('local')">Manter os deste aparelho (substitui a nuvem)</button>
-      <button class="btn btn-ghost" onclick="resolveCloudConflict(null)">Decidir depois</button>
-    `);
-  });
-}
-function resolveCloudConflict(choice){
-  const r = window._conflictResolve;
-  window._conflictResolve = null;
-  closeSheet();
-  if(r) r(choice);
-}
 // Núcleo da sincronização: compara o remoto com o local, usando a base.
 // Devolve 'ok' (fundido e aplicado), 'push' (enviar o local por cima do remoto),
 // ou 'pending' (aguarda decisão do utilizador).
@@ -1982,12 +1956,11 @@ async function syncWithCloud(remoteRaw, opts){
     return 'ok';
   }
   if(!hasData(remote)) return 'push';
-  if(!hasLocalData()){ await applyState(remote); await saveSyncBase(remote); return 'ok'; }
-  if(!ask) return 'pending';
-  const choice = await askCloudConflict(currentState(), remote, stamp);
-  if(choice === 'cloud'){ await applyState(remote); await saveSyncBase(remote); return 'ok'; }
-  if(choice === 'local') return 'push';
-  return 'pending';
+  // A conta já tem dados na nuvem: a nuvem prevalece. O aparelho só envia os
+  // seus dados quando a nuvem está vazia (utilizador novo).
+  await applyState(remote);
+  await saveSyncBase(remote);
+  return 'ok';
 }
 // Primeira sincronização da sessão Firebase (não bloqueia a app).
 async function initialCloudSync(uid){
@@ -2360,6 +2333,10 @@ function renderSettings(){
   if(swCustom) swCustom.className = 'switch' + (customPlatformsOn() ? ' on' : '');
   const customBody = document.getElementById('customPlatformsBody');
   if(customBody) customBody.style.display = customPlatformsOn() ? 'block' : 'none';
+  const swCom = document.getElementById('swComissao');
+  if(swCom) swCom.className = 'switch' + (comissaoOn() ? ' on' : '');
+  const comFieldsRow = document.getElementById('comissaoFieldsRow');
+  if(comFieldsRow) comFieldsRow.style.display = comissaoOn() ? 'block' : 'none';
   const swIva = document.getElementById('swIva');
   if(swIva) swIva.className = 'switch' + (ivaOn() ? ' on' : '');
   const ivaFieldsRow = document.getElementById('ivaFieldsRow');
@@ -2769,8 +2746,41 @@ function exportDataToExcel(){
   }
 }
 
-async function confirmResetAll(){
-  if(!confirm('Isso vai apagar TODOS os dados. Tem certeza?')) return;
+function confirmResetAll(){
+  const alphabet = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  const bytes = crypto.getRandomValues(new Uint8Array(8));
+  let code = '';
+  for(const b of bytes) code += alphabet[b % alphabet.length];
+  window._resetCode = code;
+  openSheet(`
+    <div class="sheet-handle"></div>
+    <div class="sheet-title" style="color:var(--terracotta);">⚠️ Apagar todos os dados</div>
+    <div class="sheet-sub">Esta ação é permanente e não pode ser desfeita.</div>
+    <div style="font-size:12px;line-height:1.6;margin-bottom:14px;">
+      Vão ser apagados, neste aparelho e na nuvem: ganhos, despesas variáveis, despesas fixas, perfil e foto.<br><br>
+      Não existe cópia de segurança automática nem forma de recuperar os dados depois de confirmar. Recomenda-se exportar para Excel antes de continuar.<br><br>
+      A Corrida+ não se responsabiliza por perdas de dados resultantes desta ação.
+    </div>
+    <div class="field">
+      <label>Para confirmar, escreve este código</label>
+      <div style="font-family:'JetBrains Mono',monospace;font-weight:700;font-size:20px;letter-spacing:0.2em;text-align:center;padding:10px;background:var(--cream-2);border-radius:var(--r-md);margin-bottom:10px;user-select:all;">${code}</div>
+      <input type="text" id="resetCodeInput" autocomplete="off" autocapitalize="characters" maxlength="8" placeholder="Escreve o código" oninput="checkResetCode(this.value)" style="text-transform:uppercase;letter-spacing:0.15em;text-align:center;font-family:'JetBrains Mono',monospace;" />
+    </div>
+    <button class="btn btn-primary danger" id="resetConfirmBtn" onclick="executeResetAll()" disabled style="opacity:0.4;">Apagar tudo permanentemente</button>
+    <button class="btn btn-ghost" onclick="closeSheet()">Cancelar</button>
+  `);
+}
+function checkResetCode(value){
+  const ok = (value || '').trim().toUpperCase() === window._resetCode;
+  const btn = document.getElementById('resetConfirmBtn');
+  if(btn){ btn.disabled = !ok; btn.style.opacity = ok ? '1' : '0.4'; }
+}
+async function executeResetAll(){
+  if(!window._resetCode) return;
+  const typed = (document.getElementById('resetCodeInput')?.value || '').trim().toUpperCase();
+  if(typed !== window._resetCode) return;
+  window._resetCode = null;
+  closeSheet();
   bills = []; monthData = {};
   try{ await window.storage.set('bills', JSON.stringify(bills)); }catch(e){}
   try{ await window.storage.set('monthData', JSON.stringify(monthData)); }catch(e){}
@@ -2935,10 +2945,10 @@ function ivaAmount(grossEarnings){
 }
 function ivaRate(){ return ivaOn() ? (parseFloat(profile.ivaRate) || 0) : 0; }
 function comissaoAmount(grossEarnings){
-  const rate = parseFloat(profile.comissaoRate) || 0;
+  const rate = comissaoRate();
   return grossEarnings * (rate / 100);
 }
-function comissaoRate(){ return parseFloat(profile.comissaoRate) || 0; }
+function comissaoRate(){ return comissaoOn() ? (parseFloat(profile.comissaoRate) || 0) : 0; }
 
 function ganhosAppsAmount(items){
   return items.filter(e => e.platform === 'uber' || e.platform === 'bolt').reduce((s,e)=>s+(e.amount||0),0);
@@ -3625,10 +3635,7 @@ function renderLucro(){
 
 // --- SHEETS ---
 function openSheet(html){ document.getElementById('sheet').innerHTML = html; document.getElementById('overlay').classList.add('show'); }
-function closeSheet(){
-  document.getElementById('overlay').classList.remove('show');
-  if(window._conflictResolve){ const r = window._conflictResolve; window._conflictResolve = null; r(null); }
-}
+function closeSheet(){ document.getElementById('overlay').classList.remove('show'); }
 function closeSheetOnBackdrop(e){ if(e.target.id === 'overlay') closeSheet(); }
 
 // --- MÊS navigation / picker ---
@@ -3696,7 +3703,8 @@ const FEATURE_DEFAULTS = {
   showTurno: () => true,
   showKm: () => false,
   customPlatformsEnabled: () => (profile.customPlatforms || []).length > 0,
-  ivaEnabled: () => (parseFloat(profile.ivaRate) || 0) > 0
+  ivaEnabled: () => (parseFloat(profile.ivaRate) || 0) > 0,
+  comissaoEnabled: () => (parseFloat(profile.comissaoRate) || 0) > 0
 };
 function featureOn(flag){
   return profile[flag] === undefined ? FEATURE_DEFAULTS[flag]() : !!profile[flag];
@@ -3705,11 +3713,12 @@ function showTurno(){ return featureOn('showTurno'); }
 function showKm(){ return featureOn('showKm'); }
 function customPlatformsOn(){ return featureOn('customPlatformsEnabled'); }
 function ivaOn(){ return featureOn('ivaEnabled'); }
+function comissaoOn(){ return featureOn('comissaoEnabled'); }
 async function toggleFeature(flag){
   profile[flag] = !featureOn(flag);
   await persistProfile();
   renderSettings();
-  const msgs = { showTurno: 'Turno', showKm: 'Km', customPlatformsEnabled: 'Outras plataformas', ivaEnabled: 'IVA' };
+  const msgs = { showTurno: 'Turno', showKm: 'Km', customPlatformsEnabled: 'Outras plataformas', ivaEnabled: 'IVA', comissaoEnabled: 'Comissão' };
   showToast(`${msgs[flag]} ${profile[flag] ? 'ativado' : 'desativado'}`);
 }
 async function toggleUidVisibility(){
