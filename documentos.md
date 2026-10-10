@@ -4,17 +4,35 @@ Este ficheiro reúne a documentação de arquitetura que antes vivia como coment
 longos dentro do `corridaplus.html`. O HTML principal mantém apenas comentários
 curtos, apontando para aqui quando for preciso mais contexto.
 
-## Índice
-1. [Estado global e chaves de mês](#1-estado-global-e-chaves-de-mês)
-2. [Sincronização com a nuvem](#2-sincronização-com-a-nuvem)
-3. [Pull-antes-de-push (merge)](#3-pull-antes-de-push-merge)
-4. [IVA, comissão e cálculo de lucro](#4-iva-comissão-e-cálculo-de-lucro)
-5. [Encriptação opcional (Modo Dev)](#5-encriptação-opcional-modo-dev)
-6. [Desbloqueio biométrico (WebAuthn)](#6-desbloqueio-biométrico-webauthn)
-7. [Easter eggs](#7-easter-eggs)
-8. [Log de sincronização](#8-log-de-sincronização)
-9. [Alterações desta versão (v3.1.0)](#9-alterações-desta-versão-v310)
+**Versão atual: 0.80.** A secção 10 tem o histórico completo de alterações, da mais recente
+(0.80) para as mais antigas. As secções 11 a 24 detalham funcionalidades específicas; os números
+entre parênteses nos títulos são as versões em que foram introduzidas, e não a versão atual.
 
+## Índice
+1. Estado global e chaves de mês
+2. Sincronização com a nuvem
+3. Pull-antes-de-push (merge) — substituído pela fusão com base na 0.4.11 (ver secção 10)
+4. IVA, comissão e cálculo de lucro
+5. Encriptação opcional (Modo Dev)
+6. Desbloqueio biométrico (WebAuthn)
+7. Easter eggs
+8. Log de sincronização
+9. Atualização automática e silenciosa (na abertura)
+10. **Alterações desta versão (até v0.80)** — histórico completo, da 0.80 à 0.4.x
+11. Formato de armazenamento alternativo (schema v1)
+12. Revertido: rateio de despesas fixas na visão Semana
+13. Correção: despesas diárias/semanais na visão Semana
+14. Correção: despesa diária conta só nos dias com registro
+15. Correção: despesa diária conta só em dias com despesa
+16. Opção por despesa: como a despesa mensal aparece nas semanas
+17. Firebase — login Google + Firestore
+18. Login Google opcional
+19. Esquema de versão voltou a pré-1.0
+20. Turno de trabalho (opcional) e gráfico "Ganhos por turno"
+21. Plataformas personalizadas (opcional)
+22. Pacote de ajustes
+23. Reforço de segurança: App Check e regras do Firestore
+24. Cartão "Assinatura" em Configurações, com data de validade
 ---
 
 ## 1. Estado global e chaves de mês
@@ -300,7 +318,29 @@ disputando o mesmo espaço e o mesmo instante.
 
 > **Numeração:** a partir da versão 0.46, a numeração passa a ser 0.46, 0.47, 0.48, … As entradas anteriores mantêm a numeração 0.4.x.
 
-## 10. Alterações desta versão (até v0.75)
+## 10. Alterações desta versão (até v0.80)
+- **Versão 0.80 — títulos legíveis no modo escuro**: o "Corrida+" da barra lateral (computador) e os
+  títulos das telas ("Você", "Ganhos", etc.) usavam o verde escuro do tema, pouco contrastado no modo
+  escuro. Agora usam a cor de texto do tema nesse modo. O modo claro não muda.
+
+- **Versão 0.79 — distintivos de plataforma padronizados**: Uber, Bolt, Particular, Outros e as
+  plataformas extra usavam formas, letras (a Bolt com emoji) e tamanhos diferentes. Agora um único
+  distintivo: quadrado arredondado de 8px, letra centrada, cor fixa por plataforma (U preto, B verde,
+  P azul, O castanho, extras roxo). Dois tamanhos apenas: 16px dentro de títulos e 28px nas listas
+  (ganhos, configurações).
+
+- **Versão 0.78 — "Conectado com Google" legível no modo escuro**: o texto usava o verde escuro
+  do modo claro, quase invisível sobre o fundo escuro. Agora usa a cor de texto do tema no modo
+  escuro (`--vault-text`), e continua igual no modo claro. Vale para o modo normal e o transparente.
+
+- **Versão 0.77 — barra de intensidade aparece logo ao ativar o efeito transparente**: a barra
+  só era desenhada ao renderizar as Configurações, por isso só aparecia depois de mudar de tela e
+  voltar. Agora o ligar e desligar atualiza a barra na hora.
+
+- **Versão 0.76 — interruptor da imagem de fundo com animação**: ao ativar ou desativar, a linha
+  inteira era redesenhada, e o interruptor aparecia já no estado final. Agora o interruptor é criado
+  uma vez e só muda de cor. Só o conteúdo abaixo (pré-visualização, botões e barras) é redesenhado.
+
 - **Versão 0.75 — intensidade sem preenchimento verde**: a barra de intensidade do efeito
   transparente deixa de pintar a parte à esquerda da bolinha. Fica só o trilho neutro e a
   bolinha. As barras do véu e do desfoque da imagem de fundo mantêm o preenchimento.
@@ -359,23 +399,28 @@ disputando o mesmo espaço e o mesmo instante.
 - **Versão 0.66 — cantos concêntricos com a borda contada**: os valores passam a contar a
   borda, além do espaçamento. Seletores: 12 − (1,5 + 3) = 7,5px nas opções e na gota. Barra
   de abas: 20 − (1 + 7) = 12px nas abas e na gota. Computador (barra lateral): 20 − (1 + 12) = 7px.
+
 - **Versão 0.65 — cantos aninhados concêntricos**: aplicada a regra "raio interno = raio externo
   − espaçamento". Seletores (Dia·Semana·Mês·Ano, tema, frequência, turnos): contentor 12px,
   espaçamento 3px, opções e gota (valores finais na 0.66). Barra de abas: contentor 20px. Os círculos do seletor de cor
   e os interruptores não precisam de ajuste.
+
 - **Versão 0.64 — barra e fundo estáveis ao trocar de aba (diagnóstico, sem iPhone)**:
   ao trocar de aba, a app chamava sempre `window.scrollTo(0,0)`. No iOS, isso faz a barra de
   endereço recolher ou expandir, e as camadas fixas (barra, fundo e camada de vidro) podem
   saltar ou parecer redimensionadas. Agora só volta ao topo se a página estiver rolada, e
   as camadas fixas ficam em composição própria (`translateZ(0)`), para não serem repintadas
   na troca de aba. Não foi possível reproduzir: confirmar no iPhone.
+
 - **Versão 0.63 — removido o deslize da página**: o deslize na horizontal sobre o conteúdo
   que mudava de aba (das versões 0.61 e 0.62) foi removido. Mantém-se a animação de deslize
   quando se toca numa aba (a nova entra pelo lado de onde vem). Continua a funcionar o arrasto
   da gota na barra de abas.
+
 - **Versão 0.62 — barra de abas volta a arrastar a gota**: a alteração da 0.61 que impedia o
   arrasto na barra estava errada. Ao deslizar sobre a barra, a gota volta a seguir o dedo,
   e ao soltar muda para a aba mais próxima, como antes.
+
 - **Versão 0.61 — deslizar na página segue o dedo**:
   - **Página** (só telemóvel): ao deslizar na horizontal, a aba atual acompanha o dedo e
     a vizinha aparece do lado. Ao soltar, muda se o deslize passar 25% da largura ou for
@@ -456,16 +501,20 @@ disputando o mesmo espaço e o mesmo instante.
 - **Versão 0.51 — seletor de cor do tema com animação**: escolher uma cor já não
   redesenha a grade. Só a seleção muda nos círculos existentes, com mola e um pequeno
   encolhimento ao tocar.
+
 - **Versão 0.50 — mudanças suaves**: trocar a cor do tema, o modo claro/escuro ou o
   efeito transparente faz as cores passar gradualmente (cerca de meio segundo). A
   camada de vidro aparece ou desaparece com opacidade. A imagem de fundo personalizada
   continua a mudar de uma vez.
+
 - **Versão 0.49 — animações também no modo normal**: a gota com deslize, deformação e
   mola funciona nos dois modos. No modo normal é sólida, com a cor do tema, e sem
   desfoque. O deslize sobre o conteúdo também muda de aba.
+
 - **Versão 0.48 — deformação da gota também na vertical**: ao deslizar, estica até 20%
   no sentido do movimento e comprime até 18% na altura. Ao chegar, começa a 116% na
   largura e 82% na altura, e recupera com mola.
+
 - **Versão 0.47 — gota de vidro em todos os seletores (efeito transparente)**: a gota da
   barra de abas passa a existir em todos os seletores `.seg` (Dia · Semana · Mês · Ano,
   tema, frequência de despesas fixas, turnos). A opção ativa fica verde, com a cor do
@@ -574,66 +623,6 @@ disputando o mesmo espaço e o mesmo instante.
   achatar ganhos/despesas em listas simples). Ver secção 11 para a
   arquitetura completa. Desativado por padrão — nada muda até o
   utilizador ativar explicitamente.
-
-- **Versão 0.4.6 — botão GitHub no Modo Dev**: o link "Ver no GitHub" saiu do
-  ecrã "Você" e foi para o Modo Dev, com o novo endereço
-  `https://github.com/Rodrig0ASilva`.
-- **Versão 0.4.6 — sincronização no Modo Dev**: a secção "Sincronização" (URL do
-  Google Apps Script, bloquear/editar) foi movida do ecrã "Você" para dentro do
-  Modo Dev.
-- **Versão 0.4.6 — conta de suporte no Modo Dev**: mostra o email e o UID da
-  conta Google, com botão "Copiar email + UID". O UID também está no Firebase
-  Console → Authentication → Utilizadores, onde se pode procurar pelo email.
-- **Versão 0.4.6 — "Apagar todos os dados" sempre no fim**: o botão fica depois
-  do Modo Dev, como última opção do ecrã "Você".
-- **Versão 0.4.6 — "Registos opcionais"**: nova secção em "Você" com interruptores
-  para **Turno de trabalho**, **Quilómetros (km)** e **Usar outras plataformas**.
-  Os três são guardados em `profile` (`showTurno`, `showKm`,
-  `customPlatformsEnabled`) e sincronizam entre dispositivos. Por omissão, turno
-  começa ligado, km desligado, e outras plataformas ligadas só se já existirem
-  plataformas registadas. Desativar um interruptor esconde a funcionalidade, mas
-  não apaga os dados já gravados.
-- **Versão 0.4.6 — km nas Estatísticas**: o campo de km do ganho aparece no
-  formulário "Novo ganho" quando o interruptor está ativo. Se for preenchido, as
-  Estatísticas mostram o cartão "Quilometragem" (km registados e lucro por km) e
-  o Lucro mostra o lucro por km. Os km do dia são gravados no primeiro ganho desse
-  registo, para não serem contados em dobro.
-- **Versão 0.4.6 — lista de outras plataformas**: a lista e o campo para adicionar
-  plataformas só aparecem com o interruptor "Usar outras plataformas" ativo.
-
-- **Versão 0.4.7 — perfil e conta num só cartão**: em Configurações → "Perfil e
-  conta", a secção "Conta" separada foi integrada no cartão do perfil. A foto por
-  omissão é a foto da conta Google (`currentPhotoUrl()`: foto própria, ou se não
-  existir, a do Google). O botão "trocar" continua a permitir enviar outra foto, e
-  "Repor foto do Google" volta à foto da conta. O nome é livre, com o nome do
-  Google como sugestão no campo. Por baixo aparecem o email e o ID da conta
-  (UID); sem sessão, aparece o botão "Continuar com Google". O botão "Sair da
-  conta" também está neste cartão. A secção "Conta (suporte)" do Modo Dev foi
-  removida.
-
-- **Versão 0.4.8 — ajustes ao cartão de conta**: símbolo "G" do Google com o
-  texto "Conectado com Google" acima do email. O botão "Sair" fica à direita, com
-  fundo branco e letra vermelha. O ID da conta (UID) aparece mascarado como
-  `****`, com um botão "mostrar"/"ocultar". A escolha fica guardada só neste
-  dispositivo (`localSettings.showUid`), sem sincronizar.
-
-- **Versão 0.4.9 — bloco "Conta"**: o estado da assinatura saiu da secção
-  própria e passou para a parte inferior do cartão de conta, sob o título
-  "Assinatura". A secção de Configurações passou a chamar-se apenas "Conta".
-
-- **Versão 0.4.10 — correções da Fase 1**:
-  - Listeners do Firestore (dados e assinatura) são cancelados antes de voltar a
-    ser registados. Tocar em "sincronizar" já não acumula listeners.
-  - A brincadeira e a verificação de atualização só correm no primeiro
-    carregamento da sessão, e não ao tocar em "sincronizar".
-  - "Importar dados" agenda o envio para a nuvem, para os dados importados
-    chegarem aos outros aparelhos.
-  - Nomes de plataformas e categorias são escapados antes de entrar no HTML.
-  - (Revertido na 0.4.12.) O gráfico diário de Lucro (Semana) passou a usar a
-    mesma fórmula do resumo. A alteração foi revertida a pedido.
-  - Remover uma plataforma extra passa a arquivá-la (`archived: true`). Deixa de
-    aparecer como opção nova, mas os ganhos antigos mantêm o nome. Re-adicionar a
-    mesma plataforma volta a ativá-la.
 
 - **Versão 0.46 — arrastar a gota no celular**: no telemóvel, o navegador tomava o
   movimento horizontal como deslizar da página e cancelava o arrasto. Ao cancelar, a
@@ -1005,6 +994,72 @@ disputando o mesmo espaço e o mesmo instante.
   - Limitação: a base guarda uma cópia completa dos dados no armazenamento local.
     Com muito histórico, isto pesa; quando o item 9 da lista (limite de 1 MiB no
     Firestore) for tratado, convém rever este formato.
+
+- **Versão 0.4.10 — correções da Fase 1**:
+  - Listeners do Firestore (dados e assinatura) são cancelados antes de voltar a
+    ser registados. Tocar em "sincronizar" já não acumula listeners.
+  - A brincadeira e a verificação de atualização só correm no primeiro
+    carregamento da sessão, e não ao tocar em "sincronizar".
+  - "Importar dados" agenda o envio para a nuvem, para os dados importados
+    chegarem aos outros aparelhos.
+  - Nomes de plataformas e categorias são escapados antes de entrar no HTML.
+  - (Revertido na 0.4.12.) O gráfico diário de Lucro (Semana) passou a usar a
+    mesma fórmula do resumo. A alteração foi revertida a pedido.
+  - Remover uma plataforma extra passa a arquivá-la (`archived: true`). Deixa de
+    aparecer como opção nova, mas os ganhos antigos mantêm o nome. Re-adicionar a
+    mesma plataforma volta a ativá-la.
+
+- **Versão 0.4.9 — bloco "Conta"**: o estado da assinatura saiu da secção
+  própria e passou para a parte inferior do cartão de conta, sob o título
+  "Assinatura". A secção de Configurações passou a chamar-se apenas "Conta".
+
+- **Versão 0.4.8 — ajustes ao cartão de conta**: símbolo "G" do Google com o
+  texto "Conectado com Google" acima do email. O botão "Sair" fica à direita, com
+  fundo branco e letra vermelha. O ID da conta (UID) aparece mascarado como
+  `****`, com um botão "mostrar"/"ocultar". A escolha fica guardada só neste
+  dispositivo (`localSettings.showUid`), sem sincronizar.
+
+- **Versão 0.4.7 — perfil e conta num só cartão**: em Configurações → "Perfil e
+  conta", a secção "Conta" separada foi integrada no cartão do perfil. A foto por
+  omissão é a foto da conta Google (`currentPhotoUrl()`: foto própria, ou se não
+  existir, a do Google). O botão "trocar" continua a permitir enviar outra foto, e
+  "Repor foto do Google" volta à foto da conta. O nome é livre, com o nome do
+  Google como sugestão no campo. Por baixo aparecem o email e o ID da conta
+  (UID); sem sessão, aparece o botão "Continuar com Google". O botão "Sair da
+  conta" também está neste cartão. A secção "Conta (suporte)" do Modo Dev foi
+  removida.
+
+- **Versão 0.4.6 — botão GitHub no Modo Dev**: o link "Ver no GitHub" saiu do
+  ecrã "Você" e foi para o Modo Dev, com o novo endereço
+  `https://github.com/Rodrig0ASilva`.
+
+- **Versão 0.4.6 — sincronização no Modo Dev**: a secção "Sincronização" (URL do
+  Google Apps Script, bloquear/editar) foi movida do ecrã "Você" para dentro do
+  Modo Dev.
+
+- **Versão 0.4.6 — conta de suporte no Modo Dev**: mostra o email e o UID da
+  conta Google, com botão "Copiar email + UID". O UID também está no Firebase
+  Console → Authentication → Utilizadores, onde se pode procurar pelo email.
+
+- **Versão 0.4.6 — "Apagar todos os dados" sempre no fim**: o botão fica depois
+  do Modo Dev, como última opção do ecrã "Você".
+
+- **Versão 0.4.6 — "Registos opcionais"**: nova secção em "Você" com interruptores
+  para **Turno de trabalho**, **Quilómetros (km)** e **Usar outras plataformas**.
+  Os três são guardados em `profile` (`showTurno`, `showKm`,
+  `customPlatformsEnabled`) e sincronizam entre dispositivos. Por omissão, turno
+  começa ligado, km desligado, e outras plataformas ligadas só se já existirem
+  plataformas registadas. Desativar um interruptor esconde a funcionalidade, mas
+  não apaga os dados já gravados.
+
+- **Versão 0.4.6 — km nas Estatísticas**: o campo de km do ganho aparece no
+  formulário "Novo ganho" quando o interruptor está ativo. Se for preenchido, as
+  Estatísticas mostram o cartão "Quilometragem" (km registados e lucro por km) e
+  o Lucro mostra o lucro por km. Os km do dia são gravados no primeiro ganho desse
+  registo, para não serem contados em dobro.
+
+- **Versão 0.4.6 — lista de outras plataformas**: a lista e o campo para adicionar
+  plataformas só aparecem com o interruptor "Usar outras plataformas" ativo.
 
 ## 11. Formato de armazenamento alternativo (schema v1)
 
