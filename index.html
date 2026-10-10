@@ -768,6 +768,7 @@ body.dark button[onclick="lockSyncUrl()"] { background: var(--vault); color: #ff
       </div>
       <div class="switch" id="swTurno" onclick="toggleFeature('showTurno')"></div>
     </div>
+    <div id="turnoNamesRow" style="display:none;margin:0 0 8px;"></div>
     <div class="switch-row">
       <div class="switch-row-text">
         <div class="switch-row-title">Quilómetros (km)</div>
@@ -839,7 +840,6 @@ body.dark button[onclick="lockSyncUrl()"] { background: var(--vault); color: #ff
       Exportar dados
     </button>
 
-    <div style="text-align:center;padding:18px 0 4px;font-size:11px;color:var(--text-faint);" onclick="tapVersion()">Corrida+ v<span id="appVersionDisplay"></span></div>
 
     <div id="devPanel" style="display:none;margin-top:4px;border:1.5px dashed var(--terracotta);border-radius:var(--r-xl);padding:16px 18px 20px;">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
@@ -984,6 +984,7 @@ body.dark button[onclick="lockSyncUrl()"] { background: var(--vault); color: #ff
       <div style="font-size:11px;color:var(--text-muted);text-align:center;margin-top:8px;line-height:1.5;">Ação permanente. Pede um código de confirmação antes de apagar.</div>
     </div>
 
+    <div style="text-align:center;padding:24px 0 8px;font-size:11px;color:var(--text-faint);" onclick="tapVersion()">Corrida+ v<span id="appVersionDisplay"></span></div>
     <div style="height:24px;"></div>
   </div>
 
@@ -1127,7 +1128,7 @@ body.dark button[onclick="lockSyncUrl()"] { background: var(--vault); color: #ff
 // Esquema de versão: de volta ao pré-1.0 (0.x.x) — a v1.0.0 fica
 // reservada para o lançamento com assinatura paga completa. A numeração
 // 4.x.x usada temporariamente para a integração Firebase foi abandonada.
-const APP_VERSION = '0.4.19';
+const APP_VERSION = '0.4.21';
 // Mostra o número da versão na tela de carregamento imediatamente (sem
 // esperar por loadAll/qualquer coisa assíncrona) — sempre visível,
 // independente da mensagem dinâmica ("A carregar…", "A sincronizar…",
@@ -2367,6 +2368,12 @@ function renderSettings(){
   if(swIva) swIva.className = 'switch' + (ivaOn() ? ' on' : '');
   const ivaFieldsRow = document.getElementById('ivaFieldsRow');
   if(ivaFieldsRow) ivaFieldsRow.style.display = ivaOn() ? 'block' : 'none';
+  const tnRow = document.getElementById('turnoNamesRow');
+  if(tnRow){
+    tnRow.style.display = showTurno() ? 'block' : 'none';
+    tnRow.innerHTML = showTurno() ? `<div class="section-sub" style="margin-bottom:8px;">Nomes dos turnos (máx. 14 letras). Deixa em branco para usar o nome original.</div>` + TURNOS.map(t => `
+      <div class="field" style="margin-bottom:8px;"><label>${t.emoji} ${escapeHtml(t.label)}</label><input type="text" maxlength="14" value="${escapeHtml((profile.turnoNames || {})[t.key] || '')}" placeholder="${escapeHtml(t.label)}" onchange="updateTurnoName('${t.key}', this.value)" /></div>`).join('') : '';
+  }
   const swDaily = document.getElementById('swDailySummary');
   if(swDaily) swDaily.className = 'switch' + (featureOn('dailySummaryEnabled') ? ' on' : '');
   const goalsSw = document.getElementById('goalsEnabledSwitch');
@@ -2772,7 +2779,7 @@ function exportDataToExcel(){
         ganhosRows.push({
           'Data': e.date || '',
           'Plataforma': platformLabel(e.platform),
-          'Turno': e.turno ? (TURNOS.find(t=>t.key===e.turno)?.label || e.turno) : '',
+          'Turno': e.turno ? (getTurnos().find(t=>t.key===e.turno)?.label || e.turno) : '',
           'Bruto (€)': Math.round((e.amount||0)*100)/100,
           'IVA (€)': Math.round(iva*100)/100,
           'Comissão (€)': Math.round(com*100)/100,
@@ -3066,7 +3073,7 @@ function horizontalBarsHTML(items){
   }).join('');
 }
 // Gráfico "Ganhos por turno" — só aparece se pelo menos um ganho do
-// período tiver o campo opcional `turno` preenchido (ver TURNOS e o
+// período tiver o campo opcional `turno` preenchido (ver getTurnos() e o
 // seletor em openAddIncomeSheet). Destaca qual turno rendeu mais no total.
 function kmStatsHTML(items, lucro){
   if(!showKm()) return '';
@@ -3085,7 +3092,7 @@ function turnoBreakdownHTML(items){
   if(withTurno.length === 0) return '';
   const totals = {};
   withTurno.forEach(e => { totals[e.turno] = (totals[e.turno] || 0) + (e.amount || 0); });
-  const bars = TURNOS
+  const bars = getTurnos()
     .filter(t => totals[t.key] > 0)
     .map(t => ({ label: `${t.emoji} ${t.label}`, value: totals[t.key], color: '#B8862B' }));
   if(bars.length === 0) return '';
@@ -3655,7 +3662,7 @@ function lucroBreakdownHTML(apps, comb, part, fixas, varOther, km, hours, contex
   if(ivaVal > 0) html += lucroLineHTML(`IVA (${ivaVal}%)`, -iva, true);
   if(comVal > 0) html += lucroLineHTML(`Comissão plataforma (${comVal}%)`, -com, true);
   if(ivaVal > 0 || comVal > 0){
-    html += `<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;margin:4px 0;border-top:1.5px dashed var(--line);border-bottom:1.5px dashed var(--line);">
+    html += `<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;margin:4px 0;border-top:none;border-bottom:1.5px dashed var(--line);">
       <span style="font-size:12px;font-weight:600;color:var(--text-muted);">Líquido TVDE (após taxas)</span>
       <span style="font-family:'JetBrains Mono',monospace;font-weight:700;font-size:13px;">${fmt(apps - iva - com)}</span>
     </div>`;
@@ -3912,6 +3919,18 @@ async function toggleUidVisibility(){
   renderSettings();
 }
 function currentPhotoUrl(){ return profile.photo || (window.__fbUser && window.__fbUser.photoURL) || null; }
+function getTurnos(){
+  const names = profile.turnoNames || {};
+  return TURNOS.map(t => ({ ...t, label: names[t.key] || t.label }));
+}
+async function updateTurnoName(key, value){
+  const v = (value || '').trim().slice(0, 14);
+  profile.turnoNames = profile.turnoNames || {};
+  if(v) profile.turnoNames[key] = v; else delete profile.turnoNames[key];
+  await persistProfile();
+  renderSettings();
+  showToast('Nome do turno atualizado');
+}
 function isTvdePlatform(platform){
   if(platform === 'uber' || platform === 'bolt') return true;
   const cp = findCustomPlatform(platform);
@@ -3962,8 +3981,6 @@ function renderEarningsList(items, emptyMsg){
     // IVA/comissão descontados — plataformas pessoais (Particular, Outros,
     // personalizadas) não têm desconto, então líquido === bruto e a linha
     // extra seria redundante (omitida nesse caso).
-    const showLiquido = isTvdePlatform(it.platform) && (ivaRate() > 0 || comissaoRate() > 0);
-    const liquido = it.amount - ivaAmount(it.amount) - comissaoAmount(it.amount);
     return `
     <div class="income-row-compact">
       ${platformBadge(it.platform)}
@@ -3973,7 +3990,6 @@ function renderEarningsList(items, emptyMsg){
       </div>
       <div style="display:flex;flex-direction:column;align-items:flex-end;gap:2px;">
         <div class="bill-amount-edit"><input type="number" class="bill-amount-input" inputmode="decimal" value="${it.amount}" onchange="updateEarningAmount('${it.id}', this.value)" /></div>
-        ${showLiquido ? `<div style="font-size:10px;color:var(--text-muted);font-family:'JetBrains Mono',monospace;">líq. ${fmt(liquido)}</div>` : ''}
       </div>
       <div class="bill-delete" onclick="removeEarning('${it.id}')">✕</div>
     </div>`;
@@ -4163,7 +4179,7 @@ function openAddIncomeSheet(){
       <label>Turno trabalhado (opcional)</label>
       <div class="seg" id="incTurnoSeg" style="flex-wrap:wrap;height:auto;">
         <div class="seg-opt active" data-t="" onclick="pickIncomeTurno('')" style="flex:1 1 calc(50% - 4px);margin:2px;">Não dizer</div>
-        ${TURNOS.map(t => `<div class="seg-opt" data-t="${t.key}" onclick="pickIncomeTurno('${t.key}')" style="flex:1 1 calc(50% - 4px);margin:2px;">${t.emoji} ${t.label}</div>`).join('')}
+        ${getTurnos().map(t => `<div class="seg-opt" data-t="${t.key}" onclick="pickIncomeTurno('${t.key}')" style="flex:1 1 calc(50% - 4px);margin:2px;">${t.emoji} ${t.label}</div>`).join('')}
       </div>
       <div class="section-sub" style="font-size:11px;margin-top:6px;">Se preencheres, as Estatísticas passam a mostrar qual turno rende mais para ti.</div>
     </div>` : '';
