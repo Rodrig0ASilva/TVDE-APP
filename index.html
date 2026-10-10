@@ -688,11 +688,11 @@ body.glass-clear.dark .seg > .glass-pill { background: rgba(255,255,255,0.22); b
 body.glass-clear .seg-opt.active, body.glass-clear.dark .seg-opt.active { color: var(--ink); }
 body.glass-clear .glass-pill { background: rgba(255,255,255,0.45); }
 body.glass-clear.dark .glass-pill { background: rgba(255,255,255,0.14); }
-/* Camadas fixas em composição própria: não saltam nem mudam de escala ao trocar de aba */
-.tabbar, #customBg, body::before {
-  transform: translateZ(0); -webkit-transform: translateZ(0);
-  backface-visibility: hidden; -webkit-backface-visibility: hidden;
-}
+/* Só a área das telas rola. A página não rola, por isso a barra de endereço
+   do navegador (Android e iOS) não faz a barra de abas saltar. */
+html, body { height: 100%; overflow: hidden; }
+body { height: 100dvh; }
+#app { height: 100dvh; overflow-y: auto; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; }
 /* Raios aninhados concêntricos: raio interno = raio externo − espaçamento */
 /* Seletores (Dia·Semana·Mês·Ano, tema, etc.): contentor 12px, padding 3px -> interno 9px */
 .seg { border-radius: var(--r-md); }
@@ -1388,7 +1388,7 @@ body.glass-clear.dark .glass-pill { background: rgba(255,255,255,0.14); }
 // Esquema de versão: de volta ao pré-1.0 (0.x.x) — a v1.0.0 fica
 // reservada para o lançamento com assinatura paga completa. A numeração
 // 4.x.x usada temporariamente para a integração Firebase foi abandonada.
-const APP_VERSION = '0.66';
+const APP_VERSION = '0.68';
 // Mostra o número da versão na tela de carregamento imediatamente (sem
 // esperar por loadAll/qualquer coisa assíncrona) — sempre visível,
 // independente da mensagem dinâmica ("A carregar…", "A sincronizar…",
@@ -2666,7 +2666,8 @@ function showScreen(id){
   const next = document.getElementById(id);
   next.classList.add('active');
   if(from >= 0 && to >= 0 && from !== to){ next.classList.add(to > from ? 'slide-r' : 'slide-l'); }
-  if(window.scrollY > 0) window.scrollTo(0, 0);
+  const appEl = document.getElementById('app');
+  if(appEl && appEl.scrollTop > 0) appEl.scrollTop = 0;
 }
 function goGanhos(){ showScreen('screen-ganhos'); activateTab('tabGanhos'); renderGanhos(); }
 function goSettings(){ showScreen('screen-settings'); activateTab('tabSettings'); renderSettings(); }
@@ -2930,11 +2931,22 @@ function applyGlassVars(){
   document.body.style.setProperty('--gl-b', (0.35 + 1.3 * L / 100).toFixed(3));
 }
 // Ao arrastar, só atualiza o aspeto; ao soltar, guarda.
+// "Ímã": perto de 0, 50 ou 100, o valor encaixa na posição exata (margem de 6 pontos).
+function snapGlass(v){
+  const n = Number(v);
+  const pts = [0, 50, 100];
+  const near = pts.reduce((best, p) => Math.abs(p - n) < Math.abs(best - n) ? p : best, pts[0]);
+  return Math.abs(near - n) <= 6 ? near : n;
+}
+// Ao arrastar, só atualiza o aspeto; ao soltar, guarda.
 async function setGlassLevel(v, live){
-  localSettings.glassLevel = Number(v);
+  const L = snapGlass(v);
+  localSettings.glassLevel = L;
+  const inp = document.querySelector('#glassControls input[type=range]');
+  if(inp && Number(inp.value) !== L) inp.value = L;
   applyGlassVars();
   const lab = document.querySelector('#glassControls .field label');
-  if(lab) lab.textContent = 'Intensidade: ' + glassLevelLabel(glassLevel());
+  if(lab) lab.textContent = 'Intensidade: ' + glassLevelLabel(L);
   if(!live) await persistLocalSettings();
 }
 async function toggleGlassTint(){
@@ -2973,10 +2985,15 @@ async function toggleLiquidGlass(){
   const fadeEls = [document.getElementById('app'), document.querySelector('.tabbar')].filter(Boolean);
   fadeEls.forEach(el => el.classList.add('fade-out'));
   setTimeout(() => {
-    softChange(() => applyLiquidGlass());
-    const swG = document.getElementById('swGlass');
-    if(swG) swG.className = 'switch' + (localSettings.liquidGlass === true ? ' on' : '');
-    fadeEls.forEach(el => el.classList.remove('fade-out'));
+    try{
+      softChange(() => applyLiquidGlass());
+      const swG = document.getElementById('swGlass');
+      if(swG) swG.className = 'switch' + (localSettings.liquidGlass === true ? ' on' : '');
+    }catch(e){
+      console.warn('Falha ao aplicar o efeito transparente:', e);
+    }finally{
+      fadeEls.forEach(el => el.classList.remove('fade-out'));
+    }
   }, 220);
   showToast(localSettings.liquidGlass ? '🪟 Liquid glass ativado' : 'Liquid glass desativado');
 }
