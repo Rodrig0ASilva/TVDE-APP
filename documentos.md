@@ -1,1395 +1,6392 @@
-# Corrida+ — Documentação técnica
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<title>Corrida+</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%231F3A2E'/%3E%3Cg transform='translate(8,18)'%3E%3Cpath d='M6 16 L10 6 Q12 3 16 3 L32 3 Q36 3 38 6 L42 16' fill='none' stroke='%23D9A949' stroke-width='3' stroke-linecap='round'/%3E%3Crect x='2' y='15' width='44' height='14' rx='5' fill='%23D9A949'/%3E%3Ccircle cx='12' cy='31' r='6' fill='%231F3A2E' stroke='%23D9A949' stroke-width='2.5'/%3E%3Ccircle cx='36' cy='31' r='6' fill='%231F3A2E' stroke='%23D9A949' stroke-width='2.5'/%3E%3Crect x='2' y='20' width='11' height='6' rx='2' fill='%231F3A2E' opacity='0.5'/%3E%3Crect x='35' y='20' width='11' height='6' rx='2' fill='%231F3A2E' opacity='0.5'/%3E%3C/g%3E%3C/svg%3E" />
+<link rel="manifest" href="data:application/manifest+json;base64,eyJuYW1lIjogIkNvcnJpZGErIiwgInNob3J0X25hbWUiOiAiQ29ycmlkYSsiLCAiZGVzY3JpcHRpb24iOiAiR2VzdMOjbyBmaW5hbmNlaXJhIHBhcmEgbW90b3Jpc3RhIGRlIGFwcCIsICJzdGFydF91cmwiOiAiLi8iLCAic2NvcGUiOiAiLi8iLCAiZGlzcGxheSI6ICJzdGFuZGFsb25lIiwgIm9yaWVudGF0aW9uIjogInBvcnRyYWl0IiwgImJhY2tncm91bmRfY29sb3IiOiAiI0Y2RUZFMiIsICJ0aGVtZV9jb2xvciI6ICIjMUYzQTJFIiwgImljb25zIjogW3sic3JjIjogImRhdGE6aW1hZ2Uvc3ZnK3htbCw8c3ZnIHhtbG5zPSdodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2Zycgdmlld0JveD0nMCAwIDY0IDY0Jz48cmVjdCB3aWR0aD0nNjQnIGhlaWdodD0nNjQnIHJ4PScxNCcgZmlsbD0nJTIzMUYzQTJFJy8+PGcgdHJhbnNmb3JtPSd0cmFuc2xhdGUoMTIsMTYpJyBmaWxsPSdub25lJyBzdHJva2U9JyUyM0Q5QTk0OScgc3Ryb2tlLXdpZHRoPScyLjYnPjxwYXRoIGQ9J00zIDE2IEw2IDggUTcuNSA1IDEwLjUgNSBMMjkuNSA1IFEzMi41IDUgMzQgOCBMMzcgMTYnIHN0cm9rZS1saW5lY2FwPSdyb3VuZCcvPjxyZWN0IHg9JzInIHk9JzE1JyB3aWR0aD0nMzYnIGhlaWdodD0nMTQnIHJ4PSczLjUnLz48Y2lyY2xlIGN4PSc5LjUnIGN5PSczMCcgcj0nMy42JyBmaWxsPSclMjNEOUE5NDknIHN0cm9rZT0nbm9uZScvPjxjaXJjbGUgY3g9JzMwLjUnIGN5PSczMCcgcj0nMy42JyBmaWxsPSclMjNEOUE5NDknIHN0cm9rZT0nbm9uZScvPjwvZz48L3N2Zz4iLCAic2l6ZXMiOiAiYW55IiwgInR5cGUiOiAiaW1hZ2Uvc3ZnK3htbCIsICJwdXJwb3NlIjogImFueSBtYXNrYWJsZSJ9XX0=" />
+<link rel="apple-touch-icon" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAALQAAAC0CAYAAAA9zQYyAAAEy0lEQVR4nO3d0VXbMBiGYSWnW3DBBgzAAF0ns3QdBmAANuCic9CLnnAgOLYkS9b/fXqfAagtvf2tJCU9pQAen58+Rl8D9nt/fTuNvoYhF0DA8zg68sP+MCLGEXF3/QOIGEt6ht3lBxMycvQIu/kPJGaUahl2sx9EyNirRdjnFhdCzGihRUe7/kYQMnqpndbVE5qY0VNtX1VBEzOOUNNZcdDEjCOV9lYUNDFjhJLusoMmZoyU219W0MSMCHI63AyamBHJVo9NPlgBolgNmumMiNa6vBs0MSOye31y5ICVxaCZzlCw1OmPoIkZSm575cgBK9+CZjpD0ddumdCwQtCw8hk0xw0ou/bLhIYVgoaVU0ocN+CDCQ0rBA0rBA0rZ87PcMKEhhWChhWChhWChhWChhWChhWChhWChhWChhWChhWChhWChhWChhWChhWChhWChhWChhWChhWChhWChhWChpVfoy9ghJfLw+hLOMTvP39HX8LhTjN9L8csId+aKexpjhyzxpzSXPduP6Fn2swc7tPaekIT80/ua2I5od03rRXHaW0VNCHXcQrb5shBzPWc1k5+Qu/ZDKfJ9NXMazLlByvqm7blen9OkzeXbNA1m+Ue8q3asF8uD7JrZXOG3qK6QS2U3Lv6VJc8Q5cs+swhL3FfO+sJrbghvbmviewZeo37pu3l/KJRbkI7bkJUimstFzSwxi5ojhv5HNdKKmjFR6A6tTWXChrYYhW04yO0N7c1kwla7dHnRGntZYIGckgEnTMh3B6dR8pZO5UpLRE0kMsiaKbzfi5rGD5olUfdDBT2InzQQAn5oF0elRE4rGXooBUecbOJviehgwZKyf8D/+gTA8cKO6EJNa7IexM2aKAGQcMKQcNK2KAd3hN1FXlvwgYN1CBoFIv8Lof8+9CRH3+qIge7RXpCE3MfyusqHTRwi6BhhaBhhaBhhaBhhaBhhaBhhaBhhaBhhaBhhaBhhaBhhaBhhaBhhaBhhaBhhaBhhaBhhaBhhaBhhaBhhaBhRfp7OV4uD7v/jz3lX9lf0uJelb+X4/T4/PQx+iLuUV5Yd1EHQegjR9RFm13kfQkdNFAqfNCRp8GMou9H+KBTir+Is1DYB4mgU9JYTGcq6y8TdEo6i+pGad1Dv223hrf0+lMK+Uo26Fs9Ao+6oTPdaympIwewhaBhhaBhhaBhxSbo1i9qIr9ImuleS9kEDaRkFnSrSaMwsWa61xJWQae0f4OUNnime81lF3RK9RuluMEz3WsOy6BTKt8w5Q2e6V632Hz0vYbfKfzP7V6XTBE05mF75MCcCBpWCBpWCBpWCBpWCBpWzu+vb6fRFwG0woSGFYKGFYKGFYKGlXNKKfHCEA7eX99OTGhYIWhY+QyaYweUXftlQsPKt6CZ0lD0tVsmNKz8CJopDSW3vTKhYWUxaKY0FCx1yoSGlbtBM6UR2b0+Vyc0USOitS45ckDK1pDdDJopDSVZE5qoEUFOh9lHDqLGSLn9FZ2hiRojlHRX/KKQqHGk0t6q3uUgahyhprNdYfLd0uhhz8BsMmkJG63sffo3+WCFIwhaaNFR8xCZ1ijVciB2maxEjRw9nuxdjwqEjSU9j6iHnX2JG0e81hryYo6453H0Gwb/AMnXgMvik2jYAAAAAElFTkSuQmCC" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="apple-mobile-web-app-title" content="Corrida+" />
+<meta name="mobile-web-app-capable" content="yes" />
+<meta name="theme-color" content="#1F3A2E" id="themeColorMeta" media="(prefers-color-scheme: light)" />
+<meta name="theme-color" content="#16161B" id="themeColorMetaDark" media="(prefers-color-scheme: dark)" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<!-- SheetJS — usada só para gerar o ficheiro .xlsx de "Exportar dados" (Configurações → Exportação). -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script type="module">
+  // Firebase (Auth + Firestore) — SDK modular via CDN, sem bundler/npm.
+  // Este bloco corre num escopo de módulo próprio (import/export), por
+  // isso tudo o que o resto da app (script clássico, mais abaixo) precisa
+  // chamar é exposto explicitamente em `window.fb*`. Scripts type="module"
+  // são sempre adiados (como "defer"), então podem terminar de inicializar
+  // DEPOIS do script clássico já ter corrido até ao fim — por isso o fim
+  // deste bloco dispara o evento "firebase-ready", que o script principal
+  // espera antes de chamar loadAll() (ver o fim do ficheiro).
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-app.js";
+  import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged }
+    from "https://www.gstatic.com/firebasejs/12.19.0/firebase-auth.js";
+  import { getFirestore, doc, getDoc, setDoc, onSnapshot, collection, query, where }
+    from "https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js";
+  import { initializeAppCheck, ReCaptchaV3Provider }
+    from "https://www.gstatic.com/firebasejs/12.19.0/firebase-app-check.js";
 
-Este ficheiro reúne a documentação de arquitetura que antes vivia como comentários
-longos dentro do `corridaplus.html`. O HTML principal mantém apenas comentários
-curtos, apontando para aqui quando for preciso mais contexto.
+  const firebaseConfig = {
+    apiKey: "AIzaSyBp1CvFgAwUAMW_FTz5TqkeKhG1smf2SCc",
+    authDomain: "tvdecorridas.firebaseapp.com",
+    projectId: "tvdecorridas",
+    storageBucket: "tvdecorridas.firebasestorage.app",
+    messagingSenderId: "167564712491",
+    appId: "1:167564712491:web:936fde470ec1172c4fa86e",
+    measurementId: "G-YCRTB7WFQ4"
+  };
 
-## Índice
-1. [Estado global e chaves de mês](#1-estado-global-e-chaves-de-mês)
-2. [Sincronização com a nuvem](#2-sincronização-com-a-nuvem)
-3. [Pull-antes-de-push (merge)](#3-pull-antes-de-push-merge)
-4. [IVA, comissão e cálculo de lucro](#4-iva-comissão-e-cálculo-de-lucro)
-5. [Encriptação opcional (Modo Dev)](#5-encriptação-opcional-modo-dev)
-6. [Desbloqueio biométrico (WebAuthn)](#6-desbloqueio-biométrico-webauthn)
-7. [Easter eggs](#7-easter-eggs)
-8. [Log de sincronização](#8-log-de-sincronização)
-9. [Alterações desta versão (v3.1.0)](#9-alterações-desta-versão-v310)
+  const fbApp = initializeApp(firebaseConfig);
+  const fbAuth = getAuth(fbApp);
 
----
+  // ---------------------------------------------------------------
+  // App Check — reforço real contra "copiarem o site e usarem a minha
+  // base de dados": verifica que cada pedido ao Firestore vem mesmo desta
+  // app, não de um script/clone a imitar os pedidos. Usa reCAPTCHA v3
+  // (invisível, sem fricção para o utilizador) como "atestado".
+  //
+  // SITE_KEY_PLACEHOLDER tem de ser substituído por uma chave real do
+  // reCAPTCHA v3, obtida em: Firebase Console → App Check → Apps → Web
+  // app → Registar → reCAPTCHA v3 (gera a chave automaticamente). Sem
+  // essa troca, este bloco não faz nada — fica desativado em segurança
+  // (não bloqueia a app a funcionar enquanto a chave não é configurada).
+  // Depois de trocar a chave, ainda é preciso ativar a "aplicação"
+  // (enforcement) do App Check para Firestore no mesmo painel — antes
+  // disso, o App Check só regista métricas, não bloqueia nada.
+  // ---------------------------------------------------------------
+  const APP_CHECK_SITE_KEY = 'SITE_KEY_PLACEHOLDER';
+  if(APP_CHECK_SITE_KEY !== 'SITE_KEY_PLACEHOLDER'){
+    try{
+      initializeAppCheck(fbApp, {
+        provider: new ReCaptchaV3Provider(APP_CHECK_SITE_KEY),
+        isTokenAutoRefreshEnabled: true
+      });
+    }catch(e){ console.warn('App Check falhou ao iniciar:', e); }
+  }
+  const fbDb   = getFirestore(fbApp);
+  const googleProvider = new GoogleAuthProvider();
 
-## 1. Estado global e chaves de mês
+  // Resolve com o utilizador (ou null) assim que o Firebase souber se há
+  // sessão guardada — loadAll() espera por isto antes de decidir entre
+  // mostrar o ecrã de login ou carregar a app.
+  window.fbAuthReadyPromise = new Promise((resolve) => {
+    const unsubscribe = onAuthStateChanged(fbAuth, (user) => { unsubscribe(); resolve(user); });
+  });
+  // Mantém window.__fbUser atualizado também depois da primeira resolução
+  // (login/logout noutra aba, expiração de sessão, etc.).
+  onAuthStateChanged(fbAuth, (user) => { window.__fbUser = user || null; });
 
-O app organiza tudo por mês usando uma string `"AAAA-MM"` (ex: `"2026-07"`) como
-chave do objeto global `monthData`. Cada entrada de mês tem a forma:
+  window.fbSignInWithGoogle = async () => {
+    await signInWithPopup(fbAuth, googleProvider);
+    location.reload();
+  };
+  window.fbSignOut = () => signOut(fbAuth);
 
-```js
-{ earnings: [], billOverrides: {}, billsPaid: {}, hiddenBills: {}, variableExpenses: [] }
-```
+  // Armazenamento: um documento por utilizador (users/{uid}), com o MESMO
+  // formato do "schema v1" já usado para a sincronização via Apps Script
+  // (normalizeToSchemaV1/denormalizeFromSchemaV1) — reaproveitado tal e
+  // qual, só muda o destino de onde esse objeto é lido/escrito.
+  window.fbSaveUserData = async (uid, dataObj) => {
+    await setDoc(doc(fbDb, 'users', uid), dataObj);
+  };
+  window.fbLoadUserData = async (uid) => {
+    const snap = await getDoc(doc(fbDb, 'users', uid));
+    return snap.exists() ? snap.data() : null;
+  };
+  // Tempo real: chama o callback sempre que o documento mudar (incluindo
+  // já na primeira vez, com o valor atual) — é o que faz os dispositivos
+  // atualizarem-se sozinhos sem precisar de puxar manualmente.
+  window.fbListenUserData = (uid, callback) => {
+    return onSnapshot(doc(fbDb, 'users', uid), (snap) => { if(snap.exists()) callback(snap.data()); });
+  };
 
-- `earnings` — ganhos do dia a dia (Uber, Bolt, Particular, Outros)
-- `variableExpenses` — despesas variáveis (combustível, manutenção, etc.)
-- `billOverrides` — valor customizado de uma despesa fixa **só neste mês**
-- `billsPaid` — registo de pagamento de despesas fixas neste mês
-- `hiddenBills` — despesas fixas ocultadas neste mês (sem apagar globalmente)
+  // Lê o estado da assinatura (Fase 3 — Stripe), assim que essa coleção
+  // existir. A coleção customers/{uid}/subscriptions é escrita SÓ pela
+  // extensão Stripe (via Cloud Functions, que ignoram as regras do
+  // cliente) — nunca por este script. Devolve null se não houver nenhuma
+  // assinatura ativa/em teste, ou se a coleção ainda nem existir (antes
+  // de o Stripe estar configurado) — nesse caso, o app simplesmente
+  // mostra "sem assinatura", sem erro.
+  window.fbListenSubscription = (uid, callback) => {
+    try{
+      const subsRef = collection(fbDb, 'customers', uid, 'subscriptions');
+      const q = query(subsRef, where('status', 'in', ['active', 'trialing']));
+      return onSnapshot(q,
+        (snap) => { callback(snap.empty ? null : snap.docs[0].data()); },
+        (err) => { console.warn('Falha ao ler assinatura (normal se o Stripe ainda não estiver configurado):', err); callback(null); }
+      );
+    }catch(e){
+      console.warn('fbListenSubscription falhou:', e);
+      callback(null);
+      return () => {};
+    }
+  };
 
-`ensureMonthEntry(key)` garante que a entrada existe antes de qualquer leitura —
-isto é chamado constantemente, inclusive só por navegação, sem o utilizador ter
-adicionado dados. Essas entradas "vazias" (criadas só por navegar) **não** são
-enviadas à nuvem — `pruneEmptyMonths()` remove-as do payload antes do POST.
-
-`bills` (despesas fixas) é uma lista global, não por mês. Cada bill tem
-`createdMonthKey` — o mês em que foi criada — para não aparecer retroativamente
-em meses anteriores. `frequency` pode ser `diaria`, `semanal` ou `mensal`, e
-`totalFixedBills()` multiplica o valor pelos dias/semanas do mês corrente
-conforme o caso.
-
-## 2. Sincronização com a nuvem
-
-Arquitetura: um Google Apps Script (fora deste ficheiro) expõe:
-- `doGet()` — devolve o conteúdo da célula A1 como JSON
-- `doPost()` — sobrescreve essa célula com o body recebido
-
-O app só faz GET e POST para a URL guardada em `syncUrl` (device-local, nunca
-enviada como parte do payload). Não há autenticação própria — a "segurança"
-vem de a URL do Apps Script ser secreta.
-
-- **Timeout**: toda chamada de rede tem limite de 15s (`SYNC_TIMEOUT_MS`) via
-  `AbortController`.
-- **Retry automático**: falhas muito rápidas (<500ms) são tratadas como
-  sintoma de rate-limiting/cold-start do Apps Script e disparam até 2 retries
-  com backoff crescente (800ms, depois 1600ms) antes de desistir.
-- **Migração de planilha**: se o JSON recebido tiver um campo `syncUrl` em
-  texto plano (verificado *antes* de tentar decifrar, mesmo com encriptação
-  ativa), o app troca de planilha e sincroniza de novo com a URL nova.
-- **Encriptação**: se o JSON vier com `{encrypted:true, salt, iv, data}`, ver
-  secção 5.
-- **Log**: cada tentativa é registada via `logSyncEvent()` — ver secção 8.
-
-`pushToCloud()` sobrescreve o documento inteiro (não é merge incremental do
-lado do servidor) — por isso a secção seguinte é importante.
-
-## 3. Pull-antes-de-push (merge)
-
-> **Nota (v0.4.11):** a união por ID e as lápides descritas nas secções 3 e
-> 3.1 foram substituídas pela fusão com base em três vias (ver a entrada da
-> versão 0.4.11 na secção 10). A secção 3 fica como histórico.
-
-**Comportamento a partir da v3.1.0:** antes de qualquer envio à nuvem, o app
-primeiro busca (GET) o estado mais recente da planilha e faz merge com o
-estado local, e só então monta e envia o payload (POST).
-
-Isto evita o cenário em que dois dispositivos editam quase ao mesmo tempo e
-um deles sobrescreve silenciosamente o trabalho do outro (last-write-wins
-"cego"). Fluxo em `pushToCloud()`:
-
-1. `pullLatestAndMergeBeforePush()` — GET com timeout curto (6s,
-   `PRE_PUSH_PULL_TIMEOUT_MS`), separado do timeout principal de push.
-2. Se a resposta vier encriptada ou com uma migração de URL pendente, o pull
-   é ignorado silenciosamente (não faz sentido interromper o utilizador com
-   um pedido de senha só para mandar uma edição em segundo plano) — o push
-   segue com os dados locais.
-3. Caso contrário, `mergeRemoteIntoLocal(data)` aplica o remoto por cima do
-   local:
-   - **bills**: união por `id` — bills que existem só na nuvem (criadas
-     noutro dispositivo) são adicionadas; bills que existem só localmente
-     são mantidas (o utilizador pode estar a criar uma agora mesmo).
-   - **earnings / variableExpenses** (por mês): união por `id` — cada
-     registo tem um `uid()` único, então não há colisão real entre
-     dispositivos; a lista final é a soma dos dois lados.
-   - **billOverrides / billsPaid / hiddenBills**: merge de objeto,
-     `{...remoto, ...local}` — o valor local prevalece em caso de conflito
-     na mesma chave (edição feita agora mesmo, neste dispositivo).
-   - **profile**: `{...remoto, ...local}` — campos que o dispositivo local
-     não tem são preenchidos pelo remoto; campos que o local já tem
-     prevalecem.
-4. Só depois disto o payload final (`{bills, monthData, profile}`) é
-   construído e enviado via POST.
-5. Se o pull falhar (rede lenta, offline), o push segue com os dados locais
-   como antes — não bloqueia a gravação do utilizador.
-
-Isto não é um sistema de merge com controlo de versão de verdade (não há
-vetor de relógio nem resolução de conflito campo-a-campo em profile), mas
-reduz bastante o risco de perda de dados em edições quase-simultâneas,
-porque a maior parte do estado (earnings, expenses, bills) é merge por união
-de IDs, não substituição.
-
-### 3.1 Lápides de exclusão ("tombstones")
-
-União por ID tem um efeito colateral perigoso: apagar um ganho localmente
-e depois correr o merge de pré-push faz esse ganho **voltar**, porque ele
-ainda existe na planilha remota e o merge não tem como saber que "existe
-remotamente, não existe localmente" significa "apagado aqui" em vez de
-"criado noutro dispositivo".
-
-A correção é um conjunto `deletedIds` (persistido em `window.storage`,
-device-local, nunca sincronizado):
-
-- Cada função de exclusão (`removeEarning`, `deleteVariableExpense`,
-  `deleteBill`, `unpayBill`, `restoreHiddenBill`) chama `markDeleted(key)`
-  com uma chave identificando o que foi apagado — `earning:<id>`,
-  `expense:<id>`, `bill:<id>`, `billsPaidKey:<mês>:<billId>`,
-  `hiddenBillsKey:<mês>:<billId>`.
-- `mergeRemoteIntoLocal()` ignora qualquer item remoto cuja chave esteja em
-  `deletedIds` — ou seja, não volta a inserir algo que foi apagado aqui,
-  mesmo que ainda exista na nuvem.
-- As lápides são limpas automaticamente assim que um push tiver sucesso
-  (`clearDeletedIdsAfterSuccessfulPush()`) — nesse ponto a nuvem já reflete
-  a exclusão, então não há mais risco do item "voltar", e a lista não
-  cresce indefinidamente.
-- **"Apagar todos os dados"** (`confirmResetAll()`) é tratado como caso
-  especial: em vez de um push normal (que faria merge e traria tudo de
-  volta da nuvem antes de enviar o estado vazio), chama
-  `pushToCloud(undefined, true)` — o segundo parâmetro (`skipMerge`) pula o
-  merge de pré-push inteiramente, porque apagar tudo é uma sobrescrita
-  intencional, não uma edição incremental.
-
-## 4. IVA, comissão e cálculo de lucro
-
-A fórmula usada em todas as telas (Ganhos, Despesas, Estatísticas, Lucro):
-
-```
-líquido = (bruto Uber+Bolt − IVA − comissão) − combustível + Particular/Outros
-lucro   = líquido − despesas fixas − outras despesas variáveis
-```
-
-- IVA e comissão incidem **só** sobre o bruto de Uber+Bolt, nunca sobre
-  Particular/Outros — essa separação é feita por quem chama
-  `ivaAmount()`/`comissaoAmount()`, não dentro dessas funções.
-- Ambas as taxas vivem em `profile.ivaRate`/`profile.comissaoRate`
-  (percentagem inteira, ex: `6` = 6%), sincronizadas como parte do profile.
-- Se mudares esta fórmula, confirma consistência entre `renderMonthSummary()`,
-  `renderLucroMonth()`/`lucroBreakdownHTML()` e `renderStatsMonth()` — as três
-  implementam o mesmo cálculo separadamente.
-
-## 5. Encriptação opcional (Modo Dev)
-
-AES-GCM 256 bits via Web Crypto API nativa do browser, sem dependências
-externas.
-
-- A senha nunca é enviada; só a chave derivada localmente (PBKDF2, 100.000
-  iterações, SHA-256) é usada para cifrar/decifrar.
-- O `salt` é diferente a cada encriptação — a mesma senha nunca produz a
-  mesma chave duas vezes.
-- Sem a senha certa, o conteúdo da célula A1 da planilha é ilegível (só
-  texto cifrado em base64).
-- Ao ativar, se ainda não houver senha guardada, o app pede uma via
-  `prompt()`.
-- **Comportamento de sync**: se `requireUnlockEachSync` estiver desligado
-  (padrão) e já houver senha guardada, o app decifra automaticamente em
-  segundo plano. Se ligado, sempre pede confirmação (senha ou biometria).
-
-## 6. Desbloqueio biométrico (WebAuthn)
-
-A biometria nunca sai do dispositivo — o app só recebe um sim/não do
-sistema operativo. A senha real de encriptação continua a ser a chave; a
-biometria só decide se essa senha, já guardada localmente, pode ser
-liberada nesta sessão sem digitar de novo.
-
-- Exige encriptação já ativa com senha definida.
-- Ao ativar, regista uma credencial WebAuthn "platform" (Face ID/Touch
-  ID/digital) **neste dispositivo especificamente** — a credencial não é
-  sincronizada, cada aparelho tem a sua própria.
-
-## 7. Easter eggs
-
-Dois easter eggs vivem no Modo Dev, ambos **desativados por padrão** a
-partir da v3.1.0 e configurados via `profile` (sincronizado).
-
-### 7.1 Brincadeira "hackeamento" (`runHackScreen`)
-
-- Só roda se **ambas** as condições forem verdadeiras:
-  1. `profile.easterEggDisabled === false` (ativação explícita, feita no
-     interruptor do Modo Dev — o padrão de um perfil novo é `undefined`,
-     que conta como desativado).
-  2. O nome no perfil bate exatamente (case-insensitive) com
-     `EASTER_EGG_TARGET_NAME`.
-- Com as duas condições satisfeitas, ainda entra um sorteio:
-  `profile.easterEggRate` (0 a 1) é a probabilidade por abertura do app
-  (padrão 3% quando ativada sem taxa configurada).
-- É 100% cosmético — uma animação de texto em `<div id="hackScreen">`, não
-  toca em nenhum dado real.
-- O texto está em Base64 só para não aparecer em leitura casual do código
-  (não é segurança de verdade — qualquer pessoa pode rodar `atob()` na
-  consola). Ver comentário junto a `runHackScreen()` no HTML para o
-  processo de editar esse texto.
-
-### 7.2 Mensagem de aniversário (`runBirthdayScreen`)
-
-- Só dispara se `profile.birthdayDate` tiver sido **explicitamente
-  configurada** (formato `DD-MM`) nas definições do Modo Dev. Um perfil
-  novo não tem essa data definida, então a mensagem nunca aparece
-  automaticamente até alguém a configurar.
-- Funciona para qualquer nome preenchido no perfil (não está fixa em
-  nenhum nome específico) — a tela usa `profile.name` dinamicamente.
-- Tem prioridade sobre o hackeamento se caírem no mesmo dia.
-- Limpar o campo de data nas definições (`setBirthdayDate('')`) desativa a
-  mensagem de novo, apagando `profile.birthdayDate`.
-
-### 7.3 Sincronização
-
-Todas as configurações (taxa, ativado/desativado, data de aniversário)
-vivem dentro de `profile`, já sincronizado inteiro. Isto é intencional: se
-a pessoa descobrir e desativar num dispositivo, fica desativada em todos os
-que sincronizam com a mesma planilha.
-
-## 8. Log de sincronização
-
-Guarda os últimos 50 eventos de sincronização (sucesso, erro, timeout,
-info) localmente, útil para diagnosticar problemas sem acesso direto ao
-dispositivo do utilizador. Exportável via `navigator.share()` (folha nativa
-no iOS/Android) com fallback para download de `.txt`.
-
-## 9. Atualização automática e silenciosa (na abertura)
-
-A partir da v3.2.1, o app **não pergunta nada** — se encontrar uma versão
-mais nova publicada, atualiza-se sozinho, e só avisa depois de já ter
-acontecido.
-
-Como o app é um ficheiro estático (sem service worker/PWA de verdade), a
-"atualização" é simplesmente recarregar a página com bypass de cache. Isso
-exige dois passos, feitos em duas aberturas diferentes do app:
-
-1. **`checkForUpdatesOnStartup()`** — roda no fim de `loadAll()`, depois de
-   tudo o resto (dados locais, sincronização, easter eggs) já ter
-   carregado, para não atrasar nada. Busca a própria página (bypass de
-   cache) e lê a constante `APP_VERSION` publicada via regex — a mesma
-   técnica do botão manual "Procurar atualização" no Modo Dev, mas sem
-   depender dele.
-   - Se a versão remota for igual à local, não faz nada.
-   - Se for diferente, grava essa versão em `pendingUpdateNotice`
-     (device-local, via `window.storage`) e recarrega a página
-     imediatamente com `location.replace(...)` — sem `confirm()`, sem
-     sheet, sem esperar por nenhuma ação do utilizador.
-   - Se a rede falhar ou a página não responder, falha silenciosamente e
-     tenta de novo na próxima abertura.
-
-2. **`consumePendingUpdateNotice()`** — chamada logo no início da
-   abertura seguinte, já com a página recarregada (portanto já na versão
-   nova). Consome e apaga a marca `pendingUpdateNotice`, e devolve
-   `true`/`false` conforme a versão atual bater ou não com a marcada —
-   não mostra nenhuma UI diretamente, quem chama decide onde exibir o
-   aviso.
-
-### 9.1 Por que o aviso vive na splash, não num toast separado
-
-A primeira versão deste recurso mostrava um `showToast()` separado depois
-de a tela de carregamento (splash) desaparecer. Na prática, isso nunca
-era visto: a splash tem `z-index:999` (mais alto que o toast,
-`z-index:100`) e o seu fade-out demora 400ms — como o toast era disparado
-quase no mesmo instante em que a splash começava a desaparecer, ficava
-tapado pela splash durante boa parte da sua própria animação de entrada.
-
-A correção **unifica as duas telas**: em vez de um toast concorrendo com a
-splash pela mesma janela de tempo, `loadAll()` verifica
-`consumePendingUpdateNotice()` **antes** de esconder a splash e, se
-verdadeiro, reaproveita a própria splash para mostrar a mensagem:
-
-```js
-const updateApplied = await consumePendingUpdateNotice();
-if(updateApplied){
-  setSplash(`✅ Atualizado para v${APP_VERSION}`);
-  await new Promise(r => setTimeout(r, 1100));
+  window.__fbReady = true;
+  window.dispatchEvent(new Event('firebase-ready'));
+</script>
+<style>
+:root {
+  --cream:          #F6EFE2;
+  --cream-2:        #EFE5D2;
+  --ink:            #2A2420;
+  --vault:          #1F3A2E;
+  --vault-2:        #2C4F3D;
+  --vault-light:    #3E6650;
+  --brass:          #B8862B;
+  --brass-light:    #D9A949;
+  --terracotta:     #A8533F;
+  --terracotta-light:#C97259;
+  --line:           rgba(42,36,32,0.12);
+  --text-muted:     rgba(42,36,32,0.5);
+  --text-faint:     rgba(42,36,32,0.35);
+  --shadow-sm:      0 1px 2px rgba(42,36,32,0.06), 0 4px 12px rgba(42,36,32,0.07);
+  --shadow-md:      0 1px 2px rgba(42,36,32,0.06), 0 8px 24px rgba(42,36,32,0.09);
+  --r-sm:   8px;
+  --r-md:   12px;
+  --r-lg:   16px;
+  --r-xl:   20px;
+  --r-full: 100px;
+  --text-xs:   11px;
+  --text-sm:   12px;
+  --text-base: 14px;
+  --text-md:   15px;
+  --text-lg:   18px;
+  --text-xl:   21px;
+  --text-2xl:  28px;
 }
-hideSplash();
-```
-
-Ou seja, a splash troca o texto de "A sincronizar…" para "✅ Atualizado
-para vX.X.X", fica visível mais 1.1s, e só depois começa a desvanecer —
-garantindo que o aviso é sempre visto, porque não há mais duas telas
-disputando o mesmo espaço e o mesmo instante.
-
-> **Numeração:** a partir da versão 0.46, a numeração passa a ser 0.46, 0.47, 0.48, … As entradas anteriores mantêm a numeração 0.4.x.
-
-## 10. Alterações desta versão (até v0.74)
-- **Versão 0.74 — seletor de tema desliza ao clicar**: a mudança suave de cores (0.50) aplicava
-  uma transição de cores a todos os elementos, incluindo a gota. Por isso, ao clicar numa opção
-  de tema (Claro · Sistema · Escuro), a gota saltava em vez de deslizar. Agora a gota mantém a
-  sua animação de deslize durante a mudança de tema. Arrastar já funcionava.
-
-- **Versão 0.73 — cantos concêntricos também no modo transparente**: a regra estava definida,
-  mas no modo transparente uma regra anterior fixava as gotas em 14px, mais do que o contentor
-  (12px) permite. Por isso a gota ficava fora de alinhamento com a moldura. Agora as gotas e as
-  opções dos seletores, e as abas da barra, têm prioridade e seguem a regra nos dois modos.
-
-- **Versão 0.72 — rótulo "Padrão" alinhado ao ímã**: os rótulos Transparente / Padrão / Opaco
-  estavam distribuídos com espaço entre eles, e o do meio ficava fora do ponto 50%. Agora o
-  "Padrão" fica centrado exatamente na posição 50%, onde o cursor encaixa.
-
-- **Versão 0.71 — balões sempre tintados; interruptor da imagem de fundo**:
-  - Removida a opção "Balões tintados". Os balões ficam sempre com a cor do tema.
-  - Em Configurações → Aparência, a imagem de fundo tem um interruptor de ativar ou desativar.
-    Desligada, a imagem fica guardada e volta a aparecer ao ligar. Por omissão, fica ativa
-    quando existe imagem (`localSettings.bgEnabled`). O modo claro com texto claro sobre o
-    fundo também só se aplica com a imagem ativa.
-
-- **Versão 0.70 — barras e textos legíveis; cantos concêntricos explícitos**:
-  - **Barras de intensidade e do fundo** (véu, desfoque): polegar branco com contorno na cor
-    do tema, trilho mais escuro e parte preenchida na cor do tema. Nos dois modos.
-  - **Textos das barras** dentro de um cartão próprio (fundo branco no modo claro, escuro no
-    modo escuro), para ficarem legíveis mesmo com imagem de fundo.
-  - **Cantos**: seletores com raio interno = 12 − (1,5 + 3) = 7,5px, e barra de abas com 20 − 8
-    = 12px, agora definidos por variáveis (`--seg-inner`, `--tab-inner`).
-  - Limitação: os cartões menores dentro de outros cartões (ex.: estatísticas) têm espaçamento de
-    14–16px num cartão de raio 16px. A regra daria quase um canto reto; por isso não foram
-    alterados. Se quiseres a regra aplicada à risca, reduzo o espaçamento interno ou o raio externo.
-
-- **Versão 0.69 — correção: temas em tempo real**: a função `softChange()` tinha sido apagada
-  por engano numa alteração anterior. Por isso, ao mudar a cor do tema, o modo claro/escuro
-  ou o efeito transparente, a mudança falhava e a animação gradual não corria. Reposta.
-  Confirmado que não falta mais nenhuma função de código.
-
-- **Versão 0.68 — "ímã" na intensidade do efeito transparente**: a barra de intensidade encaixa
-  em 0 (transparente mais), 50 (padrão) e 100 (opaco), com uma margem de 6 pontos. Perto
-  desses valores, o cursor vai para a posição exata. Os valores intermédios continuam
-  disponíveis, longe dos três pontos.
-
-- **Versão 0.67 — barra de abas fixa (Android e iOS) e efeito transparente sem reiniciar**:
-  - **Causa**: a página inteira rolava. Ao rolar, a barra de endereço do navegador recolhe ou
-    expande, e a barra de abas, que é fixa, saltava de lugar. Acontecia em páginas mais compridas
-    e no Android. A camada `translateZ` da 0.64 foi removida, porque não resolvia.
-  - **Correção**: só a área das telas (`#app`) rola. O corpo da página fica fixo, e a barra de
-    abas nunca se mexe. Ao trocar de aba, a área volta ao topo.
-  - **Efeito transparente**: o fade ao ligar ou desligar termina sempre (`finally`), mesmo que
-    algo falhe. Assim a interface não fica a meio fade e não precisa de reiniciar.
-
-- **Versão 0.66 — cantos concêntricos com a borda contada**: os valores passam a contar a
-  borda, além do espaçamento. Seletores: 12 − (1,5 + 3) = 7,5px nas opções e na gota. Barra
-  de abas: 20 − (1 + 7) = 12px nas abas e na gota. Computador (barra lateral): 20 − (1 + 12) = 7px.
-- **Versão 0.65 — cantos aninhados concêntricos**: aplicada a regra "raio interno = raio externo
-  − espaçamento". Seletores (Dia·Semana·Mês·Ano, tema, frequência, turnos): contentor 12px,
-  espaçamento 3px, opções e gota (valores finais na 0.66). Barra de abas: contentor 20px. Os círculos do seletor de cor
-  e os interruptores não precisam de ajuste.
-- **Versão 0.64 — barra e fundo estáveis ao trocar de aba (diagnóstico, sem iPhone)**:
-  ao trocar de aba, a app chamava sempre `window.scrollTo(0,0)`. No iOS, isso faz a barra de
-  endereço recolher ou expandir, e as camadas fixas (barra, fundo e camada de vidro) podem
-  saltar ou parecer redimensionadas. Agora só volta ao topo se a página estiver rolada, e
-  as camadas fixas ficam em composição própria (`translateZ(0)`), para não serem repintadas
-  na troca de aba. Não foi possível reproduzir: confirmar no iPhone.
-- **Versão 0.63 — removido o deslize da página**: o deslize na horizontal sobre o conteúdo
-  que mudava de aba (das versões 0.61 e 0.62) foi removido. Mantém-se a animação de deslize
-  quando se toca numa aba (a nova entra pelo lado de onde vem). Continua a funcionar o arrasto
-  da gota na barra de abas.
-- **Versão 0.62 — barra de abas volta a arrastar a gota**: a alteração da 0.61 que impedia o
-  arrasto na barra estava errada. Ao deslizar sobre a barra, a gota volta a seguir o dedo,
-  e ao soltar muda para a aba mais próxima, como antes.
-- **Versão 0.61 — deslizar na página segue o dedo**:
-  - **Página** (só telemóvel): ao deslizar na horizontal, a aba atual acompanha o dedo e
-    a vizinha aparece do lado. Ao soltar, muda se o deslize passar 25% da largura ou for
-    rápido; senão volta. A vizinha é a da ordem da barra.
-  - Não atua sobre campos, botões, seletores, interruptores nem gráficos, nem com uma
-    folha aberta. Em ecrãs largos (computador), o deslize não está ativo.
-  - Limitação: não testado num iPhone. A sensação de seguir o dedo depende do aparelho.
-
-- **Versão 0.60 — troca de abas com deslize, sem fade**: desde a 0.56 e anteriores, as
-  telas tinham uma animação de opacidade (0 a 100%), e os cartões pareciam transparentes
-  a ficar opacos, como se a página estivesse a carregar. Agora:
-  - A nova aba entra com um deslize de 28 px, do lado de onde vem (direita ao avançar,
-    esquerda ao voltar), com opacidade total desde o início.
-  - A ordem é a das abas da barra (`SCREEN_ORDER`). Trocar pelos gestos ou pela barra
-    usa a mesma animação.
-  - Limitação: a aba que sai não faz deslize de saída; desaparece de imediato.
-
-- **Versão 0.59 — ajustes da imagem de fundo**: só aparecem quando há uma imagem.
-  - **Véu sobre a imagem** (0 a 100%): 0% é o véu leve atual; 100% é o véu totalmente
-    opaco, que tapa a imagem.
-  - **Desfoque com granulação** (0 a 100%): aplica desfoque (até 20 px) e uma camada de
-    ruído com modo de mistura "sobreposição", que cresce com o desfoque.
-  - Os dois ajustes atualizam ao vivo, sem fade. Só trocar de imagem tem fade.
-  - Guardado só neste aparelho (`localSettings.bgVeil` e `localSettings.bgBlur`).
-  - Limitação: o desfoque em ecrãs de telemóvel pode pesar. Se a app ficar lenta com
-    o desfoque no máximo, reduzo o valor máximo.
-
-- **Versão 0.58 — intensidade do efeito transparente e balões tintados**: com o efeito
-  ligado, Configurações → Aparência mostra uma barra de **intensidade** (0 a 100, padrão
-  50). Os valores intermédios são possíveis. O rótulo muda entre "Mais transparente",
-  "Padrão" e "Mais opaco". Escala a transparência e o desfoque das barras, cartões,
-  folhas e botões (`--gl-k` e `--gl-b`). Com o padrão (50), o aspeto é o atual.
-  - **Balões tintados** (ligado por omissão): a gota e os seletores usam a cor do tema.
-    Desligado: neutros e sem cor.
-  - Guardado só neste aparelho (`localSettings.glassLevel` e `localSettings.glassTint`).
-
-- **Versão 0.57 — sem efeito de subida ao desligar o efeito transparente**: a animação
-  das telas no modo normal deslizava 6 px de baixo para cima. Ao desligar o efeito, o
-  nome da animação mudava e ela recomeçava, parecendo que a página subia. Agora a
-  animação das telas é só de opacidade, nos dois modos. A troca de abas no modo normal
-  deixa de ter o pequeno deslize.
-
-- **Versão 0.56 — legibilidade com imagem de fundo e fade ao ligar o efeito**:
-  - **Ligar/desligar o efeito transparente**: a interface e o menu inferior saem com fade,
-    o efeito troca, e voltam com fade (≈0,2 s), em vez de piscar.
-  - **Balão Detalhamento (Lucro)**: usava uma cor de fundo inexistente (`var(--card)`),
-    por isso ficava transparente sobre a imagem. Agora é um cartão normal.
-  - **Textos com cor fixa**: no modo claro com imagem, os textos com cor muted/faint
-    escritos no HTML (ex.: descrição de Despesas fixas, rótulos de ano) ficam claros
-    sobre o fundo. Dentro de cartões brancos voltam à cor normal.
-  - **Botão "Adicionar" no modo escuro com imagem**: fundo escuro translúcido e texto
-    claro. Sem imagem, nada muda.
-
-- **Versão 0.55 — ligar/desligar o efeito transparente sem piscar**: a função do
-  interruptor redesenhava todo o ecrã de Configurações (`renderSettings()`), e a imagem
-  de fundo repetia o fade. Agora só o interruptor é atualizado, e a imagem não é
-  reanimada. Assim, o efeito muda como a troca de tema, que já não piscava.
-
-- **Versão 0.54 — legibilidade com imagem de fundo no modo claro**: ao escolher a imagem,
-  a app calcula o tom médio (luminosidade, já com o véu). Se for escura, no modo claro
-  o texto que está diretamente sobre o fundo (títulos, datas dos seletores, mensagens
-  vazias, linhas de despesas, botão "Adicionar") fica claro. Os cartões brancos e os
-  campos mantêm o texto escuro. Imagens antigas são analisadas na primeira abertura.
-  O modo escuro não muda.
-  - Limitação: a média pode não bater em imagens com partes muito escuras e muito
-    claras ao mesmo tempo. Nesse caso, o texto pode continuar pouco legível numa das zonas.
-
-- **Versão 0.53 — imagem de fundo sem esbranquiçar no modo claro**: o véu no modo claro
-  era creme a 55%, o que lavava a imagem. Agora é um véu escuro leve (22%), que mantém
-  as cores da imagem e continua legível. O modo escuro não muda (véu escuro a 62%).
-
-- **Versão 0.52 — imagem de fundo com fade**: a camada da imagem (`#customBg`) deixou
-  de estar oculta com `display:none`, o que impedia qualquer transição. Agora:
-  - Ao ativar ou desativar o efeito transparente, a imagem entra de novo com fade.
-  - Ao trocar de imagem ou remover, a atual sai (fade), a nova entra.
-  - Ao mudar o modo claro/escuro, a imagem troca o véu com a mesma transição.
-
-- **Versão 0.51 — seletor de cor do tema com animação**: escolher uma cor já não
-  redesenha a grade. Só a seleção muda nos círculos existentes, com mola e um pequeno
-  encolhimento ao tocar.
-- **Versão 0.50 — mudanças suaves**: trocar a cor do tema, o modo claro/escuro ou o
-  efeito transparente faz as cores passar gradualmente (cerca de meio segundo). A
-  camada de vidro aparece ou desaparece com opacidade. A imagem de fundo personalizada
-  continua a mudar de uma vez.
-- **Versão 0.49 — animações também no modo normal**: a gota com deslize, deformação e
-  mola funciona nos dois modos. No modo normal é sólida, com a cor do tema, e sem
-  desfoque. O deslize sobre o conteúdo também muda de aba.
-- **Versão 0.48 — deformação da gota também na vertical**: ao deslizar, estica até 20%
-  no sentido do movimento e comprime até 18% na altura. Ao chegar, começa a 116% na
-  largura e 82% na altura, e recupera com mola.
-- **Versão 0.47 — gota de vidro em todos os seletores (efeito transparente)**: a gota da
-  barra de abas passa a existir em todos os seletores `.seg` (Dia · Semana · Mês · Ano,
-  tema, frequência de despesas fixas, turnos). A opção ativa fica verde, com a cor do
-  tema. Ao escolher, a gota chega achatada e recupera com mola. Ao arrastar, segue o
-  dedo, estica com a velocidade e achata contra as paredes.
-
-
-
-- **Logo da tela de carregamento**: corrigido para ser byte-idêntico ao
-  ícone real do app (favicon/manifest/apple-touch-icon) — antes usava uma
-  cor de fundo ligeiramente diferente (`#2C4F3D` em vez de `#1F3A2E`).
-- **Easter egg "hackeamento"**: agora desativado por padrão em qualquer
-  perfil/dispositivo novo — só liga com ativação explícita no Modo Dev.
-- **Mensagem de aniversário**: agora desativada por padrão — só dispara
-  depois de configurar uma data explicitamente; deixou de usar 19/10 como
-  data implícita quando nada estava configurado.
-- **Sincronização "pull antes de push"**: antes de qualquer gravação na
-  nuvem, o app busca e mescla o estado mais recente da planilha, para
-  editar sempre sobre a versão mais nova em vez de arriscar sobrescrever
-  trabalho feito noutro dispositivo. Ver secção 3.
-- **Documentação**: os grandes blocos de comentário explicativo em
-  português foram removidos do `corridaplus.html` e movidos para este
-  ficheiro, deixando o HTML principal mais leve.
-- **Verificação automática de atualização**: o app agora se atualiza
-  sozinho quando encontra uma versão nova publicada, sem perguntar nada —
-  o aviso de "atualizado" só aparece depois, na abertura seguinte. Ver
-  secção 9.
-- **Correção: ganho/despesa apagado voltava sozinho**: o merge de
-  pré-push estava a reintroduzir itens apagados localmente (porque ainda
-  existiam na planilha remota no momento do merge). Corrigido com um
-  sistema de lápides de exclusão (`deletedIds`) que impede o merge de
-  trazer de volta algo apagado neste dispositivo. "Apagar todos os dados"
-  também foi corrigido para não sofrer do mesmo problema. Ver secção 3.1.
-- **Editar despesa variável**: as despesas variáveis (Despesas → Despesas
-  variáveis) agora têm um botão de editar (✏️) além do de apagar (✕). Abre
-  o mesmo sheet de criação, já preenchido, e grava por cima do registo
-  existente (mantém o mesmo `id`) em vez de apagar e recriar. Se a data for
-  alterada para outro mês, a despesa move-se automaticamente para o mês
-  correto. `openExpenseSheet(existingExp)` decide entre modo "nova" e
-  "editar" conforme recebe ou não um objeto de despesa existente;
-  `openNewExpenseSheet()` continua a existir como atalho para o modo
-  "nova".
-- **Editar valor de um ganho diretamente na lista**: o valor de cada ganho
-  em Ganhos agora é um campo editável inline (mesmo padrão já usado nas
-  despesas fixas), em vez de só texto estático. `updateEarningAmount(id,
-  value)` procura o ganho em todos os meses (a lista pode atravessar
-  fronteira de mês na visão Semana) e grava o novo valor.
-- **Correção: aviso de "app atualizado" nunca aparecia**: o toast
-  ficava tapado pela tela de carregamento (splash), que tem `z-index`
-  mais alto e ainda estava a desvanecer no momento em que o toast era
-  disparado. As duas telas foram unificadas — a splash agora mostra
-  diretamente "✅ Atualizado para vX.X.X" antes de desaparecer, em vez de
-  um toast concorrente. Ver secção 9.1.
-- **Número da versão sempre visível na splash**: adicionado um elemento
-  fixo (`#splashVersion`) abaixo da mensagem de estado, mostrando sempre
-  `vX.X.X` — independente do texto dinâmico ("A carregar…", "A
-  sincronizar…", "Atualizado…") que ocupa `#splashMsg`. É definido de
-  forma síncrona logo após a declaração de `APP_VERSION`, sem esperar por
-  `loadAll()`, para aparecer desde o primeiro instante.
-- **Metas semanal/mensal**: nova secção "Meta" em Você → interruptor
-  "Ativar metas" + campos de meta mensal e meta semanal (€), guardados em
-  `profile.goalsEnabled`/`monthlyGoal`/`weeklyGoal` (sincronizados). Quando
-  ativo, Estatísticas → Mês e Estatísticas → Semana passam a mostrar um
-  cartão de progresso (`goalProgressHTML()`) comparando o lucro líquido do
-  período em curso com a meta definida — barra de progresso, percentagem,
-  e quanto falta (ou "Meta atingida! 🎉"). Uma meta em branco/0 simplesmente
-  não mostra o respetivo gráfico, mesmo com as metas ativadas.
-- **Meta movida para o topo de Estatísticas**: o cartão de progresso da
-  meta (mensal e semanal) agora aparece em primeiro lugar em
-  `renderStatsMonth()`/`renderStatsWeek()`, antes dos cartões TVDE/Resumo,
-  em vez de depois deles.
-- **Meta mínima = despesas fixas, quando nenhuma meta é definida**: se
-  `profile.monthlyGoal`/`weeklyGoal` estiver vazio ou 0, o gráfico de meta
-  passa a usar as despesas fixas do período como meta mínima (cobrir os
-  custos fixos), em vez de simplesmente não mostrar nada. O rótulo muda
-  para "Meta mensal/semanal (mínimo — despesas fixas)" para deixar claro
-  que não é uma meta definida manualmente. Para a visão Semana, isto exigiu
-  que `totalFixedBills(entry)` passasse a aceitar um segundo parâmetro
-  opcional `monthKeyOverride` — sem ele, continua a usar `currentMonthKey`
-  como sempre (nenhum chamador existente precisou de mudar); com ele,
-  calcula despesas fixas para o mês em que a semana em exibição começa
-  (que pode não ser o mesmo mês de `currentMonthKey`), dividido pelo nº de
-  semanas desse mês. Se não houver despesas fixas cadastradas, a meta
-  mínima é 0 e o gráfico simplesmente não aparece (mesma regra de sempre
-  em `goalProgressHTML()`).
-- **Correção: despesas fixas não entravam no lucro semanal**:
-  `renderStatsWeek()` (Estatísticas → Semana) e `renderLucroWeek()` (Lucro
-  → Semana) calculavam o lucro da semana sem descontar nenhuma parcela das
-  despesas fixas (bills são mensais, e as visões semanais simplesmente as
-  ignoravam) — ao contrário das visões Mês, que sempre descontaram. Agora
-  ambas calculam `fixasSemana` = despesas fixas do mês em que a semana
-  começa, dividido pelo nº de semanas desse mês (mesmo rateio já usado nos
-  gráficos "por semana" dentro da visão Mês) e descontam esse valor do
-  lucro. Também passou a aparecer como item de lista ("🏠 Despesas fixas
-  (rateio)") no card de Estatísticas → Semana. Isto também corrigiu uma
-  inconsistência: antes, "Lucro da semana" podia mostrar valores
-  diferentes em Estatísticas vs. Lucro para a mesma semana.
-- **Metas renomeadas para "meta de lucro"**: título da secção nas
-  Configurações, título do interruptor, rótulos dos campos, e os títulos
-  dos cartões de progresso em Estatísticas passaram a dizer explicitamente
-  "meta de lucro" (mensal/semanal), em vez de só "meta" — para não dar a
-  entender que se trata de uma meta de faturamento bruto.
-- **Formato de armazenamento alternativo ("schema v1"), opt-in no Modo
-  Dev**: novo interruptor "Gravar no formato novo" que reestrutura o JSON
-  enviado à planilha (separar configurações/brincadeiras do perfil,
-  achatar ganhos/despesas em listas simples). Ver secção 11 para a
-  arquitetura completa. Desativado por padrão — nada muda até o
-  utilizador ativar explicitamente.
-
-- **Versão 0.4.6 — botão GitHub no Modo Dev**: o link "Ver no GitHub" saiu do
-  ecrã "Você" e foi para o Modo Dev, com o novo endereço
-  `https://github.com/Rodrig0ASilva`.
-- **Versão 0.4.6 — sincronização no Modo Dev**: a secção "Sincronização" (URL do
-  Google Apps Script, bloquear/editar) foi movida do ecrã "Você" para dentro do
-  Modo Dev.
-- **Versão 0.4.6 — conta de suporte no Modo Dev**: mostra o email e o UID da
-  conta Google, com botão "Copiar email + UID". O UID também está no Firebase
-  Console → Authentication → Utilizadores, onde se pode procurar pelo email.
-- **Versão 0.4.6 — "Apagar todos os dados" sempre no fim**: o botão fica depois
-  do Modo Dev, como última opção do ecrã "Você".
-- **Versão 0.4.6 — "Registos opcionais"**: nova secção em "Você" com interruptores
-  para **Turno de trabalho**, **Quilómetros (km)** e **Usar outras plataformas**.
-  Os três são guardados em `profile` (`showTurno`, `showKm`,
-  `customPlatformsEnabled`) e sincronizam entre dispositivos. Por omissão, turno
-  começa ligado, km desligado, e outras plataformas ligadas só se já existirem
-  plataformas registadas. Desativar um interruptor esconde a funcionalidade, mas
-  não apaga os dados já gravados.
-- **Versão 0.4.6 — km nas Estatísticas**: o campo de km do ganho aparece no
-  formulário "Novo ganho" quando o interruptor está ativo. Se for preenchido, as
-  Estatísticas mostram o cartão "Quilometragem" (km registados e lucro por km) e
-  o Lucro mostra o lucro por km. Os km do dia são gravados no primeiro ganho desse
-  registo, para não serem contados em dobro.
-- **Versão 0.4.6 — lista de outras plataformas**: a lista e o campo para adicionar
-  plataformas só aparecem com o interruptor "Usar outras plataformas" ativo.
-
-- **Versão 0.4.7 — perfil e conta num só cartão**: em Configurações → "Perfil e
-  conta", a secção "Conta" separada foi integrada no cartão do perfil. A foto por
-  omissão é a foto da conta Google (`currentPhotoUrl()`: foto própria, ou se não
-  existir, a do Google). O botão "trocar" continua a permitir enviar outra foto, e
-  "Repor foto do Google" volta à foto da conta. O nome é livre, com o nome do
-  Google como sugestão no campo. Por baixo aparecem o email e o ID da conta
-  (UID); sem sessão, aparece o botão "Continuar com Google". O botão "Sair da
-  conta" também está neste cartão. A secção "Conta (suporte)" do Modo Dev foi
-  removida.
-
-- **Versão 0.4.8 — ajustes ao cartão de conta**: símbolo "G" do Google com o
-  texto "Conectado com Google" acima do email. O botão "Sair" fica à direita, com
-  fundo branco e letra vermelha. O ID da conta (UID) aparece mascarado como
-  `****`, com um botão "mostrar"/"ocultar". A escolha fica guardada só neste
-  dispositivo (`localSettings.showUid`), sem sincronizar.
-
-- **Versão 0.4.9 — bloco "Conta"**: o estado da assinatura saiu da secção
-  própria e passou para a parte inferior do cartão de conta, sob o título
-  "Assinatura". A secção de Configurações passou a chamar-se apenas "Conta".
-
-- **Versão 0.4.10 — correções da Fase 1**:
-  - Listeners do Firestore (dados e assinatura) são cancelados antes de voltar a
-    ser registados. Tocar em "sincronizar" já não acumula listeners.
-  - A brincadeira e a verificação de atualização só correm no primeiro
-    carregamento da sessão, e não ao tocar em "sincronizar".
-  - "Importar dados" agenda o envio para a nuvem, para os dados importados
-    chegarem aos outros aparelhos.
-  - Nomes de plataformas e categorias são escapados antes de entrar no HTML.
-  - (Revertido na 0.4.12.) O gráfico diário de Lucro (Semana) passou a usar a
-    mesma fórmula do resumo. A alteração foi revertida a pedido.
-  - Remover uma plataforma extra passa a arquivá-la (`archived: true`). Deixa de
-    aparecer como opção nova, mas os ganhos antigos mantêm o nome. Re-adicionar a
-    mesma plataforma volta a ativá-la.
-
-- **Versão 0.46 — arrastar a gota no celular**: no telemóvel, o navegador tomava o
-  movimento horizontal como deslizar da página e cancelava o arrasto. Ao cancelar, a
-  app usava coordenadas inválidas e voltava sempre à primeira aba. Agora a barra
-  fica com o toque para ela (`touch-action: none`, só com o efeito transparente),
-  a navegação usa a última posição real do dedo, e um cancelamento só devolve a gota
-  à aba atual, sem mudar de aba.
-
-- **Versão 0.4.45 — gota e gestos de navegação (efeito transparente)**:
-  - **Gota da aba selecionada**: um indicador de vidro desliza até à aba nova com uma
-    animação de mola (`#tabPill`, posicionado por `positionTabPill()`). A aba
-    selecionada deixa de ter fundo próprio, porque quem o desenha é a gota.
-  - **Arrastar sobre a barra**: ao arrastar, a gota segue o dedo, limitada às abas
-    visíveis. Ao soltar, muda para a aba mais próxima. Um toque simples continua a
-    funcionar como antes (`setupTabDrag()`).
-  - **Deslizar sobre o conteúdo**: um gesto horizontal com pelo menos 70 px, mais
-    horizontal do que vertical e feito em menos de 0,7 s muda para a aba seguinte
-    ou anterior (`setupSwipeNav()`). Não atua sobre campos, botões, seletores,
-    interruptores, gráficos nem com uma folha aberta.
-  - Tudo só existe com o efeito transparente ativo. Sem ele, a barra funciona como antes.
-  - Limitação: não testado num iPhone. Os gestos usam eventos de toque e de ponteiro,
-    que o Safari suporta, mas a sensação de fluidez só se confirma no aparelho.
-
-- **Versão 0.4.44 — interruptor desligado visível sem o efeito transparente**: o trilho
-  desligado usava uma cor muito translúcida (18%), que no modo escuro quase
-  desaparecia. Agora é mais opaco no modo claro (24%) e tem uma cor própria no modo
-  escuro normal. As regras do efeito transparente continuam a aplicar-se só com o
-  efeito ativo.
-
-- **Versão 0.4.43 — interruptor ligado com a cor do tema nos dois modos**: o interruptor
-  ligado usa agora `--switch-on`, definida ao escolher a cor do tema. No modo
-  transparente escuro, a regra do interruptor desligado sobrepunha o estado ligado,
-  por isso ficava translúcido. Agora a regra só se aplica aos interruptores desligados.
-
-- **Versão 0.4.42 — separador e imagem de fundo**:
-  - Um separador visível (linha) divide o bloco Aparência do bloco Configurações.
-  - Em Configurações → Aparência, "Imagem de fundo": escolher uma imagem (reduzida para
-    no máximo 1080 px, sem cortar) e remover. Fica guardada só neste aparelho
-    (`localSettings.bgImage`) e aparece atrás de toda a app, com um véu para manter a
-    legibilidade (claro ou escuro, conforme o modo).
-  - Redefinir as configurações também remove a imagem de fundo.
-
-- **Versão 0.4.41 — opção ativa do seletor em verde**: com o efeito transparente, a
-  opção selecionada de Dia · Semana · Mês · Ano voltou a ter o fundo da cor do tema
-  (`--vault`), com texto branco, para indicar claramente que está ativa.
-
-- **Versão 0.4.40 — efeito transparente em Configurações e nos controlos**:
-  - O interruptor "Efeito transparente (liquid glass)" sai do Modo Dev e passa para
-    Configurações → Aparência. Continua a ser uma preferência deste aparelho.
-  - Animação das abas: no modo transparente, a troca de abas só anima a opacidade.
-    O deslocamento vertical anterior fazia o vidro tremer.
-  - Com o modo ativo, também ficam em vidro: a aba selecionada, os seletores
-    Dia · Semana · Mês · Ano (com a opção ativa em vidro), as setas de navegação e
-    os interruptores.
-
-- **Versão 0.4.39 — liquid glass (iPhone), opção no Modo Dev**: nova secção "🪟 Visual"
-  no Modo Dev, com o interruptor "Liquid glass (iPhone)". Guardado só neste
-  aparelho (`localSettings.liquidGlass`).
-  - Diagnóstico antes da alteração: o degradê da barra (`.tabbar`) tapava o que passa
-    por trás; o interior da barra era quase opaco (branco a 90%, escuro a 97%); o
-    fundo era liso, sem cor para refratar; cartões e folhas eram opacos.
-  - Com o modo ativo: uma camada de cor fixa por trás de tudo (`body.glass::before`),
-    barra com desfoque e saturação, cartões e folhas translúcidos, e o degradê da barra
-    removido. Sem o modo, nada muda.
-  - Limitação: é uma aproximação web. O material nativo "Liquid Glass" da Apple não
-    está disponível num navegador, por isso o resultado pode diferir do iOS.
-
-- **Versão 0.4.38 — seleção da cor do tema visível no modo claro**: a cor escolhida
-  tinha a borda na cor de texto, que no modo claro é escura e se confundia com a
-  própria cor verde. Agora a seleção é um anel com um espaço claro à volta, visível
-  em qualquer tema.
-
-- **Versão 0.4.37 — suporte com log em ficheiro**: o texto do email passa a dizer
-  "Mensagem:" (sem a palavra "problema"). O log das últimas 24 horas segue como
-  ficheiro .txt (`corridaplus-log-AAAA-MM-DD-HHMM.txt`).
-  - Se o aparelho permitir partilhar ficheiros (em geral, telemóvel), abre a folha de
-    partilha com o ficheiro anexado e o texto do email. Esta folha não preenche o
-    destinatário; o endereço aparece no texto.
-  - Caso contrário, o ficheiro é transferido e o email abre com o endereço preenchido,
-    pedindo para anexar o ficheiro. Um email não consegue anexar ficheiros por si.
-
-- **Versão 0.4.36 — botão de suporte**: no fim de Configurações, abaixo da zona de
-  perigo, o botão "✉️ Suporte" abre o email com o endereço de suporte já preenchido.
-  O assunto e o corpo incluem o email e o ID da conta (ou "sem conta Google ligada"),
-  e a versão da app. O botão funciona também em modo básico.
-
-- **Versão 0.4.35 — alerta de atualização sem sessão**: sem sessão Google, a app
-  deixa de recarregar sozinha quando há uma versão nova. Mostra uma folha com a
-  versão nova e três opções: "Atualizar agora", "Entrar com Google" (para receber
-  as atualizações automaticamente) e "Mais tarde". Com sessão, a atualização
-  automática continua igual. O alerta só aparece depois das boas-vindas.
-
-- **Versão 0.4.34 — cópia diária na planilha**: com sessão e endereço da planilha
-  configurado, ao abrir a app é enviada uma cópia do estado atual para a planilha,
-  no máximo uma vez por dia (`localSettings.lastSheetBackup`, device-local). É só
-  um envio: não lê nem funde dados da planilha. A cópia respeita a encriptação, se
-  estiver ativa. Não corre enquanto houver uma decisão pendente sobre os dados. O
-  resultado fica no log de sincronização (Modo Dev).
-  - Limitação: a cópia só acontece quando a app é aberta. Se a app não for aberta
-    num dia, a cópia desse dia não acontece.
-
-- **Versão 0.4.33 — endereço da planilha na conta e apagado com tudo**:
-  - O endereço da planilha de sincronização passa a ser guardado em `profile.syncUrl`,
-    no perfil da conta Google. Assim, segue a conta entre aparelhos. Sem sessão, não
-    é guardado nem usado. Um endereço que já existisse neste aparelho passa para a
-    conta no primeiro login.
-  - **Apagar tudo** apaga também o endereço da planilha, neste aparelho e na conta.
-    Redefinir só as configurações e apagar só os dados continuam a manter o endereço.
-  - Nota: o endereço é uma credencial da planilha. Fica no documento da conta, que as
-    regras do Firestore só deixam ler e escrever ao próprio utilizador.
-
-- **Versão 0.4.32 — modo básico sem planilha**: sem sessão Google, a app não lê nem
-  envia para a planilha (Apps Script). Antes, com um URL guardado, a primeira
-  sincronização perguntava se queria os dados da nuvem, mesmo sem conta. Agora
-  `_doCloudSync()` e `pushToCloud()` saem logo quando não há sessão, e
-  `scheduleCloudPush()` também. A planilha continua a funcionar para quem tem login.
-
-- **Versão 0.4.31 — tela de carregamento sem conta**: sem sessão Google, mas com um
-  URL de sincronização guardado, a app esperava pela sincronização antes de esconder
-  a tela de carregamento. A ligação podia demorar até 15 s por tentativa, e a tela
-  ficava presa. Agora a sincronização corre em segundo plano, como já acontece com
-  a conta Google.
-
-- **Versão 0.4.30 — primeiro acesso, modo básico e estatísticas**:
-  - **Dados locais antes da conta**: ao entrar com uma conta que já tem dados na
-    nuvem, se este aparelho tiver dados que nunca foram sincronizados com essa conta,
-    a app pergunta: "Manter os deste aparelho (substitui a nuvem)", "Começar de novo com
-    os da nuvem (apaga os deste aparelho)" ou "Decidir depois". Se o aparelho já
-    tinha sincronizado com a conta, a fusão com a base continua a ser usada, sem
-    perguntar. Se a nuvem estiver vazia, os dados do aparelho são enviados sem perguntar.
-  - **Modo básico**: além do IVA e da comissão, que podem ser ativados para testar,
-    todas as outras configurações ficam bloqueadas.
-  - **Estatísticas no modo básico**: mostram só o resumo do mês (bruto TVDE, pessoal,
-    combustível, outras despesas e fixas, lucro). Dia, semana e ano ficam escondidos,
-    e não há gráficos, turnos, km nem metas.
-  - Pendente: a sincronização via Google Drive (Apps Script). Ver a conversa: o script
-    atual usa um único ficheiro para todos os utilizadores.
-
-- **Versão 0.4.29 — boas-vindas e modo básico**:
-  - **Boas-vindas**: na primeira abertura sem sessão Google, aparece uma folha com
-    "Entrar com Google" e "Continuar em modo básico". A escolha fica guardada em
-    `localSettings.welcomeDone`.
-  - **Modo básico** (sem sessão): até 5 ganhos, 5 despesas variáveis e 5 despesas
-    fixas (limite total, não por mês). Ao tentar ultrapassar, aparece um aviso com
-    "Entrar com Google". Editar e apagar continua a funcionar.
-  - **Configurações bloqueadas no modo básico**: os interruptores, os campos de
-    taxas, metas, turnos e plataformas ficam cinzentos e não respondem. Um banner
-    explica porquê. Nome, foto, tema e modo escuro continuam disponíveis.
-  - **Apagar tudo** também sai da conta Google neste aparelho e volta a mostrar as
-    boas-vindas. Não altera a assinatura: a reposição escreve só o documento de
-    dados do utilizador (`users/{uid}`), e a assinatura fica noutra coleção
-    (`customers/{uid}`), que não é tocada.
-  - **Decisões a confirmar**: (1) utilizadores existentes que já têm mais de 5
-    registos mantêm tudo, mas não podem criar registos novos sem login; (2) o
-    Apps Script (sincronização sem login) também conta como modo básico; (3) se um
-    utilizador criou dados em modo básico e depois entra com uma conta que já tem
-    dados na nuvem, prevalecem os da nuvem, como na regra de primeiro acesso.
-
-- **Versão 0.4.28 — cores do modo escuro seguem o tema**: o separador ativo da barra
-  (e a opção selecionada nas plataformas e no seletor de mês) usava um amarelo fixo
-  em modo escuro. Agora usa a cor de texto do tema escolhido, com um fundo neutro.
-
-- **Versão 0.4.27 — turnos padrão repostos em contas antigas**:
-  - Contas antigas podiam ter a lista de turnos incompleta por causa do erro da
-    fusão corrigido na 0.4.25. Quando um turno padrão faltava, a lista ficava sem
-    ele, e apagar as configurações não o repunha.
-  - `repairTurnoList()` garante que os 4 turnos padrão existem. Corre ao abrir a app,
-    ao aplicar dados da nuvem e ao importar. Se algum faltar, é reposto e a alteração
-    é gravada. Um turno removido pelo utilizador fica arquivado e não é reposto.
-  - Em Configurações → Turno de trabalho, o botão "↺ Repor turnos padrão" volta aos
-    4 padrões sem apagar mais nada. Os turnos personalizados ficam arquivados, para
-    os ganhos antigos continuarem com o nome certo.
-  - Turnos personalizados que tenham sido perdidos pelo erro antigo não se
-    recuperam. Só voltam se houver uma cópia de segurança (arquivo .json).
-
-- **Versão 0.4.26 — reposição volta ao padrão, incluindo turnos**:
-  - Ao apagar configurações ou tudo, a base de sincronização passa a ser o estado
-    já reposto. Antes ficava vazia, e a versão antiga da nuvem era tratada como
-    primeira sincronização, o que restaurava as configurações antigas (turnos
-    incluídos).
-  - Durante a reposição, as alterações vindas da nuvem são ignoradas
-    (`window._suppressRemote`), até o novo estado ser gravado.
-
-- **Versão 0.4.25 — correções de turnos, aba Dev e temas**:
-  - **Turnos desapareciam ao remover ou adicionar.** A fusão com a base usava só o
-    campo `id` para identificar itens de lista. Turnos e plataformas extra usam
-    `key`, por isso eram descartados na fusão seguinte. Agora `idOf()` usa `id` ou
-    `key` (e, sem nenhum dos dois, o próprio conteúdo). Testado com turnos
-    removidos, adicionados e criados noutro aparelho, e com plataformas extra.
-  - **Aba Dev** fica à direita de "Você", a última da barra.
-  - **Apagar configurações** (redefinir ou apagar tudo) desativa o Modo Dev e
-    esconde a aba Dev. Apagar só os dados mantém o Modo Dev.
-  - **Temas**: os campos de nome e emoji dos turnos e as opções das folhas de
-    exportação e de apagar seguem o modo claro/escuro (classes `theme-input` e
-    `theme-card`).
-
-- **Versão 0.4.24 — Modo Dev em aba própria e guardado**:
-  - O Modo Dev deixou de ser uma secção no fim de Configurações. Passa a ser um
-    ecrã próprio, com a aba "Dev" na barra inferior. As opções são as mesmas.
-  - A aba só aparece com o Modo Dev ativo. Ativar é feito com 5 toques no número da
-    versão. Desativar é feito pelo interruptor no topo do próprio ecrã.
-  - O estado fica guardado em `localSettings.devMode`, no aparelho. Assim, o Modo
-    Dev continua ativo depois de fechar e reabrir a app, até ser desativado. A
-    reposição de configurações não o desativa.
-  - Em Configurações, a secção de exportação já não menciona o Modo Dev. O arquivo
-    .json continua disponível, sem indicação de onde é importado.
-
-- **Versão 0.4.23 — turnos editáveis (adicionar e remover)**:
-  - Em Configurações → Turno de trabalho, a lista de turnos pode ser editada: mudar
-    o nome e o emoji, remover um turno, reativar um turno removido, ou adicionar
-    turnos novos (nome de até 14 letras e um emoji).
-  - A lista fica em `profile.turnoList`, que sincroniza entre aparelhos. Sem lista
-    guardada, aparecem os 4 turnos padrão, com os nomes e emojis personalizados que
-    já existiam.
-  - Remover um turno marca-o como `archived`. Os ganhos antigos continuam a mostrar
-    o turno nos gráficos e na exportação, mas o turno deixa de aparecer no formulário
-    de ganho. Pode ser reativado na lista de "Removidos".
-
-- **Versão 0.4.22 — ajustes de detalhamento, versão e turnos**:
-  - **Lucro · Detalhamento**: o tracejado por baixo de "Líquido TVDE" foi removido.
-    Não fica nenhum tracejado nessa zona.
-  - **Versão do app**: sai do fim de Configurações e passa para a aba Você, logo
-    abaixo do estado de sincronização. Continua a abrir o Modo Dev com 5 toques.
-  - **Turnos**: cada turno tem um campo de emoji e um campo de nome, em
-    Configurações → Turno de trabalho. A lista mostra o nome e o emoji atuais. O
-    emoji aceita um único símbolo. Os valores são guardados em `profile.turnoNames`
-    e `profile.turnoEmojis`, e aplicam-se ao formulário de ganho, ao gráfico "Ganhos
-    por turno" e à exportação.
-
-- **Versão 0.4.21 — versão no fim de Configurações**: o rodapé "Corrida+ vX.X.X"
-  passou para o fim do ecrã, abaixo da zona de perigo e do Modo Dev. Continua a
-  abrir o Modo Dev com 5 toques.
-
-- **Versão 0.4.20 — ajustes de ganhos, detalhamento e turnos**:
-  - **Ganhos**: removida a linha "líq. €" por baixo do valor de cada ganho.
-  - **Lucro · Detalhamento**: o tracejado que ficava por baixo de "Comissão
-    plataforma" foi removido. Fica só o tracejado por baixo de "Líquido TVDE".
-  - **Turnos com nome configurável**: em Configurações → Turno de trabalho, quando o
-    interruptor está ligado, aparecem quatro campos (um por turno), com máximo de 14
-    letras. Em branco, usa o nome original. Os nomes são guardados em
-    `profile.turnoNames`, que sincroniza entre aparelhos, e aplicam-se ao formulário de
-    ganho, ao gráfico "Ganhos por turno" e à exportação para Excel.
-
-- **Versão 0.4.19 — alinhamentos em Configurações e botão de apagar**:
-  - Alinhamentos: removida a margem negativa do texto das metas de lucro, que
-    puxava o texto para cima do campo. Os campos do grupo "Configurações" usam a
-    mesma margem superior (8px). O texto da lista de plataformas extra usa margem
-    vertical igual aos outros textos da secção.
-  - "Apagar dados ou configurações" fica separado do resto por uma linha tracejada
-    em vermelho, com o título "Zona de perigo". O botão é vermelho e sólido, com
-    sombra, e tem a legenda "Ação permanente. Pede um código de confirmação antes de
-    apagar."
-  - Versão do app: 0.4.19 (mostrada no rodapé de Configurações).
-
-- **Versão 0.4.18 — resumo de ontem no Modo Dev e com km e turno**:
-  - Modo Dev → "📊 Resumo de ontem" → "Forçar resumo na próxima abertura". Ignora o
-    interruptor e o registo de "já mostrado hoje", e mostra o resumo uma vez. Se o
-    dia anterior não tiver registos, mostra o resumo vazio. Depois de mostrado, o
-    botão volta ao normal (`devForceDailySummary`, não sincronizado).
-  - O resumo mostra a linha de km sempre que o interruptor de km estiver ligado,
-    mesmo quando o valor é 0.
-  - O resumo mostra o gráfico "Ganhos por turno" de ontem quando o interruptor de
-    turno estiver ligado. Se não houver turnos registados, mostra "Sem turno
-    registado ontem".
-  - Com sessão Firebase, a verificação do resumo corre no fim da sincronização
-    inicial, mesmo quando ela termina antes de houver dados.
-
-- **Versão 0.4.17 — apagar, redefinir e exportar**:
-  - **"Apagar todos os dados" passa a perguntar o que apagar**, com três opções:
-    - *Apagar só os dados*: ganhos, despesas variáveis, despesas fixas e histórico.
-      Mantém configurações, nome e foto.
-    - *Redefinir só as configurações*: tema, IVA, comissão, metas, plataformas extra,
-      opcionais, resumo de ontem, encriptação e biometria. Mantém dados, nome e foto.
-    - *Apagar tudo*: dados, configurações, nome e foto.
-    Cada opção pede o código aleatório de 8 caracteres e mostra os avisos de
-    responsabilidade e de perda permanente.
-  - A limpeza é enviada à nuvem com substituição (`pushToFirestore(true)` ou
-    `pushToCloud(undefined, true)`), e a base de fusão é limpa. Assim, os dados
-    apagados não voltam pela fusão.
-  - A ligação à planilha e a conta Google não são apagadas por nenhuma das opções.
-    São ligações, não preferências.
-  - **Exportar** abre uma escolha entre:
-    - *Planilha Excel (.xlsx)*, para a declaração de IRS (como antes);
-    - *Arquivo de configurações (.json)*, uma cópia completa dos dados e das
-      configurações no formato v1, que pode ser importada em Modo Dev → Importar
-      dados. Não inclui a senha de encriptação.
-
-- **Versão 0.4.16 — resumo de ontem**: novo interruptor em Configurações →
-  Configurações (`profile.dailySummaryEnabled`, desligado por omissão). Na primeira
-  abertura do dia, mostra uma folha com o resumo do dia anterior: bruto TVDE,
-  pessoal, combustível, outras despesas, km (se o interruptor de km estiver ligado)
-  e lucro do dia. O resumo não inclui despesas fixas, como nas vistas de dia.
-  - A data em que o resumo foi mostrado pela última vez fica em `localSettings`,
-    que não sincroniza. Assim, cada aparelho mostra o resumo uma vez por dia.
-  - Só é mostrado se existir algum registo no dia anterior. Se não houver, não
-    marca o dia como mostrado.
-  - Com sessão Firebase, o resumo é verificado depois da sincronização inicial,
-    para usar os dados da nuvem.
-
-- **Versão 0.4.15 — plataformas com IVA e comissão**:
-  - Ao adicionar uma plataforma extra, pergunta-se se cobra IVA e comissão. Por
-    omissão, a resposta é "Não (pessoal)". Cada plataforma tem o campo
-    `profile.customPlatforms[].taxed`.
-  - Na lista de plataformas, o botão "pôr IVA"/"tirar IVA" altera essa escolha
-    depois de criada. A alteração aplica-se a todos os ganhos dessa plataforma,
-    incluindo os antigos, porque os valores são calculados na hora.
-  - `isTvdePlatform()` passou a incluir as plataformas marcadas com IVA. Todas as
-    comparações diretas com Uber/Bolt foram trocadas por essa função, para que IVA,
-    comissão, líquido, lucro e exportação tratem as duas da mesma forma.
-  - Nos ecrãs Ganhos (resumo), Estatísticas → Ano e Estatísticas → Mês, o bruto das
-    plataformas com IVA entra no total TVDE. O cartão "Pessoal" não as mostra.
-    Limitação: nas listas por plataforma das Estatísticas (Dia, Semana, Mês), essas
-    plataformas ainda não têm cartão próprio.
-  - O grupo de configurações "Opcionais" passou a chamar-se "Configurações".
-
-- **Versão 0.4.14 — ajustes à sincronização e ao grupo de opcionais**:
-  - **Nuvem prevalece no primeiro acesso.** Quando a conta tem dados na nuvem, a
-    app usa esses dados sem perguntar, mesmo que o aparelho tenha dados próprios.
-    O aparelho só envia os seus dados quando a nuvem está vazia (utilizador novo).
-    Isto substitui a escolha "manter os locais ou os da nuvem" da 0.4.11, que foi
-    removida. A fusão com a base continua a ser usada nas sincronizações seguintes.
-  - **Apagar todos os dados** exige um código aleatório de 8 caracteres, que tem de
-    ser escrito antes de o botão ficar ativo. A folha mostra o aviso de que a ação
-    é permanente, de que não há cópia de segurança, e de que a Corrida+ não se
-    responsabiliza por perdas de dados.
-  - **IVA / Imposto e Comissão da plataforma** ficam no topo do grupo "Opcionais",
-    juntos e cada um com o seu seletor (`profile.ivaEnabled` e
-    `profile.comissaoEnabled`). Desligado, o valor deixa de entrar nos cálculos e
-    nos ecrãs, e a taxa fica guardada.
-
-- **Versão 0.4.13 — Configurações agrupadas**: as secções "Registos opcionais",
-  "Meta de lucro" e "Outras plataformas" passaram a ser um só grupo, "Opcionais",
-  com os interruptores de turno, km, IVA/imposto, metas de lucro e outras
-  plataformas. A comissão continua num grupo próprio, logo abaixo.
-- **IVA / Imposto com chave de ativação** (`profile.ivaEnabled`). Desligado, `ivaRate()`
-  devolve 0 e todos os cálculos e ecrãs que dependem do IVA deixam de o mostrar. A
-  taxa continua guardada, para voltar a ativar sem a introduzir de novo. Por
-  omissão, fica ativo quando já existe uma taxa maior que 0.
-
-- **Versão 0.4.12 — reversão**: o gráfico diário de Lucro (Semana) volta à fórmula
-  anterior, `(bruto − combustível − IVA sobre o bruto sem combustível) + pessoal −
-  outras variáveis`, e à legenda "Lucro líquido de cada dia da semana". A
-  alteração da 0.4.10 (item 14) foi revertida a pedido.
-
-- **Versão 0.4.11 — Fase 2 da sincronização**:
-  - **Fusão com base em três vias** (`mergeState`, `syncWithCloud`). A app guarda
-    o último estado conhecido da nuvem (`syncBase`, por fonte: uma conta ou o
-    Apps Script). Ao sincronizar, vence o lado que mudou desde a base; se os dois
-    mudaram, vence o local, e campos diferentes do mesmo item fundem-se. Edições e
-    exclusões de cada aparelho chegam aos outros, sem ressuscitar itens apagados.
-    Isto substitui a união por ID e as lápides.
-  - **Snapshot não substitui mais o estado local.** Quando chega uma alteração de
-    outro aparelho, é fundida com a base. Edições ainda não enviadas ficam
-    preservadas.
-  - **Envio pela conta Firebase só depois de ler a nuvem.** `pushToFirestore()`
-    lê o documento e funde antes de gravar. Se a leitura falhar, não grava.
-  - **Primeiro acesso com dados diferentes**: quando a conta tem dados na nuvem e
-    este aparelho também tem dados, a app pergunta. A folha mostra a data em que a
-    nuvem foi guardada (`updatedAt`) e um resumo de cada lado (ganhos, despesas
-    variáveis e fixas). As opções são "Usar os dados da nuvem", "Manter os deste
-    aparelho (substitui a nuvem)" e "Decidir depois". Fechar a folha equivale a
-    "Decidir depois": nada é enviado, e a pergunta volta a aparecer na próxima
-    abertura ou ao tocar em sincronizar.
-  - **Apagar todos os dados** substitui a nuvem (`pushToFirestore(true)`).
-  - A fusão foi testada isoladamente com nove cenários de dois aparelhos
-    (edição remota, exclusão local e remota, adições dos dois lados, conflito no
-    mesmo item, campos diferentes do mesmo item, foto removida, e base vazia).
-  - (Na 0.4.14, a pergunta sobre dados locais ou da nuvem foi removida: a nuvem prevalece.)
-  - Limitação: a base guarda uma cópia completa dos dados no armazenamento local.
-    Com muito histórico, isto pesa; quando o item 9 da lista (limite de 1 MiB no
-    Firestore) for tratado, convém rever este formato.
-
-## 11. Formato de armazenamento alternativo (schema v1)
-
-A partir da v3.6.0, existe um formato de armazenamento alternativo,
-opt-in, ativável em Modo Dev → "Formato de armazenamento". Resolve as
-críticas estruturais ao formato clássico (ver nota histórica abaixo) **sem
-tocar em nenhuma outra parte da app** — a conversão acontece só na
-fronteira da sincronização.
-
-### 11.1 Nota histórica — críticas ao formato clássico
-
-O formato original (`{bills, monthData, profile}`) tem três problemas
-estruturais:
-1. `profile` mistura identidade (nome/foto), configuração financeira
-   (IVA/comissão/metas) e brincadeiras (easter egg/aniversário) no mesmo
-   objeto plano, sem separação de responsabilidades.
-2. `monthData` particiona ganhos/despesas por mês usando um objeto
-   aninhado — mas a app já precisa achatar tudo de volta constantemente
-   (`allEarnings()`, `earningsInRange()`) sempre que quer ver dados fora
-   de um mês, então a partição não poupa trabalho, só acrescenta
-   aninhamento.
-3. Sem `schemaVersion` nem `updatedAt` — migrações são feitas com
-   checagens ad-hoc espalhadas pelo código (`if(!earning.platform)
-   earning.platform = 'uber'`), em vez de um número de versão central.
-
-### 11.2 O formato novo (schema v1)
-
-```json
-{
-  "schemaVersion": 1,
-  "updatedAt": "2026-08-15T10:42:00Z",
-  "profile": { "name": "...", "photo": "data:..." },
-  "settings": {
-    "ivaRate": 6, "comissaoRate": 4,
-    "goals": { "enabled": true, "monthly": 1200, "weekly": 300 }
-  },
-  "features": {
-    "easterEgg": { "disabled": true, "rate": 0.03 },
-    "birthday": { "date": "19-10" }
-  },
-  "bills": [ { "id": "...", "name": "Água/Luz", "defaultAmount": 60, "frequency": "mensal", "createdMonthKey": "2026-07" } ],
-  "earnings": [ { "id": "...", "date": "2026-07-28", "platform": "uber", "amount": 47.8 } ],
-  "expenses": [ { "id": "...", "category": "combustivel", "amount": 30, "date": "2026-07-28" } ],
-  "billOverrides": [ { "billId": "...", "month": "2026-07", "amount": 55 } ],
-  "billsPaid": [ { "billId": "...", "month": "2026-07", "amount": 55, "paidAt": 1234567890 } ],
-  "hiddenBills": [ { "billId": "...", "month": "2026-07" } ]
+*, *::before, *::after { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+html, body { margin: 0; padding: 0; }
+html { height: 100%; }
+body {
+  background: var(--cream);
+  background-image:
+    radial-gradient(circle at 100% 0%, rgba(184,134,43,0.07), transparent 45%),
+    radial-gradient(circle at 0% 100%, rgba(31,58,46,0.06), transparent 40%);
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+  color: var(--ink);
+  font-family: 'Inter', sans-serif;
+  font-size: var(--text-base);
+  -webkit-font-smoothing: antialiased;
+  position: relative;
+  min-height: 100%;
+  min-height: 100dvh;
 }
-```
+.app { max-width: 480px; margin: 0 auto; position: relative; padding: 0 18px 110px; padding-bottom: calc(110px + env(safe-area-inset-bottom)); }
+.topbar { display: flex; align-items: center; justify-content: space-between; padding: 22px 2px 14px; padding-top: calc(22px + env(safe-area-inset-top)); }
+.brand { display: flex; align-items: center; gap: 10px; }
+.brand-mark { width: 34px; height: 34px; border-radius: 9px; background: linear-gradient(155deg, var(--vault-light), var(--vault)); display: flex; align-items: center; justify-content: center; box-shadow: inset 0 0 0 1px rgba(255,255,255,0.08), var(--shadow-sm); }
+.brand-mark svg { width: 22px; height: 18px; }
+.brand-name { font-family: 'Fraunces', serif; font-weight: 600; font-size: var(--text-xl); letter-spacing: -0.01em; color: var(--vault); }
+.screen-title-group { display: flex; align-items: center; gap: 10px; }
+.screen-icon { width: 34px; height: 34px; min-width: 34px; border-radius: 9px; background: linear-gradient(155deg, var(--vault-light), var(--vault)); display: flex; align-items: center; justify-content: center; box-shadow: inset 0 0 0 1px rgba(255,255,255,0.08), var(--shadow-sm); }
+.screen-icon svg { width: 17px; height: 17px; stroke: #fff; }
+.screen-title { font-family: 'Fraunces', serif; font-weight: 600; font-size: var(--text-xl); color: var(--vault); }
+.sync-pill { display: flex; align-items: center; gap: 6px; font-size: var(--text-xs); font-weight: 600; color: var(--vault-2); background: rgba(31,58,46,0.08); padding: 6px 10px 6px 8px; border-radius: var(--r-full); cursor: pointer; user-select: none; transition: background 0.15s ease; }
+.sync-pill:active { background: rgba(31,58,46,0.16); }
+.sync-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--vault-light); }
+.sync-dot.off { background: var(--terracotta); }
+.add-dashed-btn { display: flex; align-items: center; justify-content: center; gap: 8px; border: 1.5px dashed rgba(31,58,46,0.3); border-radius: var(--r-xl); padding: 14px; color: var(--vault-2); font-weight: 600; font-size: var(--text-base); background: rgba(31,58,46,0.03); cursor: pointer; transition: background 0.15s ease; }
+.add-dashed-btn:active { background: rgba(31,58,46,0.07); }
+.empty-note { text-align: center; padding: 28px 10px; color: var(--text-faint); font-size: var(--text-sm); }
+.tabbar { position: fixed; left: 0; right: 0; bottom: 0; display: flex; justify-content: center; padding: 10px 14px calc(10px + env(safe-area-inset-bottom)); padding-top: 22px; background: linear-gradient(to top, var(--cream) 60%, rgba(246,239,226,0)); z-index: 40; }
+.tabbar-inner { max-width: 480px; width: 100%; background: rgba(255,255,255,0.9); backdrop-filter: blur(14px); border: 1px solid var(--line); border-radius: var(--r-xl); display: flex; justify-content: space-around; padding: 7px 8px; box-shadow: var(--shadow-md); }
+.tab { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 7px 4px; border-radius: 14px; color: rgba(42,36,32,0.4); font-size: var(--text-xs); font-weight: 600; cursor: pointer; transition: color 0.22s cubic-bezier(.4,0,.2,1), background-color 0.22s cubic-bezier(.4,0,.2,1), transform 0.1s ease; }
+.tab.active { color: var(--vault); background: rgba(31,58,46,0.07); }
+.tab svg { width: 20px; height: 20px; transition: transform 0.22s cubic-bezier(.34,1.56,.64,1); }
+.tab.active svg { transform: scale(1.08); }
+.tab.hidden-tab { display: none; }
+.tab:active { transform: scale(0.95); }
+.switch-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 2px; }
+.switch-row-text { flex: 1; min-width: 0; }
+.switch-row-title { font-weight: 700; font-size: var(--text-md); }
+.switch-row-sub { font-size: 11px; color: var(--text-muted); margin-top: 2px; line-height: 1.4; }
+.switch { position: relative; width: 46px; height: 27px; min-width: 46px; border-radius: var(--r-full); background: rgba(42,36,32,0.24); cursor: pointer; transition: background 0.18s ease; }
+.switch::after { content: ''; position: absolute; top: 2.5px; left: 2.5px; width: 22px; height: 22px; border-radius: 50%; background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,0.25); transition: transform 0.18s ease; }
+.switch.on { background: var(--switch-on, var(--vault-light)); }
+.switch.on::after { transform: translateX(19px); }
+.photo-row { display: flex; align-items: center; gap: 14px; margin-bottom: 18px; }
+.photo-avatar { width: 56px; height: 56px; min-width: 56px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: var(--text-lg); color: #fff; background: var(--vault-light); background-size: contain; background-position: center; background-repeat: no-repeat; overflow: hidden; position: relative; }
+.photo-row.b .photo-avatar { background: var(--terracotta-light); }
+.photo-actions { flex: 1; min-width: 0; }
+.photo-actions-name { font-weight: 700; font-size: var(--text-md); margin-bottom: 6px; }
+.photo-btn-row { display: flex; gap: 8px; }
+.photo-btn { font-size: 11.5px; font-weight: 700; padding: 6px 12px; border-radius: var(--r-full); border: 1.5px solid var(--line); background: #fff; cursor: pointer; color: var(--vault-2); }
+.photo-btn.danger { color: var(--terracotta); }
+.month-nav-label { cursor: pointer; }
+.month-picker-year { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+.month-picker-year-label { font-family: 'Fraunces', serif; font-weight: 600; font-size: var(--text-xl); }
+.month-picker-year-btn { width: 32px; height: 32px; border-radius: 50%; background: var(--cream-2); display: flex; align-items: center; justify-content: center; cursor: pointer; }
+.month-picker-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.month-picker-cell { padding: 14px 4px; text-align: center; border-radius: var(--r-md); background: var(--cream-2); font-weight: 600; font-size: var(--text-sm); text-transform: capitalize; cursor: pointer; border: 1.5px solid transparent; }
+.month-picker-cell.is-current { border-color: var(--brass); }
+.month-picker-cell.is-selected { background: var(--vault); color: #fff; }
+.stat-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 22px; }
+.stat-card { background: #fff; border: 1px solid var(--line); border-radius: var(--r-lg); padding: 14px; box-shadow: var(--shadow-sm); }
+.stat-card-label { font-size: 10.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; color: var(--text-muted); margin-bottom: 6px; }
+.stat-card-value { font-family: 'Fraunces', serif; font-weight: 600; font-size: 19px; }
+.stat-card-value.negative { color: var(--terracotta); }
+.platform-badge { border-radius: 7px; display: flex; align-items: center; justify-content: center; font-weight: 800; flex-shrink: 0; line-height: 1; }
+.platform-badge.uber { background: #06060a; color: #fff; }
+.platform-badge.bolt { background: #34D17B; color: #06060a; }
+.platform-pick { display: flex; gap: 10px; }
+.platform-pick-opt { flex: 1; display: flex; align-items: center; justify-content: center; gap: 8px; padding: 12px 8px; border-radius: var(--r-md); border: 1.5px solid var(--line); background: #fff; font-weight: 700; font-size: var(--text-sm); cursor: pointer; transition: border-color 0.15s ease, background 0.15s ease; }
+.platform-pick-opt.active { border-color: var(--brass); background: rgba(184,134,43,0.1); }
+.chart-box { background: #fff; border: 1px solid var(--line); border-radius: var(--r-lg); padding: 16px 14px; box-shadow: var(--shadow-sm); margin-bottom: 18px; }
+.chart-box-title { font-weight: 700; font-size: var(--text-md); margin-bottom: 4px; }
+.chart-box-sub { font-size: 11px; color: var(--text-muted); margin-bottom: 14px; }
+.chart-legend { display: flex; gap: 14px; flex-wrap: wrap; margin-top: 10px; font-size: 11px; color: var(--text-muted); }
+.chart-legend-item { display: flex; align-items: center; gap: 5px; }
+.chart-legend-dot { width: 9px; height: 9px; border-radius: 50%; display: inline-block; }
+.chart-text { fill: rgba(42,36,32,0.52); font-family: 'Inter', sans-serif; }
+.stats-empty { text-align: center; padding: 50px 20px; color: var(--text-muted); font-size: 13px; }
+.section-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+.section-head.centered { align-items: center; }
+.section-title { font-weight: 700; font-size: var(--text-md); color: var(--ink); }
+.section-sub { font-size: var(--text-xs); color: var(--text-muted); line-height: 1.5; }
+.no-income-title { font-size: var(--text-md); font-weight: 600; margin-bottom: 4px; }
+.no-income-sub   { font-size: var(--text-sm); color: var(--text-muted); }
+.screen { display: none; }
+.screen.active { display: block; }
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+.overlay { position: fixed; inset: 0; background: rgba(20,16,12,0.45); display: none; align-items: flex-end; justify-content: center; z-index: 50; }
+.overlay.show { display: flex; }
+.sheet { background: var(--cream); width: 100%; max-width: 480px; border-radius: 24px 24px 0 0; padding: 10px 20px calc(24px + env(safe-area-inset-bottom)); max-height: 88vh; overflow-y: auto; overflow-x: hidden; animation: slideUp 0.25s ease; }
+@keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+.sheet-handle { width: 36px; height: 4px; background: rgba(42,36,32,0.2); border-radius: 4px; margin: 6px auto 16px; }
+.sheet-title { font-family: 'Fraunces', serif; font-weight: 600; font-size: var(--text-lg); margin-bottom: 4px; }
+.sheet-sub { font-size: var(--text-sm); color: var(--text-muted); margin-bottom: 18px; }
+.field { margin-bottom: 16px; }
+.field label { display: block; font-size: var(--text-xs); font-weight: 600; color: var(--vault-2); margin-bottom: 7px; text-transform: uppercase; letter-spacing: 0.04em; }
+.field input , .field select, .field textarea { width: 100%; max-width: 100%; min-width: 0; box-sizing: border-box; border: 1.5px solid var(--line); background: #fff; border-radius: var(--r-md); padding: 13px 14px; font-size: var(--text-md); font-family: 'Inter', sans-serif; color: var(--ink); transition: border-color 0.15s ease; -webkit-appearance: none; appearance: none; }
+.field input[type="date"]{ -webkit-appearance: none; appearance: none; }
+.field input:focus, .field select:focus, .field textarea:focus { outline: none; border-color: var(--vault-light); }
+.field-money { position: relative; }
+.field-money input { width: 100%; box-sizing: border-box; padding-left: 34px; font-family: 'JetBrains Mono', monospace; font-weight: 700; font-size: var(--text-lg); }
+.field-money::before { content: '€'; position: absolute; left: 14px; top: 50%; transform: translateY(-50%); font-family: 'JetBrains Mono', monospace; font-weight: 700; font-size: var(--text-sm); color: var(--text-muted); }
+.seg { display: flex; background: #fff; border: 1.5px solid var(--line); border-radius: var(--r-md); padding: 3px; }
+.seg-opt { flex: 1; text-align: center; padding: 10px 6px; border-radius: var(--r-sm); font-size: var(--text-sm); font-weight: 600; color: var(--text-muted); cursor: pointer; transition: background 0.15s ease, color 0.15s ease; }
+.seg-opt.active { background: var(--vault); color: #fff; }
+.seg-opt.active.danger { background: var(--terracotta); }
+.seg[style*="wrap"] .seg-opt { flex: 1 1 calc(25% - 6px); min-width: 50px; }
+.btn { display: block; width: 100%; text-align: center; padding: 15px; border-radius: var(--r-md); font-weight: 700; font-size: var(--text-md); border: none; margin-top: 6px; cursor: pointer; transition: opacity 0.15s ease, transform 0.1s ease; }
+.btn:active { opacity: 0.85; transform: scale(0.98); }
+.btn-primary { background: var(--vault); color: #fff; }
+.btn-primary.danger { background: var(--terracotta); }
+.btn-ghost { background: transparent; color: var(--vault-2); font-weight: 600; }
+.btn-danger-text { background: transparent; color: var(--terracotta); font-weight: 600; }
+.installment-preview { background: rgba(184,134,43,0.1); border-radius: var(--r-md); padding: 13px 14px; margin-bottom: 16px; font-size: var(--text-sm); color: var(--ink); line-height: 1.5; }
+.installment-preview b { font-family: 'JetBrains Mono', monospace; }
+.loans-box { background: #fff; border: 1px solid var(--line); border-radius: var(--r-lg); padding: 4px 14px; margin-bottom: 20px; }
+.toast { position: fixed; top: 18px; left: 50%; transform: translateX(-50%) translateY(-20px); background: var(--vault); color: #fff; padding: 11px 18px; border-radius: var(--r-full); font-size: var(--text-sm); font-weight: 600; z-index: 100; opacity: 0; transition: all 0.25s ease; box-shadow: var(--shadow-md); white-space: nowrap; pointer-events: none; }
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+.month-nav { display: flex; align-items: center; justify-content: space-between; padding: 4px 2px 18px; }
+.month-nav-btn { width: 34px; height: 34px; border-radius: 50%; background: #fff; border: 1px solid var(--line); display: flex; align-items: center; justify-content: center; color: var(--vault); cursor: pointer; transition: background 0.15s ease; }
+.month-nav-btn:active { background: var(--cream-2); }
+.month-nav-label { font-family: 'Fraunces', serif; font-weight: 600; font-size: var(--text-lg); text-align: center; text-transform: capitalize; }
+.month-nav-hint { font-size: var(--text-xs); color: var(--text-muted); text-align: center; margin-top: 2px; }
+.income-row-compact { display: flex; align-items: center; gap: 12px; background: #fff; border: 1px solid var(--line); border-radius: var(--r-lg); padding: 12px 16px; margin-bottom: 10px; box-shadow: var(--shadow-sm); }
+.income-row-compact .bill-amount-edit { margin-left: auto; }
+.income-avatar { width: 36px; height: 36px; min-width: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: var(--text-base); color: #fff; }
+.income-avatar.a { background: var(--vault-light); }
+.income-avatar.b { background: var(--terracotta-light); }
+.income-name { font-size: var(--text-base); font-weight: 700; }
+.income-sub  { font-size: var(--text-sm); color: var(--text-muted); }
+.month-summary { background: var(--vault); border-radius: var(--r-xl); padding: 18px; color: #fff; margin-bottom: 22px; box-shadow: var(--shadow-md); }
+.ms-row { display: flex; justify-content: space-between; align-items: center; padding: 7px 0; font-size: var(--text-sm); }
+.ms-row.divider { border-top: 1px solid rgba(255,255,255,0.18); margin-top: 4px; padding-top: 13px; }
+.ms-label { opacity: 0.8; }
+.ms-value { font-family: 'JetBrains Mono', monospace; font-weight: 700; }
+.ms-final { font-size: var(--text-lg); }
+.ms-final .ms-value { font-size: var(--text-xl); }
+.ms-final.positive .ms-value { color: #C9E4B8; }
+.ms-final.negative .ms-value { color: #F0AC9A; }
+.ms-final-label { opacity: 1; font-weight: 600; }
+.bill-row { display: flex; align-items: center; gap: 12px; padding: 13px 4px; border-bottom: 1px solid var(--line); }
+.bill-row:last-child { border-bottom: none; }
+.bill-check { width: 24px; height: 24px; min-width: 24px; border-radius: 50%; border: 2px solid rgba(42,36,32,0.25); display: flex; align-items: center; justify-content: center; font-size: 13px; color: #fff; cursor: pointer; transition: background 0.15s ease, border-color 0.15s ease; }
+.bill-check.checked { background: var(--vault-light); border-color: var(--vault-light); }
+.bill-info { flex: 1; min-width: 0; }
+.bill-name { font-size: var(--text-base); font-weight: 600; }
+.bill-name.paid { text-decoration: line-through; opacity: 0.5; }
+.bill-tag { font-size: var(--text-xs); font-weight: 700; padding: 1.5px 6px; border-radius: var(--r-sm); margin-left: 6px; background: rgba(184,134,43,0.16); color: var(--brass); display: inline-block; margin-top: 2px; }
+.bill-sub { font-size: var(--text-xs); color: var(--text-muted); margin-top: 1px; }
+.bill-amount-wrap { display: flex; align-items: center; gap: 8px; }
+.bill-amount { font-family: 'JetBrains Mono', monospace; font-weight: 700; font-size: var(--text-base); }
+.bill-amount-input { width: 84px; border: 1.5px solid var(--line); border-radius: var(--r-sm); padding: 6px 8px 6px 24px; font-family: 'JetBrains Mono', monospace; font-weight: 700; font-size: var(--text-sm); }
+.bill-amount-edit { position: relative; display: flex; align-items: center; }
+.bill-delete { color: var(--text-faint); font-size: 16px; padding: 2px 4px; cursor: pointer; }
+.split-row { display: flex; align-items: center; gap: 10px; background: #fff; border: 1.5px solid var(--line); border-radius: var(--r-md); padding: 11px 12px; margin-bottom: 9px; }
+.split-row.suggested { border-color: rgba(184,134,43,0.4); background: rgba(184,134,43,0.06); }
+.split-emoji { font-size: 17px; width: 24px; text-align: center; }
+.split-info  { flex: 1; }
+.split-source-name { font-size: var(--text-sm); font-weight: 700; }
+.split-source-sub  { font-size: var(--text-xs); color: var(--text-muted); }
+.split-row .field-money { width: 106px; }
+.split-row input {padding: 8px 10px 8px 28px !important; font-size: var(--text-sm) !important; text-align: right; width: 84px; border: 1.5px solid var(--line); border-radius: var(--r-sm); font-family: 'JetBrains Mono', monospace; font-weight: 700;}
+.split-row .field-money::before { font-size: 10px; left: 8px; }
+.split-total-row { display: flex; justify-content: space-between; padding: 10px 4px; font-size: var(--text-sm); font-weight: 700; border-top: 1.5px dashed var(--line); margin-top: 6px; }
+.split-total-row.balanced   { color: var(--vault-2); }
+.split-total-row.unbalanced { color: var(--terracotta); }
+.loading { text-align: center; padding: 60px 20px; color: var(--text-faint); font-size: var(--text-sm); }
+.transfer-preview { font-size: var(--text-sm); color: rgba(42,36,32,0.75); }
+.no-income-state { text-align: center; padding: 40px 20px; }
+.no-income-emoji { font-size: 44px; margin-bottom: 12px; }
+.no-income-title { margin-bottom: 8px; }
+.no-income-sub   { margin-bottom: 28px; }
+.theme-color-grid { display: flex; gap: 10px; flex-wrap: wrap; }
+.theme-color-swatch { width: 32px; height: 32px; border-radius: 50%; cursor: pointer; border: 3px solid transparent; transition: border-color 0.3s ease, box-shadow 0.3s ease, transform 0.42s cubic-bezier(.34,1.56,.64,1); }
+.theme-color-swatch.selected { border-color: transparent; transform: scale(1.12); box-shadow: 0 0 0 2px var(--cream), 0 0 0 4px var(--ink); }
+body.dark {
+  --cream:          #16161B;
+  --cream-2:        #22222A;
+  --ink:            #F0EDE6;
+  --line:           rgba(255,255,255,0.13);
+  --text-muted:     rgba(230,225,215,0.62);
+  --text-faint:     rgba(230,225,215,0.40);
+  --shadow-sm:      0 1px 3px rgba(0,0,0,0.55), 0 4px 12px rgba(0,0,0,0.45);
+  --shadow-md:      0 2px 4px rgba(0,0,0,0.55), 0 8px 24px rgba(0,0,0,0.55);
+  --vault-text:     var(--vault-text-dark, var(--vault-light));
+}
+body.dark {
+  background: #16161B;
+  background-image:
+    radial-gradient(circle at 100% 0%, rgba(184,134,43,0.09), transparent 45%),
+    radial-gradient(circle at 0% 100%, rgba(31,58,46,0.12), transparent 40%);
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+  color: var(--ink);
+}
+body.dark .vault-card, body.dark .action-btn, body.dark .income-row-compact, body.dark .split-row, body.dark .loans-box, body.dark .stat-card, body.dark .chart-box { background: #252530; color: var(--ink); border-color: rgba(255,255,255,0.10); }
+body.dark .month-nav-btn, body.dark .month-picker-year-btn { background: #252530; color: var(--ink); border-color: rgba(255,255,255,0.12); }
+body.dark .add-dashed-btn { background: rgba(255,255,255,0.04); border-color: rgba(255,255,255,0.18); color: var(--vault-light); }
+body.dark .platform-pick-opt { background: #252530; color: var(--ink); border-color: rgba(255,255,255,0.13); }
+body.dark .platform-pick-opt.active { border-color: var(--vault-text, var(--vault-light)); background: rgba(255,255,255,0.08); }
+body.dark .field input, body.dark .field select, body.dark .field textarea, body.dark .bill-amount-input { background: #1C1C23; color: var(--ink); border-color: rgba(255,255,255,0.14); }
+body.dark .field input::placeholder, body.dark .field textarea::placeholder { color: rgba(230,225,215,0.32); }
+body.dark .field select option { background: #1C1C23; color: var(--ink); }
+body.dark .field label { color: var(--vault-light); }
+body.dark .field-money::before { color: rgba(230,225,215,0.45); }
+body.dark .seg { background: #1C1C23; border-color: rgba(255,255,255,0.10); }
+body.dark .seg-opt { color: var(--text-muted); }
+body.dark .seg-opt.active { background: var(--vault); color: #fff; }
+body.dark .tabbar { background: linear-gradient(to top, #0e0e12 60%, rgba(14,14,18,0)); }
+body.dark .tabbar-inner { background: rgba(18,18,24,0.97); border-color: rgba(255,255,255,0.08); }
+body.dark .tab { color: rgba(230,225,215,0.55); }
+body.dark .tab.active { color: var(--vault-text, var(--vault-light)); background: rgba(255,255,255,0.08); }
+body.dark .sheet { background: #1A1A21; }
+body.dark .sheet-title { color: var(--ink); }
+body.dark .sheet-sub { color: var(--text-muted); }
+body.dark .sheet-handle { background: rgba(255,255,255,0.18); }
+body.dark .overlay { background: rgba(0,0,0,0.70); }
+body.dark .activity-item { border-color: rgba(255,255,255,0.07); }
+body.dark .bill-row { border-color: rgba(255,255,255,0.07); }
+body.dark .ms-row { border-color: rgba(255,255,255,0.10); }
+body.dark .ms-row.divider { border-color: rgba(255,255,255,0.16); }
+body.dark .income-row-compact { border-color: rgba(255,255,255,0.07); }
+body.dark .installment-preview { background: rgba(184,134,43,0.18); }
+body.dark .leftover-banner { background: rgba(184,134,43,0.12); border-color: rgba(184,134,43,0.28); }
+body.dark .month-picker-cell { background: #1C1C23; color: var(--ink); border-color: transparent; }
+body.dark .month-picker-cell.is-current { border-color: var(--vault-text, var(--vault-light)); }
+body.dark .month-picker-cell.is-selected { background: var(--vault); color: #fff; }
+body.dark .split-total-row { border-color: rgba(255,255,255,0.12); }
+body.dark .split-total-row.balanced { color: var(--vault-light); }
+body.dark .profile-card { background: #1C1C23; border-color: rgba(255,255,255,0.09); }
+body.dark .profile-card-name-input { color: var(--ink); border-color: rgba(255,255,255,0.14); }
+body.dark .profile-action-btn { color: var(--vault-light); border-color: rgba(255,255,255,0.14); }
+body.dark .profile-action-btn:active { background: rgba(255,255,255,0.07); }
+body.dark .profile-action-btn.danger { color: var(--terracotta-light); }
+body.dark .delete-all-btn { color: var(--terracotta-light); }
+body.dark .sync-pill { background: rgba(255,255,255,0.08); color: var(--ink); }
+body.dark .sync-dot { background: var(--vault-light); }
+body.dark .switch:not(.on) { background: rgba(255,255,255,0.24); }
+body.dark .sync-dot.off { background: var(--terracotta-light); }
+body.dark #syncUrlLockedView { background: rgba(255,255,255,0.05); color: var(--ink); }
+body.dark #syncUrlLockedView button { background: #252530; color: var(--terracotta-light); border-color: rgba(255,255,255,0.14); }
+body.dark #syncUrlLockedView div { color: var(--text-muted); }
+body.dark .brand-name, body.dark .screen-title { color: var(--vault-light); }
+body.dark .tabbar-inner::before { color: var(--vault-light); }
+body.dark .vault-balance, body.dark .detail-balance { color: var(--ink); }
+body.dark .vault-balance.negative, body.dark .detail-balance.negative { color: var(--terracotta-light); }
+body.dark .ms-final.positive { color: var(--vault-light); }
+body.dark .ms-final.negative { color: var(--terracotta-light); }
+body.dark .ms-label { color: var(--text-muted); }
+body.dark .ms-value { color: var(--ink); }
+body.dark .stat-card-label { color: var(--text-muted); }
+body.dark .stat-card-value { color: var(--ink); }
+body.dark .stat-card-value.negative { color: var(--terracotta-light); }
+body.dark .chart-box-title { color: var(--ink); }
+body.dark .chart-box-sub { color: var(--text-muted); }
+body.dark .chart-legend { color: var(--text-muted); }
+body.dark .section-title { color: var(--ink); }
+body.dark .section-sub { color: var(--text-muted); }
+body.dark .transfer-preview { color: rgba(230,225,215,0.75); }
+body.dark .chart-text { fill: rgba(230,225,215,0.55); }
+body.dark .goal-bar-bg { background: rgba(255,255,255,0.12); }
+body.dark .photo-btn { background: #1C1C23; color: var(--ink); border-color: rgba(255,255,255,0.12); }
+body.dark .add-profile-btn { background: rgba(255,255,255,0.03); border-color: rgba(255,255,255,0.16); color: var(--vault-light); }
+body.dark .empty-note { color: var(--text-faint); }
+body.dark .stats-empty { color: var(--text-muted); }
+body.dark #importJsonInput { background: #1C1C23; color: var(--ink); border-color: rgba(255,255,255,0.14); }
+body.dark #importJsonInput::placeholder { color: rgba(230,225,215,0.32); }
+body.dark button[onclick="lockSyncUrl()"] { background: var(--vault); color: #fff; border-color: transparent; }
+.profile-card { background: #fff; border: 1px solid var(--line); border-radius: var(--r-xl); padding: 16px; margin-bottom: 12px; box-shadow: var(--shadow-sm); }
+.profile-card-head { display: flex; align-items: center; gap: 14px; margin-bottom: 14px; }
+.profile-card-avatar { width: 60px; height: 60px; min-width: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 22px; color: #fff; background-size: contain; background-position: center; background-repeat: no-repeat; position: relative; cursor: pointer; overflow: hidden; }
+.profile-card-avatar.a { background-color: var(--vault-light); }
+.profile-card-avatar.b { background-color: var(--terracotta-light); }
+.profile-card-avatar-label { position: absolute; bottom: 0; left: 0; right: 0; background: rgba(0,0,0,0.38); color: #fff; font-size: 9px; font-weight: 700; text-align: center; padding: 3px 0; text-transform: uppercase; letter-spacing: 0.04em; }
+.profile-card-info { flex: 1; min-width: 0; }
+.profile-card-name-input { width: 100%; border: none; background: transparent; font-size: var(--text-lg); font-weight: 700; font-family: 'Inter', sans-serif; color: var(--ink); padding: 0; margin: 0 0 4px; outline: none; border-bottom: 1.5px solid var(--line); }
+.profile-card-name-input:focus { border-color: var(--vault-light); }
+.profile-card-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+.profile-action-btn { font-size: 11.5px; font-weight: 700; padding: 7px 14px; border-radius: var(--r-full); border: 1.5px solid var(--line); background: transparent; cursor: pointer; color: var(--vault-2); transition: background 0.15s ease; }
+.profile-action-btn:active { background: var(--cream-2); }
+.profile-action-btn.danger { color: var(--terracotta); }
+.add-profile-btn { display: flex; align-items: center; justify-content: center; gap: 8px; border: 1.5px dashed rgba(31,58,46,0.3); border-radius: var(--r-xl); padding: 14px; color: var(--vault-2); font-weight: 600; font-size: var(--text-base); background: rgba(31,58,46,0.03); cursor: pointer; margin-bottom: 12px; transition: background 0.15s ease; }
+.add-profile-btn:active { background: rgba(31,58,46,0.07); }
+.delete-all-btn { display: block; width: 100%; text-align: center; padding: 15px; border-radius: var(--r-md); font-weight: 600; font-size: var(--text-md); border: none; margin-top: 28px; cursor: pointer; background: transparent; color: var(--terracotta); }
+@media (min-width: 860px) {
+  body { padding-bottom: 0; }
+  .app { max-width: 1080px; padding: 0 40px 60px; display: grid; grid-template-columns: 220px 1fr; column-gap: 36px; align-items: start; }
+  .screen { grid-column: 2; }
+  .screen.active { display: block; }
+  .tabbar { position: fixed; left: 0; right: auto; bottom: 0; top: 0; width: calc((100vw - 1080px) / 2 + 220px + 40px); min-width: 280px; max-width: 340px; padding: 0; background: none; display: flex; align-items: flex-start; justify-content: flex-end; }
+  .tabbar-inner { flex-direction: column; max-width: none; width: 220px; margin: 32px 40px 32px 0; height: calc(100vh - 64px); justify-content: flex-start; gap: 4px; padding: 18px 12px; border-radius: var(--r-xl); }
+  .tab { flex: none; width: 100%; flex-direction: row; justify-content: flex-start; gap: 10px; padding: 11px 12px; font-size: var(--text-base); }
+  .tab svg { width: 19px; height: 19px; }
+  .tabbar-inner::before { content: 'Corrida+'; display: block; font-family: 'Fraunces', serif; font-weight: 600; font-size: var(--text-xl); color: var(--vault); padding: 8px 12px 16px; }
+  .overlay { align-items: center; }
+  .sheet { max-width: 440px; border-radius: var(--r-xl); max-height: 80vh; }
+  @keyframes slideUp { from { transform: translateY(16px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+  .totals { grid-template-columns: repeat(2, minmax(0, 260px)); }
+}
+@media (min-width: 860px) and (max-width: 1199px) { .tabbar { width: 280px; } }
+#splashScreen { background: var(--vault); }
+#splashScreen .splash-title { color: #F6EFE2; }
+#splashScreen .splash-msg { color: rgba(246,239,226,0.55); }
+@media (prefers-color-scheme: dark) {
+  #splashScreen { background: #16161B; background-image: radial-gradient(circle at 100% 0%, rgba(184,134,43,0.09), transparent 45%), radial-gradient(circle at 0% 100%, rgba(31,58,46,0.12), transparent 40%); }
+  #splashScreen .splash-title { color: #F0EDE6; }
+  #splashScreen .splash-msg { color: rgba(230,225,215,0.62); }
+}
+.theme-input { background:#fff; color:var(--ink); }
+body.dark .theme-input { background:#1C1C23; color:var(--ink); border-color:rgba(255,255,255,0.14); }
+.theme-card { background:#fff; }
+body.dark .theme-card { background:#252530; }
+body.basic-mode #screen-settings .switch:not(#swIva):not(#swComissao),
+body.basic-mode #screen-settings .field input:not(#ivaRate):not(#comissaoRate),
+body.basic-mode #screen-settings .field select,
+body.basic-mode #screen-settings #goalsFieldsRow input,
+body.basic-mode #turnoNamesRow input,
+body.basic-mode #turnoNamesRow button,
+body.basic-mode #turnoNamesRow .bill-delete,
+body.basic-mode #customPlatformsBody input,
+body.basic-mode #customPlatformsBody button,
+body.basic-mode #screen-settings .bill-amount-input { pointer-events:none; opacity:0.4; filter:grayscale(1); }
+body.basic-mode #statsViewSeg .seg-opt:not([data-v="mes"]) { display:none; }
+#basicBanner { display:none; background:rgba(184,134,43,0.14); border:1px solid rgba(184,134,43,0.35); border-radius:var(--r-md); padding:12px 14px; margin:8px 0 4px; font-size:12px; line-height:1.5; }
+/* ---------- Liquid glass (Modo Dev) ----------
+   Camada de cor estática por trás de tudo, para o vidro ter o que refratar.
+   Os elementos ficam translúcidos e com desfoque. Sem o modo ativo, nada muda. */
+body.glass { background: #EFE7D6; }
+body::before {
+  content: ''; position: fixed; inset: 0; z-index: 0; pointer-events: none;
+  opacity: 0; transition: opacity 0.5s ease;
+  background:
+    radial-gradient(circle at 12% 18%, rgba(217,169,73,0.75) 0, transparent 38%),
+    radial-gradient(circle at 88% 30%, rgba(62,102,80,0.65) 0, transparent 42%),
+    radial-gradient(circle at 35% 88%, rgba(201,114,89,0.6) 0, transparent 44%),
+    radial-gradient(circle at 92% 92%, rgba(90,64,160,0.35) 0, transparent 36%),
+    linear-gradient(160deg, #F6EFE2 0%, #E6DCC6 100%);
+}
+body.glass.dark { background: #0E0E12; }
+body.glass::before { opacity: 1; }
+body.dark::before {
+  background:
+    radial-gradient(circle at 12% 18%, rgba(217,169,73,0.35) 0, transparent 38%),
+    radial-gradient(circle at 88% 30%, rgba(62,102,80,0.45) 0, transparent 42%),
+    radial-gradient(circle at 35% 88%, rgba(201,114,89,0.28) 0, transparent 44%),
+    radial-gradient(circle at 92% 92%, rgba(90,64,160,0.3) 0, transparent 36%),
+    linear-gradient(160deg, #16161B 0%, #0A0A0E 100%);
+}
+body.glass .app { position: relative; z-index: 1; }
+body.glass .tabbar { background: none; }
+body.glass .tabbar-inner,
+body.glass.dark .tabbar-inner {
+  background: rgba(255,255,255,0.28);
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  border: 1px solid rgba(255,255,255,0.55);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.6), 0 10px 30px rgba(20,16,12,0.16);
+}
+body.glass.dark .tabbar-inner {
+  background: rgba(40,40,52,0.38);
+  border-color: rgba(255,255,255,0.14);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.12), 0 10px 30px rgba(0,0,0,0.45);
+}
+body.glass .tab { transition: background-color 0.25s ease, color 0.25s ease; }
+body.glass .tab.active {
+  background: rgba(255,255,255,0.45);
+  backdrop-filter: blur(12px) saturate(180%);
+  -webkit-backdrop-filter: blur(12px) saturate(180%);
+  border: 1px solid rgba(255,255,255,0.6);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.7), 0 2px 10px rgba(20,16,12,0.12);
+}
+/* Troca de abas: a nova aba entra do lado de onde vem (só deslize, opacidade total) */
+@keyframes slideFromRight { from { transform: translateX(28px); } to { transform: translateX(0); } }
+@keyframes slideFromLeft { from { transform: translateX(-28px); } to { transform: translateX(0); } }
+.screen.slide-r { animation: slideFromRight 0.3s cubic-bezier(.2,.8,.2,1); }
+.screen.slide-l { animation: slideFromLeft 0.3s cubic-bezier(.2,.8,.2,1); }
+body.glass.dark .tab.active { background: rgba(255,255,255,0.12); border-color: rgba(255,255,255,0.18); }
+body.glass .stat-card, body.glass .chart-box, body.glass .profile-card, body.glass .income-row-compact {
+  background: rgba(255,255,255,0.5);
+  backdrop-filter: blur(18px) saturate(160%);
+  -webkit-backdrop-filter: blur(18px) saturate(160%);
+  border-color: rgba(255,255,255,0.6);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.55), 0 6px 20px rgba(20,16,12,0.08);
+}
+body.glass.dark .stat-card, body.glass.dark .chart-box, body.glass.dark .profile-card, body.glass.dark .income-row-compact {
+  background: rgba(30,30,40,0.5);
+  border-color: rgba(255,255,255,0.1);
+}
+body.glass .sheet {
+  background: rgba(246,239,226,0.82);
+  backdrop-filter: blur(30px) saturate(170%);
+  -webkit-backdrop-filter: blur(30px) saturate(170%);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.7), 0 -8px 40px rgba(20,16,12,0.18);
+}
+body.glass.dark .sheet { background: rgba(26,26,33,0.82); box-shadow: inset 0 1px 0 rgba(255,255,255,0.1), 0 -8px 40px rgba(0,0,0,0.5); }
+body.glass .overlay { background: rgba(20,16,12,0.25); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); }
+/* Seletores de vista (Dia · Semana · Mês · Ano) */
+body.glass .seg {
+  background: rgba(255,255,255,0.32);
+  backdrop-filter: blur(16px) saturate(170%);
+  -webkit-backdrop-filter: blur(16px) saturate(170%);
+  border-color: rgba(255,255,255,0.6);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.6), 0 4px 14px rgba(20,16,12,0.08);
+}
+body.glass .seg-opt.active {
+  background: var(--vault);
+  color: #fff;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.8), 0 2px 8px rgba(20,16,12,0.12);
+}
+body.glass.dark .seg { background: rgba(40,40,52,0.4); border-color: rgba(255,255,255,0.12); }
+body.glass.dark .seg-opt.active { background: var(--vault); color: #fff; }
+/* Setas laterais de mês/dia/semana/ano */
+body.glass .month-nav-btn {
+  background: rgba(255,255,255,0.45);
+  backdrop-filter: blur(14px) saturate(170%);
+  -webkit-backdrop-filter: blur(14px) saturate(170%);
+  border-color: rgba(255,255,255,0.65);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.7), 0 4px 12px rgba(20,16,12,0.1);
+}
+body.glass.dark .month-nav-btn { background: rgba(40,40,52,0.45); border-color: rgba(255,255,255,0.14); }
+/* Interruptores */
+body.glass .switch:not(.on) { background: rgba(42,36,32,0.16); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
+body.glass .switch.on { background: var(--switch-on, var(--vault-light)); }
+body.glass.dark .switch:not(.on) { background: rgba(255,255,255,0.18); }
+/* Gota da aba selecionada (só com o efeito transparente) */
+body.glass .tabbar-inner { position: relative; touch-action: none; }
+body.glass .tab { position: relative; z-index: 1; }
+.glass-pill { display: none; }
+body.glass .glass-pill {
+  display: block; position: absolute; z-index: 0; pointer-events: none;
+  border-radius: 14px; opacity: 0;
+  background: rgba(255,255,255,0.5);
+  backdrop-filter: blur(12px) saturate(180%); -webkit-backdrop-filter: blur(12px) saturate(180%);
+  border: 1px solid rgba(255,255,255,0.7);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.8), 0 4px 14px rgba(20,16,12,0.14);
+  transition: left 0.38s cubic-bezier(.34,1.56,.64,1), top 0.38s cubic-bezier(.34,1.56,.64,1),
+              width 0.38s cubic-bezier(.34,1.56,.64,1), height 0.38s cubic-bezier(.34,1.56,.64,1), transform 0.42s cubic-bezier(.34,1.56,.64,1), opacity 0.2s ease;
+}
+body.glass .glass-pill.on { opacity: 1; }
+body.glass.dark .glass-pill { background: rgba(255,255,255,0.14); border-color: rgba(255,255,255,0.2); }
+body.glass .tab.active, body.glass.dark .tab.active {
+  background: transparent; border-color: transparent; box-shadow: none;
+  backdrop-filter: none; -webkit-backdrop-filter: none;
+}
+/* Gota de vidro em todos os seletores (com o efeito transparente) */
+body.glass .seg { position: relative; touch-action: none; }
+body.glass .seg-opt { position: relative; z-index: 1; }
+body.glass .seg > .glass-pill {
+  background: var(--vault); border-color: rgba(255,255,255,0.25);
+  box-shadow: 0 3px 10px rgba(20,16,12,0.22);
+  backdrop-filter: none; -webkit-backdrop-filter: none;
+}
+body.glass.dark .seg > .glass-pill { background: var(--vault); }
+body.glass .seg-opt.active, body.glass.dark .seg-opt.active {
+  background: transparent; box-shadow: none; color: #fff;
+}
+/* Gota: funciona nos dois modos (no vidro, as regras body.glass por cima dão o aspeto transparente) */
+.glass-pill {
+  display: block; position: absolute; z-index: 0; pointer-events: none;
+  border-radius: 14px; opacity: 0;
+  background: rgba(31,58,46,0.1);
+  transition: left 0.38s cubic-bezier(.34,1.56,.64,1), top 0.38s cubic-bezier(.34,1.56,.64,1),
+              width 0.38s cubic-bezier(.34,1.56,.64,1), height 0.38s cubic-bezier(.34,1.56,.64,1),
+              transform 0.42s cubic-bezier(.34,1.56,.64,1), opacity 0.2s ease;
+}
+.glass-pill.on { opacity: 1; }
+body.dark .glass-pill { background: rgba(255,255,255,0.1); }
+.seg, .tabbar-inner { position: relative; touch-action: none; }
+.seg-opt, .tab { position: relative; z-index: 1; }
+.seg > .glass-pill { background: var(--vault); border-radius: var(--r-sm); }
+body.dark .seg > .glass-pill { background: var(--vault); }
+.seg-opt.active, body.dark .seg-opt.active { background: transparent; box-shadow: none; color: #fff; }
+.tab.active, body.dark .tab.active { background: transparent; }
+/* Mudanças de tema, de modo e do efeito: as cores passam gradualmente */
+html.soft-change, html.soft-change * {
+  transition: background-color 0.5s ease, color 0.5s ease, border-color 0.5s ease,
+              box-shadow 0.5s ease, fill 0.5s ease !important;
+}
+.theme-color-swatch:active { transform: scale(0.9); }
+/* Imagem de fundo: aparece e desaparece com fade */
+#customBg { opacity: 0; transition: opacity 0.45s ease; }
+#customBg.on { opacity: 1; }
+html.soft-change #customBg { transition: opacity 0.45s ease !important; }
+/* Imagem de fundo escura no modo claro: texto sobre o fundo fica claro; cartões mantêm texto escuro */
+body.bg-ink-light:not(.dark) #app :is(.screen-title, .month-nav-label, .month-nav-hint, .section-title, .section-sub, .section-head, .empty-note, .no-income-title, .no-income-sub, .bill-name, .bill-sub, .bill-amount, .bill-amount-edit, .income-name, .income-sub, .switch-row-title, .switch-row-sub, .field label, .add-dashed-btn, .sync-pill span, .stats-empty, .loading, .brand-name) { color: #F6EFE2; }
+body.bg-ink-light:not(.dark) #app :is(.stat-card, .chart-box, .loans-box, .income-row-compact, .profile-card, .seg) { color: var(--ink); }
+body.bg-ink-light:not(.dark) #app :is(.stat-card, .chart-box, .loans-box, .income-row-compact, .profile-card, .seg) :is(.screen-title, .month-nav-label, .month-nav-hint, .section-title, .section-sub, .section-head, .empty-note, .no-income-title, .no-income-sub, .bill-name, .bill-sub, .bill-amount, .bill-amount-edit, .income-name, .income-sub, .switch-row-title, .switch-row-sub, .field label, .add-dashed-btn, .sync-pill span, .stats-empty, .loading, .brand-name) { color: var(--ink); }
+body.bg-ink-light:not(.dark) #app input, body.bg-ink-light:not(.dark) #app select, body.bg-ink-light:not(.dark) #app textarea { color: var(--ink); }
+body.bg-ink-light:not(.dark) #app .add-dashed-btn { background: rgba(20,16,12,0.3); border-color: rgba(246,239,226,0.5); }
+body.bg-ink-light:not(.dark) #app .sync-pill { background: rgba(20,16,12,0.35); }
+/* Textos com cor fixa no HTML, sobre a imagem (modo claro): ficam claros; dentro de cartões, voltam ao normal */
+body.bg-ink-light:not(.dark) #app [style*="color:var(--text-muted)"],
+body.bg-ink-light:not(.dark) #app [style*="color:var(--text-faint)"] { color: #F6EFE2 !important; }
+body.bg-ink-light:not(.dark) #app :is(.stat-card, .chart-box, .loans-box, .income-row-compact, .profile-card, .seg) [style*="color:var(--text-muted)"],
+body.bg-ink-light:not(.dark) #app :is(.stat-card, .chart-box, .loans-box, .income-row-compact, .profile-card, .seg) [style*="color:var(--text-faint)"] { color: var(--text-muted) !important; }
+/* Botão "Adicionar" no modo escuro com imagem */
+body.dark.bg-img #app .add-dashed-btn { background: rgba(14,14,18,0.6); border-color: rgba(255,255,255,0.3); color: #F0EDE6; }
+/* Fade da interface e do menu ao ligar/desligar o efeito */
+#app, .tabbar { transition: opacity 0.22s ease; }
+#app.fade-out, .tabbar.fade-out { opacity: 0; }
+/* Intensidade do vidro (--gl-k: transparência; --gl-b: desfoque). Padrão = 1. */
+body.glass .tabbar-inner { background: rgba(255,255,255, min(0.97, calc(0.28 * var(--gl-k)))); backdrop-filter: blur(calc(24px * var(--gl-b))) saturate(180%); -webkit-backdrop-filter: blur(calc(24px * var(--gl-b))) saturate(180%); }
+body.glass.dark .tabbar-inner { background: rgba(40,40,52, min(0.97, calc(0.38 * var(--gl-k)))); }
+body.glass .stat-card, body.glass .chart-box, body.glass .profile-card, body.glass .income-row-compact { background: rgba(255,255,255, min(0.97, calc(0.5 * var(--gl-k)))); backdrop-filter: blur(calc(18px * var(--gl-b))) saturate(160%); -webkit-backdrop-filter: blur(calc(18px * var(--gl-b))) saturate(160%); }
+body.glass.dark .stat-card, body.glass.dark .chart-box, body.glass.dark .profile-card, body.glass.dark .income-row-compact { background: rgba(30,30,40, min(0.97, calc(0.5 * var(--gl-k)))); }
+body.glass .sheet { background: rgba(246,239,226, min(0.98, calc(0.82 * var(--gl-k)))); backdrop-filter: blur(calc(30px * var(--gl-b))) saturate(170%); -webkit-backdrop-filter: blur(calc(30px * var(--gl-b))) saturate(170%); }
+body.glass.dark .sheet { background: rgba(26,26,33, min(0.98, calc(0.82 * var(--gl-k)))); }
+body.glass .seg { background: rgba(255,255,255, min(0.97, calc(0.32 * var(--gl-k)))); backdrop-filter: blur(calc(16px * var(--gl-b))) saturate(170%); -webkit-backdrop-filter: blur(calc(16px * var(--gl-b))) saturate(170%); }
+body.glass.dark .seg { background: rgba(40,40,52, min(0.97, calc(0.4 * var(--gl-k)))); }
+body.glass .month-nav-btn { background: rgba(255,255,255, min(0.97, calc(0.45 * var(--gl-k)))); backdrop-filter: blur(calc(14px * var(--gl-b))) saturate(170%); -webkit-backdrop-filter: blur(calc(14px * var(--gl-b))) saturate(170%); }
+body.glass.dark .month-nav-btn { background: rgba(40,40,52, min(0.97, calc(0.45 * var(--gl-k)))); }
+/* Balões sem cor (interruptor "Balões tintados" desligado) */
+/* Só a área das telas rola. A página não rola, por isso a barra de endereço
+   do navegador (Android e iOS) não faz a barra de abas saltar. */
+html, body { height: 100%; overflow: hidden; }
+body { height: 100dvh; }
+#app { height: 100dvh; overflow-y: auto; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; }
+/* Raios aninhados concêntricos: raio interno = raio externo − espaçamento */
+/* Seletores (Dia·Semana·Mês·Ano, tema, etc.): contentor 12px, padding 3px -> interno 9px */
+.seg { border-radius: var(--r-md); }
+.seg-opt, .seg > .glass-pill { border-radius: calc(var(--r-md) - 4.5px); }
+/* Barra de abas: contentor 20px, padding 7px (vertical) e 8px (lateral) -> 13px */
+.tabbar-inner { border-radius: var(--r-xl); }
+.tab, .tabbar-inner > .glass-pill { border-radius: calc(var(--r-xl) - 8px); }
+@media (min-width: 860px) {
+  /* Barra lateral (computador): padding 18px 12px -> 8px */
+  .tab, .tabbar-inner > .glass-pill { border-radius: calc(var(--r-xl) - 13px); }
+}
+/* Barras deslizantes: polegar visível, preenchimento na cor do tema (nos dois modos) */
+input[type=range].gl-range { -webkit-appearance: none; appearance: none; width: 100%; height: 30px; margin: 4px 0 2px; background: transparent; cursor: pointer; }
+input[type=range].gl-range:focus { outline: none; }
+input[type=range].gl-range::-webkit-slider-runnable-track {
+  height: 8px; border-radius: 8px;
+  background: linear-gradient(to right, var(--vault) var(--fill, 50%), rgba(42,36,32,0.25) var(--fill, 50%));
+}
+input[type=range].gl-range::-webkit-slider-thumb {
+  -webkit-appearance: none; appearance: none; width: 26px; height: 26px; border-radius: 50%;
+  background: #fff; border: 3px solid var(--vault); box-shadow: 0 2px 8px rgba(0,0,0,0.35); margin-top: -9px;
+}
+input[type=range].gl-range::-moz-range-track { height: 8px; border-radius: 8px; background: rgba(42,36,32,0.25); }
+input[type=range].gl-range::-moz-range-progress { height: 8px; border-radius: 8px; background: var(--vault); }
+input[type=range].gl-range::-moz-range-thumb {
+  width: 22px; height: 22px; border-radius: 50%; background: #fff; border: 3px solid var(--vault); box-shadow: 0 2px 8px rgba(0,0,0,0.35);
+}
+body.dark input[type=range].gl-range::-webkit-slider-runnable-track {
+  background: linear-gradient(to right, var(--vault-text, var(--vault-light)) var(--fill, 50%), rgba(255,255,255,0.3) var(--fill, 50%));
+}
+body.dark input[type=range].gl-range::-webkit-slider-thumb { border-color: var(--vault-text, var(--vault-light)); }
+body.dark input[type=range].gl-range::-moz-range-track { background: rgba(255,255,255,0.3); }
+body.dark input[type=range].gl-range::-moz-range-progress { background: var(--vault-text, var(--vault-light)); }
+body.dark input[type=range].gl-range::-moz-range-thumb { border-color: var(--vault-text, var(--vault-light)); }
+.range-title { font-size: 13px; font-weight: 700; color: var(--ink); margin: 6px 0 0; }
+.range-ends { display: flex; justify-content: space-between; font-size: 11px; font-weight: 600; color: var(--ink); opacity: 0.7; margin-top: 2px; }
+/* Três rótulos: o do meio fica exatamente na posição 50% (ímã do padrão) */
+.range-3 { position: relative; display: block; height: 16px; }
+.range-3 span { position: absolute; top: 0; white-space: nowrap; }
+.range-3 span:nth-child(1) { left: 0; }
+.range-3 span:nth-child(2) { left: 50%; transform: translateX(-50%); }
+.range-3 span:nth-child(3) { right: 0; }
+/* Cantos concêntricos: raio interno = raio externo − (borda + espaçamento) */
+.seg { --seg-inner: calc(var(--r-md) - 4.5px); }
+.seg-opt, .seg > .glass-pill { border-radius: var(--seg-inner); }
+.tabbar-inner { --tab-inner: calc(var(--r-xl) - 8px); }
+.tab, .tabbar-inner > .glass-pill { border-radius: var(--tab-inner); }
+@media (min-width: 860px) {
+  .tabbar-inner { --tab-inner: calc(var(--r-xl) - 13px); }
+}
+/* Raios concêntricos com prioridade sobre as regras do modo transparente (que definiam 14px) */
+body.glass .seg > .glass-pill { border-radius: var(--seg-inner); }
+body.glass .tabbar-inner > .glass-pill { border-radius: var(--tab-inner); }
+body.glass .seg-opt { border-radius: var(--seg-inner); }
+body.glass .tab { border-radius: var(--tab-inner); }
+/* A gota continua a deslizar durante a mudança suave de cores (não é só cor) */
+html.soft-change .glass-pill {
+  transition: left 0.38s cubic-bezier(.34,1.56,.64,1), top 0.38s cubic-bezier(.34,1.56,.64,1),
+              width 0.38s cubic-bezier(.34,1.56,.64,1), height 0.38s cubic-bezier(.34,1.56,.64,1),
+              transform 0.42s cubic-bezier(.34,1.56,.64,1), opacity 0.2s ease !important;
+}
+</style>
+</head>
+<body>
+<div id="customBg" style="position:fixed;inset:0;z-index:0;pointer-events:none;"><div id="customBgGrain" style="position:absolute;inset:0;pointer-events:none;mix-blend-mode:overlay;opacity:0;"></div></div>
 
-`earnings`/`expenses` deixam de estar aninhados por mês — passam a ser
-duas listas simples com campo `date`; o agrupamento por mês/semana
-continua a ser feito só no cliente (exatamente como já era, via
-`earningsInRange()`). `profile`/`settings`/`features` ficam separados por
-responsabilidade.
+<div id="splashScreen" style="
+  position:fixed;inset:0;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  z-index:999;
+  transition:opacity 0.5s ease;
+">
+  <svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" style="width:72px;height:72px;margin-bottom:20px;">
+    <rect width="64" height="64" rx="14" fill="#1F3A2E"/>
+    <g transform="translate(8,18)">
+      <path d="M6 16 L10 6 Q12 3 16 3 L32 3 Q36 3 38 6 L42 16" fill="none" stroke="#D9A949" stroke-width="3" stroke-linecap="round"/>
+      <rect x="2" y="15" width="44" height="14" rx="5" fill="#D9A949"/>
+      <circle cx="12" cy="31" r="6" fill="#1F3A2E" stroke="#D9A949" stroke-width="2.5"/>
+      <circle cx="36" cy="31" r="6" fill="#1F3A2E" stroke="#D9A949" stroke-width="2.5"/>
+      <rect x="2" y="20" width="11" height="6" rx="2" fill="#1F3A2E" opacity="0.5"/>
+      <rect x="35" y="20" width="11" height="6" rx="2" fill="#1F3A2E" opacity="0.5"/>
+    </g>
+  </svg>
+  <div class="splash-title" style="font-family:'Fraunces',serif;font-weight:600;font-size:28px;letter-spacing:-0.01em;">Corrida+</div>
+  <div id="splashMsg" class="splash-msg" style="font-size:12px;margin-top:10px;font-weight:500;">A carregar…</div>
+  <div id="splashVersion" class="splash-msg" style="font-size:10px;margin-top:14px;font-weight:600;opacity:0.65;letter-spacing:0.04em;text-transform:uppercase;"></div>
+</div>
 
-### 11.3 Como funciona por baixo dos panos
+<div id="loginGate" style="
+  position:fixed;inset:0;
+  background:var(--vault);
+  display:none;
+  flex-direction:column;align-items:center;justify-content:center;
+  z-index:998;
+  padding:24px;
+  text-align:center;
+">
+  <svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" style="width:72px;height:72px;margin-bottom:20px;">
+    <rect width="64" height="64" rx="14" fill="#1F3A2E"/>
+    <g transform="translate(8,18)">
+      <path d="M6 16 L10 6 Q12 3 16 3 L32 3 Q36 3 38 6 L42 16" fill="none" stroke="#D9A949" stroke-width="3" stroke-linecap="round"/>
+      <rect x="2" y="15" width="44" height="14" rx="5" fill="#D9A949"/>
+      <circle cx="12" cy="31" r="6" fill="#1F3A2E" stroke="#D9A949" stroke-width="2.5"/>
+      <circle cx="36" cy="31" r="6" fill="#1F3A2E" stroke="#D9A949" stroke-width="2.5"/>
+      <rect x="2" y="20" width="11" height="6" rx="2" fill="#1F3A2E" opacity="0.5"/>
+      <rect x="35" y="20" width="11" height="6" rx="2" fill="#1F3A2E" opacity="0.5"/>
+    </g>
+  </svg>
+  <div style="font-family:'Fraunces',serif;font-weight:600;font-size:28px;letter-spacing:-0.01em;color:#F6EFE2;">Corrida+</div>
+  <div style="font-size:13px;color:rgba(246,239,226,0.65);margin:10px 0 30px;max-width:280px;line-height:1.5;">Entra com a tua conta Google para aceder aos teus dados.</div>
+  <button id="loginGateBtn" onclick="handleGoogleSignIn()" style="display:flex;align-items:center;gap:10px;background:#fff;color:#2A2420;border:none;padding:14px 26px;border-radius:100px;font-weight:700;font-size:15px;cursor:pointer;box-shadow:0 2px 10px rgba(0,0,0,0.25);">
+    <svg width="18" height="18" viewBox="0 0 48 48">
+      <path fill="#FFC107" d="M43.611 20.083H42V20H24v8h11.303c-1.649 4.657-6.08 8-11.303 8-6.627 0-12-5.373-12-12s5.373-12 12-12c3.059 0 5.842 1.154 7.961 3.039l5.657-5.657C34.046 6.053 29.268 4 24 4 12.955 4 4 12.955 4 24s8.955 20 20 20 20-8.955 20-20c0-1.341-.138-2.65-.389-3.917z"/>
+      <path fill="#FF3D00" d="M6.306 14.691l6.571 4.819C14.655 15.108 18.961 12 24 12c3.059 0 5.842 1.154 7.961 3.039l5.657-5.657C34.046 6.053 29.268 4 24 4 16.318 4 9.656 8.337 6.306 14.691z"/>
+      <path fill="#4CAF50" d="M24 44c5.166 0 9.86-1.977 13.409-5.192l-6.19-5.238A11.91 11.91 0 0 1 24 36c-5.202 0-9.619-3.317-11.283-7.946l-6.522 5.025C9.505 39.556 16.227 44 24 44z"/>
+      <path fill="#1976D2" d="M43.611 20.083H42V20H24v8h11.303a12.04 12.04 0 0 1-4.087 5.571l.003-.002 6.19 5.238C36.971 39.205 44 34 44 24c0-1.341-.138-2.65-.389-3.917z"/>
+    </svg>
+    Continuar com Google
+  </button>
+  <div id="loginGateError" style="font-size:12px;color:#F0AC9A;margin-top:18px;max-width:280px;"></div>
+</div>
 
-A **totalidade do resto da app continua a trabalhar só com o formato
-clássico** (`bills`, `monthData`, `profile`) — nenhuma função de
-renderização, cálculo, ou edição foi alterada. A conversão acontece só em
-dois pontos:
+<div id="hackScreen" style="
+  position:fixed;inset:0;
+  background:#000;
+  display:none;
+  flex-direction:column;
+  z-index:1000;
+  padding:24px 20px;
+  font-family:'JetBrains Mono',monospace;
+  color:#33FF66;
+  overflow:hidden;
+">
+  <div id="hackLines" style="font-size:13px;line-height:1.6;white-space:pre;overflow-x:auto;max-width:100%;"></div>
+</div>
 
-- **`normalizeToSchemaV1(payload)`** — clássico → schema v1. Usado em
-  `pushToCloud()` só quando `useNormalizedSchema` (device-local, Modo Dev)
-  está ativo.
-- **`denormalizeFromSchemaV1(data)`** — schema v1 → clássico. Usado em
-  `resolveIncomingPayload(raw)`, um ponto único de deteção de formato
-  (`raw.schemaVersion === 1` → converte; senão devolve como veio) chamado
-  em **todos** os pontos onde dados entram na app: `finishCloudSync()`
-  (cobre sincronização normal, decifrada automaticamente, e desbloqueio
-  manual — os três convergem nessa função), `pullLatestAndMergeBeforePush()`,
-  e `importFromJson()`.
+<div id="birthdayScreen" style="
+  position:fixed;inset:0;
+  background:linear-gradient(160deg, #1F3A2E, #2C4F3D);
+  display:none;
+  flex-direction:column;align-items:center;justify-content:center;
+  z-index:1000;
+  padding:24px;
+  overflow:hidden;
+  text-align:center;
+" onclick="closeBirthdayScreen()">
+  <div id="birthdayConfetti" style="position:absolute;inset:0;pointer-events:none;overflow:hidden;"></div>
+  <div style="font-size:64px;margin-bottom:16px;">🎉🎂🎉</div>
+  <div style="font-family:'Fraunces',serif;font-weight:700;font-size:32px;color:#F6EFE2;letter-spacing:-0.01em;">Feliz Aniversário!</div>
+  <div style="font-family:'Fraunces',serif;font-weight:600;font-size:24px;color:#D9A949;margin-top:6px;" id="birthdayNameDisplay">Arthur Santos</div>
+  <div style="font-size:14px;color:rgba(246,239,226,0.75);margin-top:18px;max-width:280px;">Que este novo ano de estrada traga muitas corridas boas e ainda mais lucro líquido 🚖💚</div>
+</div>
 
-Como a leitura entende os dois formatos **sempre, em qualquer
-dispositivo**, é seguro ativar o interruptor num dispositivo só, sem
-coordenar com os outros — cada dispositivo decide sozinho em que formato
-escreve, e todos conseguem ler o que os outros escreverem. A conversão é
-comprovadamente sem perdas (testada com round-trip: clássico → schema v1
-→ clássico produz um objeto idêntico ao original).
+<style>
+@keyframes confettiFall {
+  0%   { transform: translateY(0) rotate(0deg); opacity: 0.9; }
+  100% { transform: translateY(110vh) rotate(360deg); opacity: 0; }
+}
+</style>
 
-### 11.4 Botão "Converter e enviar agora"
+<div class="app" id="app">
 
-Além do interruptor (que só afeta gravações futuras), há um botão que
-ativa o formato novo e força um envio imediato — útil para quem quer ver
-o resultado na planilha sem esperar pela próxima edição.
+  <div class="screen" id="screen-ganhos">
+    <div class="topbar">
+      <div class="screen-title-group">
+        <div class="screen-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12 L5 7 Q6 5 8 5 L16 5 Q18 5 19 7 L21 12" stroke-linecap="round"/><rect x="2" y="11" width="20" height="8" rx="2"/><circle cx="7" cy="20" r="2" fill="currentColor" stroke="none"/><circle cx="17" cy="20" r="2" fill="currentColor" stroke="none"/></svg>
+        </div>
+        <div class="screen-title">Ganhos</div>
+      </div>
+      <div class="sync-pill" id="syncPill-ganhos" onclick="loadAll()" title="Toque para sincronizar agora">
+        <span class="sync-dot" id="syncDot-ganhos"></span>
+        <span id="syncStatus-ganhos">sincronizando</span>
+      </div>
+    </div>
 
-## 12. Revertido: rateio de despesas fixas na visão Semana (v3.6.1)
+    <div class="seg" id="ganhosViewSeg" style="margin-bottom:14px;">
+      <div class="seg-opt" data-v="dia" onclick="setGanhosView('dia')">Dia</div>
+      <div class="seg-opt" data-v="semana" onclick="setGanhosView('semana')">Semana</div>
+      <div class="seg-opt active" data-v="mes" onclick="setGanhosView('mes')">Mês</div>
+    </div>
 
-A v3.5.1 tinha introduzido um rateio das despesas fixas mensais nas visões
-Semana (Estatísticas e Lucro), dividindo o total do mês pelo nº de
-semanas e descontando essa fatia do lucro semanal — para a semana nunca
-mostrar um lucro "artificialmente alto" por ignorar despesas fixas por
-completo.
+    <div class="month-nav" id="ganhosDayWeekNav" style="display:none;">
+      <div class="month-nav-btn" onclick="changeGanhosDayWeek(-1)">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none"><path d="M15 18l-6-6 6-6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </div>
+      <div>
+        <div class="month-nav-label" id="monthLabel">Hoje</div>
+        <div class="month-nav-hint" id="monthHint"></div>
+      </div>
+      <div class="month-nav-btn" onclick="changeGanhosDayWeek(1)">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none"><path d="M9 18l6-6-6-6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </div>
+    </div>
 
-Essa decisão foi revertida a pedido: a visão Semana volta a mostrar **só
-o que aconteceu de facto nela** — sem inventar/dividir despesas de um
-período diferente (o mês). `renderStatsWeek()` e `renderLucroWeek()`
-voltaram ao cálculo original (fixas = 0 nas visões semanais). A meta
-semanal também deixou de ter um "mínimo automático" baseado em despesas
-fixas (que dependia do mesmo rateio) — sem uma meta semanal definida
-explicitamente nas Configurações, o gráfico de meta semanal simplesmente
-não aparece. A meta **mensal** mantém o seu mínimo automático (despesas
-fixas do mês), porque aí não há rateio nenhum — é o valor real e completo
-do próprio mês.
+    <div class="month-nav" id="ganhosMonthNav" style="display:flex;">
+      <div class="month-nav-btn" onclick="changeMonth(-1)">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none"><path d="M15 18l-6-6 6-6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </div>
+      <div>
+        <div class="month-nav-label" id="monthLabelMes" onclick="openMonthPicker()">Junho 2026</div>
+        <div class="month-nav-hint" id="monthHintMes"></div>
+      </div>
+      <div class="month-nav-btn" onclick="changeMonth(1)">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none"><path d="M9 18l6-6-6-6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </div>
+    </div>
 
-## 13. Correção: despesas diárias/semanais devem contar na visão Semana (v3.6.2)
+    <div id="noIncomeState" class="no-income-state" style="display:none;">
+      <div class="no-income-emoji">🚗</div>
+      <div class="section-title no-income-title">Nenhum ganho registrado</div>
+      <div class="section-sub no-income-sub">Registre seus ganhos diários de Uber e Bolt para acompanhar o mês.</div>
+      <button class="btn btn-primary" id="noIncomeAddBtn" onclick="openAddIncomeSheet()">+ Adicionar ganho do dia</button>
+    </div>
 
-A secção 12 acima foi longe demais: ao remover o *rateio* de despesas
-**mensais**, a v3.6.1 acabou por remover **todas** as despesas fixas da
-visão Semana — incluindo bills com frequência `diaria` e `semanal`, que
-não são inventadas/divididas nenhuma: uma bill diária já tem um valor por
-dia, e uma bill semanal já tem um valor por semana. Contá-las na visão
-Semana não é rateio, é só somar o valor real pelo período certo.
+    <div id="mainMonthContent">
+      <div class="stat-cards" id="earningsPlatformCards" style="margin-bottom:8px;"></div>
+      <div class="section-sub" id="earningsKmHint" style="margin-bottom:18px;"></div>
 
-Correção: `weeklyFixedBills(weekStart)` (nova função) calcula despesas
-fixas apropriadas para uma semana, com uma regra clara:
+      <div class="section-head"><div class="section-title" id="incomeSectionTitle">Ganhos do dia</div></div>
+      <div id="incomeSection"></div>
+    </div>
+  </div>
 
-- **`frequência: 'semanal'`** → conta o valor cheio (× 1) — já é o valor
-  da semana.
-- **`frequência: 'diaria'`** → conta o valor × 7 — sete dias de despesa
-  diária real, não uma invenção.
-- **`frequência: 'mensal'`** → **não conta** — incluir aqui exigiria
-  dividir um valor pensado para o mês inteiro (isso sim seria o rateio
-  indesejado). Essas despesas continuam a aparecer normalmente na visão
-  Mês, no valor total.
+  <div class="screen" id="screen-despesas">
+    <div class="topbar">
+      <div class="screen-title-group">
+        <div class="screen-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7l3-4h12l3 4M3 7h18M3 7v11a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V7M8 11h8"/></svg>
+        </div>
+        <div class="screen-title">Despesas</div>
+      </div>
+      <div class="sync-pill" id="syncPill-despesas" onclick="loadAll()" title="Toque para sincronizar agora">
+        <span class="sync-dot" id="syncDot-despesas"></span>
+        <span id="syncStatus-despesas">sincronizando</span>
+      </div>
+    </div>
+    <div class="month-nav">
+      <div class="month-nav-btn" onclick="changeMonth(-1)">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none"><path d="M15 18l-6-6 6-6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </div>
+      <div>
+        <div class="month-nav-label" id="despesasMonthLabel">Junho 2026</div>
+        <div class="month-nav-hint" id="despesasMonthHint"></div>
+      </div>
+      <div class="month-nav-btn" onclick="changeMonth(1)">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none"><path d="M9 18l6-6-6-6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </div>
+    </div>
 
-Usada em `renderStatsWeek()` (mostrada como "🏠 Despesas fixas
-(diárias/semanais)") e em `renderLucroWeek()` (via o parâmetro `fixas` de
-`lucroBreakdownHTML()`). A meta semanal mínima automática também passou a
-usar este valor real (em vez de ficar sem mínimo nenhum, como na v3.6.1).
+    <div class="section-head centered" style="gap:10px;">
+      <div>
+        <div class="section-title">Despesas fixas</div>
+        <div class="section-sub" id="billsCount"></div>
+      </div>
+    </div>
+    <div class="section-sub" style="margin:-6px 0 12px; font-size:11px; color:var(--text-muted);">Descontadas automaticamente do lucro. Podem ser diárias, semanais ou mensais.</div>
+    <div class="loans-box" id="billsBox" style="padding:4px 14px;"></div>
+    <div class="add-dashed-btn" onclick="openNewBillSheet()" style="margin-top:8px;margin-bottom: 24px;">
+      <span>＋</span> Adicionar despesa fixa
+    </div>
 
-### 13.1 Visão Mês: mensal e semanais juntos, sem rateio (v3.6.3)
+    <div class="section-head"><div class="section-title">Despesas variáveis</div></div>
+    <div class="section-sub" style="margin:0 0 12px;">Combustível, manutenção, lavagem e outras despesas. Registe o valor gasto por dia.</div>
+    <div id="variableExpensesContent"></div>
+  </div>
 
-Os gráficos "por semana" dentro de Estatísticas → Mês e Lucro → Mês ainda
-usavam o rateio antigo (`fixasMes / nº de semanas`). Passaram a usar
-`weekBucketFixedBills(mês, semana)`: cada semana do mês (blocos de dias
-1–7, 8–14…) leva só as despesas fixas **diárias** (× dias reais do bloco)
-e **semanais** (× 1). As **mensais** aparecem uma única vez, à parte.
+  <div class="screen" id="screen-settings">
+    <div class="topbar">
+      <div class="screen-title-group">
+        <div class="screen-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1-1.6 1.7 1.7 0 0 0-1.9.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.9 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.6-1 1.7 1.7 0 0 0-.3-1.9l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.9.3h.1a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.6 1.7 1.7 0 0 0 1.9-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.9v.1a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.6 1z"/></svg>
+        </div>
+        <div class="screen-title">Você</div>
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;">
+        <div class="sync-pill" id="syncPill-settings" onclick="loadAll()" title="Toque para sincronizar agora">
+          <span class="sync-dot" id="syncDot-settings"></span>
+          <span id="syncStatus-settings">sincronizando</span>
+        </div>
+        <div onclick="tapVersion()" style="font-size:10px;color:var(--text-faint);font-weight:700;letter-spacing:0.04em;cursor:pointer;">v<span id="appVersionDisplay"></span></div>
+      </div>
+    </div>
 
-Estatísticas → Mês ganhou o cartão "Lucro por semana e do mês": lucro de
-cada semana, linha "Despesas mensais", e o "Lucro do mês" — as semanas
-mais as despesas mensais somam exatamente o lucro do mês (soma dos blocos
-+ mensais = `totalFixedBills()`, verificado).
+    <div id="basicBanner">🔒 <strong>Modo básico.</strong> Limite de 5 ganhos, 5 despesas variáveis e 5 despesas fixas, e as configurações ficam bloqueadas. Entra com a tua conta Google para desbloquear tudo.</div>
+    <div class="section-head" style="margin-top:6px;"><div class="section-title">Conta</div></div>
+    <div id="profileCardsList"></div>
 
-## 14. Correção: despesa diária conta só nos dias com registro (v3.6.4)
+    <div class="section-head" style="margin-top:20px;"><div class="section-title">Aparência</div></div>
+    <div class="field" style="margin-top:8px;">
+      <label>Modo Escuro</label>
+      <div class="seg" id="darkModeSeg">
+        <div class="seg-opt" data-m="light" onclick="setDarkMode('light')">☀️ Claro</div>
+        <div class="seg-opt" data-m="system" onclick="setDarkMode('system')">⚙️ Sistema</div>
+        <div class="seg-opt" data-m="dark" onclick="setDarkMode('dark')">🌙 Escuro</div>
+      </div>
+    </div>
+    <div class="field" style="margin-top:8px;">
+      <label>Cor do tema</label>
+      <div class="theme-color-grid" id="themeColorGrid"></div>
+    </div>
+    <div class="switch-row" style="margin-top:8px;">
+      <div class="switch-row-text">
+        <div class="switch-row-title">Efeito transparente (liquid glass)</div>
+        <div class="switch-row-sub">Barra, botões, folhas e cartões translúcidos sobre um fundo colorido. Só neste aparelho.</div>
+      </div>
+      <div class="switch" id="swGlass" onclick="toggleLiquidGlass()"></div>
+    </div>
+    <div id="glassControls"></div>
+    <div id="bgImageRow"></div>
 
-A v3.6.2/3.6.3 multiplicava uma bill `diaria` por 7 (semana) ou pelos dias
-do bloco (mês) — mas uma despesa diária representa o custo **daquele dia
-específico**, não um valor fixo repetido todo santo dia. Se o motorista só
-trabalhou 4 dias numa semana, só esses 4 dias têm a despesa diária.
+    <div style="height:1px;background:var(--line);margin:26px 0 0;"></div>
+    <div class="section-head" style="margin-top:22px;"><div class="section-title">Configurações</div></div>
+    <div class="section-sub" style="margin-bottom:6px;">Liga só o que usas. Cada opção aparece nos ecrãs e nos cálculos apenas quando estiver ativa.</div>
+    <div class="switch-row">
+      <div class="switch-row-text">
+        <div class="switch-row-title">IVA / Imposto</div>
+        <div class="switch-row-sub">Desconta o IVA do bruto das apps (Uber/Bolt). Desligado, o IVA não entra nos cálculos nem aparece nos ecrãs.</div>
+      </div>
+      <div class="switch" id="swIva" onclick="toggleFeature('ivaEnabled')"></div>
+    </div>
+    <div id="ivaFieldsRow">
 
-Correção: `recordDays(entry)` reúne as datas que têm pelo menos um ganho ou
-despesa variável lançados; `dailyBillsPerDay()` soma as bills diárias
-aplicáveis nUM dia; e as três funções de despesas fixas passaram a contar
-a diária **só nos dias com registro**, em vez de multiplicar por um número
-fixo de dias:
+    <div class="field" style="margin-top:8px;">
+      <label>Taxa de IVA (%)</label>
+      <div style="position:relative; display:flex; align-items:center;">
+        <input type="number" id="ivaRate" placeholder="0" inputmode="decimal" min="0" max="100" step="0.1"
+          onchange="updateIvaRate(this.value)" style="padding-right:32px;" />
+        <span style="position:absolute;right:12px;font-size:13px;font-weight:700;color:var(--text-muted);">%</span>
+      </div>
+    </div>
+    <div class="section-sub" style="margin-top:6px; font-size:11px; line-height:1.5;">
+      Descontado diretamente do faturamento bruto das apps (Uber/Bolt).
+    </div>
 
-- `totalFixedBills()` (mês/ano): diária × nº de dias com registro no mês
-  inteiro.
-- `weekBucketFixedBills()` (semanas dentro do mês, usado nos gráficos de
-  Estatísticas/Lucro → Mês): diária × dias com registro dentro daquele
-  bloco de 7 dias.
-- `weeklyFixedBills()` (visão Semana isolada): olha cada um dos 7 dias da
-  semana, no mês a que cada dia pertence (cobre semanas que atravessam a
-  fronteira de mês), e soma a diária só nos dias com registro nesse mês.
+    </div>
+    <div class="switch-row">
+      <div class="switch-row-text">
+        <div class="switch-row-title">Comissão da plataforma</div>
+        <div class="switch-row-sub">Desconta a comissão cobrada pela Uber/Bolt sobre o bruto, depois do IVA. Desligada, a comissão não entra nos cálculos.</div>
+      </div>
+      <div class="switch" id="swComissao" onclick="toggleFeature('comissaoEnabled')"></div>
+    </div>
+    <div id="comissaoFieldsRow">
 
-A bill `semanal` continua a contar o valor cheio (× 1 numa semana, × nº de
-semanas no mês) — não muda, porque já era exatamente "o valor da semana",
-sem necessidade de olhar dia a dia. A soma dos blocos semanais + despesas
-mensais continua a bater exatamente com o total do mês (testado).
+    <div class="field" style="margin-top:8px;">
+      <label>Taxa de comissão (%)</label>
+      <div style="position:relative; display:flex; align-items:center;">
+        <input type="number" id="comissaoRate" placeholder="0" inputmode="decimal" min="0" max="100" step="0.1"
+          onchange="updateComissaoRate(this.value)" style="padding-right:32px;" />
+        <span style="position:absolute;right:12px;font-size:13px;font-weight:700;color:var(--text-muted);">%</span>
+      </div>
+    </div>
+    <div class="section-sub" style="margin-top:6px; font-size:11px; line-height:1.5;">
+      Descontada após o IVA. Cobrada pela Uber/Bolt sobre o valor bruto.
+    </div>
 
-## 15. Correção: despesa diária conta só em dias com DESPESA, não com ganho (v3.6.5)
+    </div>
 
-A v3.6.4 contava a despesa fixa diária em qualquer dia com "algum
-registro" — ganho OU despesa. Isso incluía dias em que só houve ganho
-(trabalhou, mas não lançou nenhuma despesa variável nesse dia), o que não
-faz sentido: trabalhar 5 dias mas só lançar combustível em 4 deles deve
-gerar despesa diária de 4 dias, não 5.
+    <div class="switch-row">
+      <div class="switch-row-text">
+        <div class="switch-row-title">Turno de trabalho</div>
+        <div class="switch-row-sub">Mostra o seletor de turno ao registar ganhos e o gráfico "Ganhos por turno" nas Estatísticas.</div>
+      </div>
+      <div class="switch" id="swTurno" onclick="toggleFeature('showTurno')"></div>
+    </div>
+    <div id="turnoNamesRow" style="display:none;margin:0 0 8px;"></div>
+    <div class="switch-row">
+      <div class="switch-row-text">
+        <div class="switch-row-title">Quilómetros (km)</div>
+        <div class="switch-row-sub">Campo opcional de km ao registar ganhos. Se preenchido, aparece nas Estatísticas (km totais e lucro por km).</div>
+      </div>
+      <div class="switch" id="swKm" onclick="toggleFeature('showKm')"></div>
+    </div>
 
-Correção: `recordDays()` foi substituída por `expenseRecordDays()`, que
-olha **só** `variableExpenses` (nunca `earnings`). As três funções de
-despesas fixas (`totalFixedBills`, `weekBucketFixedBills`,
-`weeklyFixedBills`) passaram a usar essa versão — a despesa diária conta
-exclusivamente nos dias em que há pelo menos uma despesa variável
-lançada nessa data, independente de ter havido ganho ou não nesse dia.
+    <div class="switch-row">
+      <div class="switch-row-text">
+        <div class="switch-row-title">Ativar metas de lucro</div>
+        <div class="switch-row-sub">Define um objetivo de LUCRO (não faturamento) por semana e/ou por mês. Quando ativo, aparece um gráfico de progresso no topo de Estatísticas.</div>
+      </div>
+      <div class="switch" id="goalsEnabledSwitch" onclick="toggleGoalsEnabled()"></div>
+    </div>
+    <div id="goalsFieldsRow" style="display:none;">
+      <div class="field" style="margin-top:8px;">
+        <label>Meta de lucro mensal (€)</label>
+        <div class="field-money"><input type="number" id="monthlyGoalInput" placeholder="0,00" inputmode="decimal" onchange="updateMonthlyGoal(this.value)" /></div>
+      </div>
+      <div class="field">
+        <label>Meta de lucro semanal (€)</label>
+        <div class="field-money"><input type="number" id="weeklyGoalInput" placeholder="0,00" inputmode="decimal" onchange="updateWeeklyGoal(this.value)" /></div>
+      </div>
+      <div class="section-sub" style="margin-top:6px; font-size:11px; line-height:1.5;">
+        Comparado com o lucro líquido do mês/semana em curso. Em branco (ou 0) usa as despesas fixas do período como mínimo. Na semana entram despesas fixas semanais (valor cheio) e diárias (só nos dias com registro) — as mensais não são divididas, ficam só na visão Mês.
+      </div>
+    </div>
 
-## 16. Opção por despesa: como a despesa MENSAL aparece nas semanas (v3.7.0)
 
-Nova opção, configurável individualmente em cada despesa fixa com
-frequência `mensal` (tanto ao criar quanto depois, editando), controlando
-como ela aparece nas visões "por semana":
+    <div class="switch-row">
+      <div class="switch-row-text">
+        <div class="switch-row-title">Usar outras plataformas</div>
+        <div class="switch-row-sub">Ativa o registo de apps extra (ex: 99, InDrive, Free Now). Entram no balde "pessoal", sem IVA nem comissão.</div>
+      </div>
+      <div class="switch" id="swCustomPlat" onclick="toggleFeature('customPlatformsEnabled')"></div>
+    </div>
+    <div id="customPlatformsBody" style="display:none;">
+      <div class="section-sub" style="margin:8px 0 10px;">Lista das plataformas extra que registas.</div>
+      <div id="customPlatformsList"></div>
+      <div class="field" style="margin-top:8px;">
+        <label>Esta plataforma cobra IVA e comissão?</label>
+        <div class="seg" id="newCustomTaxedSeg">
+          <div class="seg-opt active" data-x="0" onclick="pickNewCustomTaxed(false)">Não (pessoal)</div>
+          <div class="seg-opt" data-x="1" onclick="pickNewCustomTaxed(true)">Sim (como Uber/Bolt)</div>
+        </div>
+      </div>
+      <div class="field" style="display:flex;gap:8px;align-items:flex-end;margin-top:8px;">
+        <div style="flex:1;">
+          <label>Nome da plataforma</label>
+          <input type="text" id="newCustomPlatformName" placeholder="ex: 99, InDrive" maxlength="20" />
+        </div>
+        <button onclick="addCustomPlatform()" style="padding:13px 16px;border-radius:var(--r-md);border:none;background:var(--vault);color:#fff;font-weight:700;font-size:14px;cursor:pointer;white-space:nowrap;">＋ Adicionar</button>
+      </div>
+    </div>
 
-- **Não aparecer nas semanas (padrão)** — mantém o modelo anterior: a
-  despesa só é contada na visão Mês, no valor total.
-- **Dividir entre as semanas do mês** — reparte o valor em partes iguais
-  por todas as semanas do mês (o "rateio" que tinha sido removido
-  globalmente antes, agora disponível como escolha explícita por despesa).
-- **Colocar tudo na 1ª semana do mês** — lança o valor inteiro de uma vez
-  na primeira semana (útil para despesas que realmente são pagas logo no
-  início do mês, como um aluguel).
+    <div class="switch-row">
+      <div class="switch-row-text">
+        <div class="switch-row-title">Resumo de ontem</div>
+        <div class="switch-row-sub">Na primeira abertura do dia, mostra o resumo do dia anterior (ganhos, despesas e lucro).</div>
+      </div>
+      <div class="switch" id="swDailySummary" onclick="toggleFeature('dailySummaryEnabled')"></div>
+    </div>
 
-Guardado em `bill.weeklySplit` (`'none'` | `'rateio'` | `'firstWeek'`,
-padrão `'none'` quando ausente, para despesas já existentes continuarem
-com o comportamento de sempre). Só é relevante para `frequency: 'mensal'`
-— despesas diárias/semanais já têm um valor natural por semana e não usam
-este campo.
+    <div class="section-head" style="margin-top:20px;"><div class="section-title">Exportação de dados</div></div>
+    <div class="section-sub" style="margin-bottom:10px;">Exporta uma planilha Excel (.xlsx) para a declaração de IRS, ou uma cópia completa dos dados e das configurações (.json).</div>
+    <button onclick="openExportChoice()" id="exportExcelBtn" style="width:100%;padding:13px;border-radius:var(--r-md);border:1.5px solid var(--line);background:transparent;color:var(--ink);font-weight:700;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;">
+      <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M9 13h1m4 0h1M9 17h1m4 0h1" stroke-linecap="round"/></svg>
+      Exportar dados
+    </button>
 
-`totalFixedBills()` (total do mês) nunca muda — a despesa mensal continua
-a valer o valor cheio, uma vez, independente da escolha. O que muda é só
-como `weekBucketFixedBills()` (dentro da visão Mês) e `weeklyFixedBills()`
-(visão Semana isolada) repartem esse mesmo valor: a soma das semanas +
-"despesas mensais" restantes continua sempre a bater com o total do mês,
-qualquer que seja a combinação de escolhas entre as despesas (testado).
 
-UI: seletor no sheet "Nova despesa fixa" (só aparece quando a frequência
-escolhida é Mensal) e um `<select>` inline em cada despesa mensal já
-existente na lista de Despesas fixas.
+    <div style="margin-top:28px;padding-top:18px;border-top:2px dashed var(--terracotta);">
+      <div style="font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:0.06em;color:var(--terracotta);margin-bottom:10px;">Zona de perigo</div>
+      <button class="delete-all-btn" onclick="confirmResetAll()" style="margin-top:0;background:var(--terracotta);color:#fff;border-radius:var(--r-md);padding:16px;font-size:15px;font-weight:800;box-shadow:0 4px 14px rgba(168,83,63,0.3);">🗑️ Apagar dados ou configurações</button>
+      <div style="font-size:11px;color:var(--text-muted);text-align:center;margin-top:8px;line-height:1.5;">Ação permanente. Pede um código de confirmação antes de apagar.</div>
+    </div>
 
-## 17. Firebase — login Google + Firestore (v4.0.0)
+    <button onclick="openSupportEmail()" style="display:flex;align-items:center;justify-content:center;gap:8px;width:100%;margin-top:28px;padding:14px;border-radius:var(--r-md);border:1.5px solid var(--line);background:transparent;color:var(--ink);font-weight:700;font-size:14px;cursor:pointer;">
+      ✉️ Suporte
+    </button>
 
-Mudança arquitetural: o app passou a exigir login com conta Google, e a
-sincronização principal passou do Google Apps Script para o Firestore.
-Detalhe técnico completo em `corridaplus-firebase-plan.md`. Resumo:
+    <div style="height:24px;"></div>
+  </div>
 
-- `<script type="module">` novo no `<head>` inicializa Firebase Auth +
-  Firestore e expõe `window.fbSignInWithGoogle`, `fbSignOut`,
-  `fbSaveUserData`, `fbLoadUserData`, `fbListenUserData`,
-  `fbAuthReadyPromise` para o script clássico usar.
-- `loadAll()` agora espera por `fbAuthReadyPromise` antes de tudo — sem
-  sessão, mostra `#loginGate` e para; com sessão, continua.
-- Um documento por utilizador (`users/{uid}`), no mesmo formato "schema
-  v1" já existente — reaproveita `normalizeToSchemaV1()`/
-  `resolveIncomingPayload()` sem alterações.
-- Migração automática no primeiro login (envia dados locais existentes
-  se a conta ainda não tiver nada na nuvem) e sincronização em tempo
-  real via `onSnapshot()`.
-- Apps Script mantido no código como reserva (não deve ser alcançado na
-  prática, já que o login passou a ser obrigatório).
-- **Pendente**: regras de segurança do Firestore ainda precisam de ser
-  coladas manualmente no console (sem elas, leitura/escrita falha).
+  <div class="screen" id="screen-dev">
+    <div class="topbar">
+      <div class="screen-title-group">
+        <div class="screen-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.7 6.3a4 4 0 0 0-5.4 5.4L3 18l3 3 6.3-6.3a4 4 0 0 0 5.4-5.4l-2.5 2.5-2.5-.5-.5-2.5z"/></svg>
+        </div>
+        <div class="screen-title">Modo Dev</div>
+      </div>
+    </div>
+    <div id="devPanel" style="display:block;margin-top:0;border:1.5px dashed var(--terracotta);border-radius:var(--r-xl);padding:16px 18px 20px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+        <div style="font-size:13px;font-weight:700;color:var(--terracotta);">🛠️ Modo Dev</div>
+        <div class="switch on" onclick="toggleDevMode()"></div>
+      </div>
 
-## 18. Login Google voltou a ser opcional, por enquanto (v4.0.1)
+      <div class="section-head" style="margin-top:0;"><div class="section-title">🔗 Sincronização</div></div>
+    <div id="syncUrlLockedView" style="background:rgba(31,58,46,0.06);border-radius:var(--r-md);padding:14px;margin-top:8px;display:flex;align-items:center;gap:12px;">
+      <div style="font-size:22px;">🔒</div>
+      <div style="flex:1;min-width:0;">
+        <div style="font-weight:700;font-size:var(--text-sm);">URL de Sincronização</div>
+        <div id="syncUrlMasked" style="font-size:11px;color:var(--text-muted);margin-top:2px;word-break:break-all;"></div>
+      </div>
+      <button onclick="unlockSyncUrl()" style="font-size:11px;padding:6px 12px;border-radius:var(--r-full);border:1.5px solid var(--line);background:#fff;cursor:pointer;color:var(--terracotta);font-weight:700;white-space:nowrap;">✏️ Editar</button>
+    </div>
+    <div id="syncUrlEditView" style="display:none;margin-top:8px;">
+      <div class="field">
+        <label>URL do Google Apps Script</label>
+        <input type="text" id="syncUrl" placeholder="https://script.google.com/macros/s/..." oninput="saveSyncUrl()" style="font-size:12px;" />
+      </div>
+      <div style="display:flex;gap:8px;margin-top:6px;">
+        <button onclick="lockSyncUrl()" style="flex:1;padding:10px;border-radius:var(--r-md);border:none;background:var(--vault);color:#fff;font-weight:700;font-size:13px;cursor:pointer;">🔒 Bloquear URL</button>
+      </div>
+      <div class="section-sub" style="margin-top:6px; font-size:11px; line-height:1.5;">
+        Cole aqui a URL do seu Google Apps Script. Após guardar, bloqueie para evitar apagar acidentalmente.
+      </div>
+    </div>
 
-O login obrigatório da v4.0.0 bloqueava o app inteiro se o
-`signInWithPopup` falhasse (ex: domínio não autorizado nas definições do
-Firebase Auth, popup bloqueado pelo browser) — impossível de testar o
-resto da app enquanto isso não estivesse resolvido.
+      <div class="section-head" style="margin-top:0;"><div class="section-title">🕵️ Dados Ocultos e Limpeza</div></div>
+      <div class="switch-row" style="margin-bottom:12px;">
+        <div class="switch-row-text">
+          <div class="switch-row-title">Mostrar todos os registros</div>
+          <div class="switch-row-sub">Ative para ver e apagar ganhos, despesas variáveis e restaurar despesas fixas ocultadas de todos os meses.</div>
+        </div>
+        <div class="switch" id="hiddenModeSwitch" onclick="toggleHiddenMode()"></div>
+      </div>
+      <div id="hiddenDataContainer"></div>
 
-Mudança: `loadAll()` deixou de esperar/bloquear em
-`window.fbAuthReadyPromise` — só lê o estado (`window.__fbUser`) e segue
-em frente de qualquer forma. `showLoginGate()` continua definida mas já
-não é chamada automaticamente. O botão "Continuar com Google" mudou-se
-para Configurações → Conta (`#accountCardSignedOut`), onde fica
-disponível para quem quiser ligar a conta, sem ser obrigatório. Sem
-sessão, a app funciona exactamente como antes do Firebase (Apps
-Script/local) — a lógica de fallback em `scheduleCloudPush()`/`loadAll()`
-já tratava isto corretamente, só não era alcançada por causa do bloqueio.
+      <div class="section-head" style="margin-top:20px;"><div class="section-title">🔄 Atualização</div></div>
+      <div class="section-sub" style="margin-bottom:10px;">Versão atual: <strong id="devVersionLabel"></strong></div>
+      <button onclick="checkForUpdates()" id="checkUpdateBtn" style="width:100%;padding:13px;border-radius:var(--r-md);border:1.5px solid var(--line);background:transparent;color:var(--ink);font-weight:700;font-size:14px;cursor:pointer;">🔍 Procurar atualização</button>
+      <div id="updateResult" style="margin-top:10px;font-size:13px;text-align:center;color:var(--text-muted);"></div>
 
-`handleGoogleSignIn()` passou a atualizar qualquer um dos dois pares
-botão/erro presentes na página (o do ecrã de login, não usado por
-agora, e o novo em Configurações), para continuar a funcionar nos dois
-sítios sem duplicar código.
+      <div class="section-head" style="margin-top:20px;"><div class="section-title">🗂️ Formato de armazenamento</div></div>
+      <div class="section-sub" style="margin-bottom:10px;">Reestrutura o JSON gravado na planilha para um formato mais organizado: separa configurações e brincadeiras do perfil, e transforma ganhos/despesas agrupados por mês em listas simples com campo de data. A leitura entende os dois formatos sempre, em qualquer dispositivo — pode ativar sem pressa, e desativar a qualquer momento sem perder nada.</div>
+      <div class="switch-row" style="margin-bottom:8px;">
+        <div class="switch-row-text">
+          <div class="switch-row-title">Gravar no formato novo (schema v1)</div>
+          <div class="switch-row-sub">Ao ligar, os próximos envios já usam o formato novo. Nada muda de imediato — só quando houver a próxima gravação.</div>
+        </div>
+        <div class="switch" id="normalizedSchemaSwitch" onclick="toggleNormalizedSchema()"></div>
+      </div>
+      <button onclick="migrateNowToNormalizedSchema()" style="width:100%;padding:13px;border-radius:var(--r-md);border:1.5px solid var(--line);background:transparent;color:var(--ink);font-weight:700;font-size:14px;cursor:pointer;">🔄 Converter e enviar agora</button>
 
-Quando o login com Google estiver a funcionar de forma fiável, o bloqueio
-obrigatório pode voltar a ser ligado facilmente — é só restaurar a
-verificação no início de `loadAll()`.
+      <div class="section-head" style="margin-top:20px;"><div class="section-title">🔒 Encriptação dos dados sincronizados</div></div>
+      <div class="switch-row" style="margin-bottom:8px;">
+        <div class="switch-row-text">
+          <div class="switch-row-title">Encriptar antes de enviar à nuvem</div>
+          <div class="switch-row-sub">Cifra o JSON (AES-GCM 256 bits) antes de gravar na planilha. Quem tiver acesso à célula só vê texto ilegível — só decifra com a senha certa. Feature de teste de segurança.</div>
+        </div>
+        <div class="switch" id="encryptionSwitch" onclick="toggleEncryption()"></div>
+      </div>
+      <div id="encryptionPasswordRow" style="display:none;">
+        <button onclick="changeEncryptionPassword()" style="width:100%;padding:11px;border-radius:var(--r-md);border:1.5px solid var(--line);background:transparent;color:var(--ink);font-weight:600;font-size:13px;cursor:pointer;">🔑 Trocar senha de encriptação</button>
+        <div class="switch-row" style="margin-top:14px;">
+          <div class="switch-row-text">
+            <div class="switch-row-title">Desbloquear com digital / Face ID</div>
+            <div class="switch-row-sub">Guarda a senha protegida pela biometria deste aparelho, para não precisar de digitá-la sempre. A senha continua a ser a chave real — a biometria só desbloqueia o acesso a ela localmente.</div>
+          </div>
+          <div class="switch" id="biometricSwitch" onclick="toggleBiometricUnlock()"></div>
+        </div>
+        <div id="biometricUnsupportedNote" style="display:none;font-size:12px;color:var(--text-muted);margin-top:6px;">Este dispositivo ou navegador não suporta desbloqueio biométrico.</div>
+        <div class="switch-row" style="margin-top:14px;">
+          <div class="switch-row-text">
+            <div class="switch-row-title">Pedir confirmação a cada sincronização</div>
+            <div class="switch-row-sub">Se ativado, o app sempre pede senha ou biometria antes de decifrar, mesmo já sabendo a senha. Se desativado, decifra automaticamente em segundo plano usando a senha já guardada neste aparelho.</div>
+          </div>
+          <div class="switch" id="requireUnlockSwitch" onclick="toggleRequireUnlockEachSync()"></div>
+        </div>
+      </div>
 
-## 19. Esquema de versão voltou a pré-1.0 (v0.4.2)
+      <div class="section-head" style="margin-top:20px;"><div class="section-title">🔗 Migrar planilha</div></div>
+      <div class="section-sub" style="margin-bottom:10px;">Cole a URL de uma nova planilha e envie. A URL é gravada uma única vez na planilha atual — qualquer dispositivo que sincronizar com ela (incluindo este) muda sozinho para a nova.</div>
+      <div class="field">
+        <label>Nova URL de sincronização</label>
+        <input type="text" id="migrationUrlInput" placeholder="https://script.google.com/macros/s/.../exec" />
+      </div>
+      <button onclick="scheduleMigrationUrl()" style="width:100%;padding:13px;border-radius:var(--r-md);border:none;background:var(--vault);color:#fff;font-weight:700;font-size:14px;cursor:pointer;">🔄 Enviar URL de migração</button>
 
-A numeração 4.x.x usada temporariamente durante a integração Firebase foi
-abandonada. De volta a 0.x.x — a v1.0.0 fica reservada para o lançamento
-com o recurso completo de assinatura paga (ver `corridaplus-firebase-plan.md`,
-Fase 3).
+      <div class="section-head" style="margin-top:20px;"><div class="section-title">📋 Log de sincronização</div></div>
+      <div class="section-sub" style="margin-bottom:10px;">Últimos eventos de sincronização (sucesso, erro, tempo esgotado) — útil para perceber se um problema é do app, da rede, ou da planilha estar lenta.</div>
+      <div id="syncLogContainer" style="max-height:280px;overflow-y:auto;border:1px solid var(--line);border-radius:var(--r-md);padding:2px;"></div>
+      <div style="display:flex;gap:8px;margin-top:8px;">
+        <button onclick="exportSyncLog()" style="flex:1;padding:12px;border-radius:var(--r-md);border:1.5px solid var(--line);background:transparent;color:var(--ink);font-weight:700;font-size:13px;cursor:pointer;">📤 Exportar log</button>
+        <button onclick="clearSyncLog()" style="flex:1;padding:12px;border-radius:var(--r-md);border:1.5px solid var(--line);background:transparent;color:var(--terracotta);font-weight:700;font-size:13px;cursor:pointer;">🗑️ Limpar log</button>
+      </div>
 
-## 20. Turno de trabalho (opcional) + gráfico "Ganhos por turno" (v0.4.2)
+      <div class="section-head" style="margin-top:20px;"><div class="section-title">👻 Brincadeira secreta</div></div>
+      <div class="section-sub" style="margin-bottom:10px;">Desativada por padrão. Uma tela cômica de "hackeamento" que pode aparecer raramente ao abrir o app — só para o perfil com um nome específico, e só depois de ativada aqui. Sincronizado via nuvem.</div>
+      <div class="switch-row" style="margin-bottom:8px;">
+        <div class="switch-row-text">
+          <div class="switch-row-title">Ativada</div>
+          <div class="switch-row-sub">Desligada por padrão em todos os dispositivos novos. Uma vez desligada de novo, para de aparecer em todos os dispositivos sincronizados.</div>
+        </div>
+        <div class="switch" id="easterEggEnabledSwitch" onclick="toggleEasterEggDisabled()"></div>
+      </div>
+      <div class="field" style="margin-top:8px;">
+        <label>Chance de aparecer por abertura (%)</label>
+        <input type="number" id="easterEggRateInput" placeholder="3" inputmode="decimal" min="0" max="100" step="0.5"
+          onchange="setEasterEggRate(this.value)" />
+      </div>
+      <button onclick="toggleForceEasterEgg()" id="forceEasterEggBtn" style="width:100%;margin-top:8px;padding:13px;border-radius:var(--r-md);border:1.5px solid var(--line);background:transparent;color:var(--ink);font-weight:700;font-size:14px;cursor:pointer;">🎭 Forçar na próxima abertura</button>
 
-Novo campo opcional no sheet "Novo ganho": um seletor de turno (Manhã,
-Tarde, Noite, Madrugada, ou "Não dizer") — `TURNOS` define as opções.
-Guardado como `earning.turno` em cada ganho criado nessa submissão
-(`confirmAddIncome()`), só quando o utilizador escolhe um turno
-explicitamente.
+      <div class="section-head" style="margin-top:20px;"><div class="section-title">🎂 Mensagem de aniversário</div></div>
+      <div class="section-sub" style="margin-bottom:10px;">Desativada por padrão — só aparece depois de configurar uma data abaixo. Aparece automaticamente nesse dia, com confetes e o nome atual do perfil. Sincronizado via nuvem.</div>
+      <div class="field">
+        <label>Dia e mês</label>
+        <input type="text" id="birthdayDateInput" placeholder="DD-MM (ex: 19-10) — vazio = desativado" inputmode="numeric" maxlength="5"
+          onchange="setBirthdayDate(this.value)" />
+      </div>
+      <button onclick="toggleForceBirthday()" id="forceBirthdayBtn" style="width:100%;padding:13px;border-radius:var(--r-md);border:1.5px solid var(--line);background:transparent;color:var(--ink);font-weight:700;font-size:14px;cursor:pointer;">🎉 Forçar na próxima abertura</button>
 
-`turnoBreakdownHTML(items)` gera um gráfico de barras "Ganhos por turno"
-com o total ganho em cada turno e destaque do melhor — **só aparece se
-houver pelo menos um ganho com turno preenchido** no período em questão
-(se ninguém preencher, a função devolve string vazia e nada é mostrado).
-Integrado em todas as visões de Estatísticas: Dia, Semana, Mês e Ano.
+      <div class="section-head" style="margin-top:20px;"><div class="section-title">📊 Resumo de ontem</div></div>
+      <div class="section-sub" style="margin-bottom:10px;">Mostra o resumo do dia anterior na próxima abertura, mesmo que o interruptor esteja desligado ou o resumo já tenha sido mostrado hoje. Usa km e turno se estiverem ativos.</div>
+      <button onclick="toggleForceDailySummary()" id="forceDailySummaryBtn" style="width:100%;padding:13px;border-radius:var(--r-md);border:1.5px solid var(--line);background:transparent;color:var(--ink);font-weight:700;font-size:14px;cursor:pointer;">📊 Forçar resumo na próxima abertura</button>
 
-## 21. Plataformas personalizadas (opcional) (v0.4.2)
+      <div class="section-head" style="margin-top:20px;"><div class="section-title">📥 Importar dados</div></div>
+      <div class="section-sub" style="margin-bottom:10px;">Se a sincronização automática não funcionar, cole aqui o JSON copiado do Google Sheets para importar os seus dados.</div>
+      <textarea id="importJsonInput" placeholder='Cole o JSON aqui… {"bills":[…],"monthData":{…},"profile":{…}}' style="width:100%;min-height:90px;border:1.5px solid var(--line);border-radius:var(--r-md);padding:12px;font-size:12px;font-family:'JetBrains Mono',monospace;background:#fff;color:var(--ink);resize:vertical;" oninput="this.style.borderColor=''"></textarea>
+      <button onclick="importFromJson()" style="width:100%;margin-top:8px;padding:13px;border-radius:var(--r-md);border:none;background:var(--vault);color:#fff;font-weight:700;font-size:14px;cursor:pointer;">Importar dados</button>
 
-Além de Uber e Bolt (TVDE) e Particular/Outros (pessoal), o utilizador
-pode agora adicionar outras plataformas (ex: 99, InDrive, Free Now) em
-Configurações → "Outras plataformas". Guardadas em
-`profile.customPlatforms: [{key, label}]` (sincronizado como parte do
-profile, igual a qualquer outra configuração).
+      <a href="https://github.com/Rodrig0ASilva" target="_blank" rel="noopener" style="display:flex;align-items:center;justify-content:center;gap:8px;margin-top:20px;padding:13px;border-radius:var(--r-md);border:1.5px solid var(--line);background:transparent;color:var(--ink);font-weight:700;font-size:14px;text-decoration:none;">
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.3 3.44 9.8 8.21 11.39.6.11.82-.26.82-.58 0-.29-.01-1.04-.02-2.04-3.34.73-4.04-1.61-4.04-1.61-.55-1.39-1.34-1.76-1.34-1.76-1.09-.75.08-.73.08-.73 1.2.09 1.83 1.24 1.83 1.24 1.07 1.83 2.81 1.3 3.49.99.11-.78.42-1.3.76-1.6-2.67-.3-5.47-1.34-5.47-5.93 0-1.31.47-2.38 1.24-3.22-.12-.3-.54-1.52.12-3.18 0 0 1.01-.32 3.3 1.23a11.5 11.5 0 0 1 6 0c2.29-1.55 3.3-1.23 3.3-1.23.66 1.66.24 2.88.12 3.18.77.84 1.24 1.91 1.24 3.22 0 4.6-2.81 5.63-5.48 5.92.43.37.81 1.1.81 2.22 0 1.61-.02 2.9-.02 3.29 0 .32.22.7.83.58C20.56 21.79 24 17.3 24 12c0-6.63-5.37-12-12-12z"/></svg>
+        Ver no GitHub
+      </a>
+    </div>
 
-- `addCustomPlatform()` gera uma `key` normalizada a partir do nome (ex:
-  "Free Now" → `custom_free_now`) e adiciona à lista.
-- `removeCustomPlatform(key)` remove da lista de opções futuras — ganhos
-  já registados com essa plataforma continuam guardados e visíveis, só
-  deixa de aparecer como opção ao criar um novo ganho.
-- `openAddIncomeSheet()`/`confirmAddIncome()` passaram a gerar um campo
-  de valor extra por cada plataforma personalizada ativa, dinamicamente.
-- `platformBadge()`/`platformLabel()` generalizados com
-  `findCustomPlatform(platform)` para reconhecer e exibir as plataformas
-  personalizadas (emoji/inicial + nome) em qualquer lista/card existente,
-  sem precisar de tratamento especial em cada sítio.
-- **Regra fiscal**: toda plataforma personalizada é tratada como
-  "pessoal" (mesmo balde que Particular/Outros) — sem desconto de
-  IVA/comissão, porque essa lógica é especificamente modelada para a
-  comissão de apps TVDE (Uber/Bolt) e não generaliza sem pedir ao
-  utilizador plataforma a plataforma. Nova função `isTvdePlatform(platform)`
-  (só verdadeira para `'uber'`/`'bolt'`) substitui, em 11 sítios do
-  código, as antigas verificações explícitas `platform==='particular' ||
-  platform==='outros'` — qualquer plataforma personalizada passa a entrar
-  automaticamente nesse balde sem precisar de mais nenhuma alteração.
-- Cards de "Total bruto"/"Pessoal" em Ganhos, Estatísticas → Mês e
-  Estatísticas → Ano atualizados para incluir e discriminar os totais de
-  cada plataforma personalizada.
+    <div style="height:24px;"></div>
+  </div>
 
-## 22. Pacote de ajustes (v0.4.3)
+  <div class="screen" id="screen-stats">
+    <div class="topbar">
+      <div class="screen-title-group">
+        <div class="screen-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="M7 14l4-4 4 3 5-6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+        <div class="screen-title">Estatísticas</div>
+      </div>
+      <div class="sync-pill" id="syncPill-stats" onclick="loadAll()" title="Toque para sincronizar agora">
+        <span class="sync-dot" id="syncDot-stats"></span>
+        <span id="syncStatus-stats">sincronizando</span>
+      </div>
+    </div>
+    <div class="seg" id="statsViewSeg" style="margin:0 0 14px;">
+      <div class="seg-opt" data-v="dia" onclick="setStatsView('dia')">Dia</div>
+      <div class="seg-opt" data-v="semana" onclick="setStatsView('semana')">Semana</div>
+      <div class="seg-opt active" data-v="mes" onclick="setStatsView('mes')">Mês</div>
+      <div class="seg-opt" data-v="ano" onclick="setStatsView('ano')">Ano</div>
+    </div>
 
-- **Schema v1 ativo por padrão**: `useNormalizedSchema` passou a `true`
-  por padrão (tanto o valor inicial em memória quanto o fallback quando
-  não há preferência guardada em `window.storage`). Dispositivos que já
-  tinham desativado explicitamente continuam respeitando essa escolha.
-- **Líquido abaixo do bruto em Ganhos**: cada linha da lista de ganhos
-  (`renderEarningsList()`) agora mostra "líq. €X" em fonte pequena por
-  baixo do valor editável, só para plataformas TVDE (Uber/Bolt) e só
-  quando há IVA ou comissão configurados — para plataformas pessoais
-  líquido = bruto, então a linha extra seria redundante e seria omitida.
-- **Correção visual dos campos de "Novo ganho"**: os 4 campos fixos
-  (Uber, Bolt, Particular, Outros) e os campos de plataformas
-  personalizadas estavam dentro de `<div style="...">` em vez de
-  `<div class="field" style="...">` — como a regra de modo escuro/tema
-  (`body.dark .field input`) depende da classe `.field` como ancestral,
-  esses inputs específicos ficavam com a aparência padrão do navegador em
-  vez de respeitar o tema. Corrigido adicionando a classe em falta.
-- **Exportação para Excel**: nova secção em Configurações →
-  "Exportação de dados", com o botão "Exportar para Excel". Gera um
-  `.xlsx` com 4 folhas — Ganhos (todos, com IVA/comissão/líquido
-  discriminados e turno se preenchido), Despesas, Despesas Fixas, e um
-  Resumo Mensal (bruto TVDE/pessoal, IVA, comissão, despesas, lucro) —
-  pensado para servir de base à declaração de IRS. Usa a biblioteca
-  SheetJS, carregada via CDN (`cdnjs.cloudflare.com`) só para esta
-  funcionalidade; o ficheiro é gerado inteiramente no dispositivo, nada é
-  enviado para fora.
+    <div class="month-nav" id="statsDayWeekNav" style="display:none;">
+      <div class="month-nav-btn" onclick="changeStatsDayWeek(-1)">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none"><path d="M15 18l-6-6 6-6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </div>
+      <div style="text-align:center;">
+        <div class="month-nav-label" id="statsLabel">Hoje</div>
+        <div id="statsLabelYear" style="font-size:11px;color:var(--text-muted);font-weight:600;margin-top:1px;"></div>
+      </div>
+      <div class="month-nav-btn" onclick="changeStatsDayWeek(1)">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none"><path d="M9 18l6-6-6-6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </div>
+    </div>
+    <div class="month-nav" id="statsMonthNav" style="display:flex;">
+      <div class="month-nav-btn" onclick="changeMonth(-1)">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none"><path d="M15 18l-6-6 6-6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </div>
+      <div><div class="month-nav-label" id="statsLabelMes" onclick="openMonthPicker()">Junho 2026</div></div>
+      <div class="month-nav-btn" onclick="changeMonth(1)">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none"><path d="M9 18l6-6-6-6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </div>
+    </div>
+    <div class="month-nav" id="statsYearNav" style="display:none;">
+      <div class="month-nav-btn" onclick="changeStatsYear(-1)">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none"><path d="M15 18l-6-6 6-6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </div>
+      <div><div class="month-nav-label" id="statsLabelAno">2026</div></div>
+      <div class="month-nav-btn" onclick="changeStatsYear(1)">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none"><path d="M9 18l6-6-6-6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </div>
+    </div>
 
-## 23. Reforço de segurança: App Check + regras do Firestore com validação de schema (v0.4.4)
+    <div id="statsContent"></div>
+  </div>
 
-Em vez de tentar "esconder" o JS (impossível — ver conversa), o reforço
-real foi investido em duas frentes, ambas detalhadas em
-`corridaplus-firebase-plan.md`:
+  <div class="screen active" id="screen-lucro">
+    <div class="topbar">
+      <div class="screen-title-group">
+        <div class="screen-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" stroke-linecap="round"/></svg>
+        </div>
+        <div class="screen-title">Lucro</div>
+      </div>
+      <div class="sync-pill" id="syncPill-lucro" onclick="loadAll()" title="Toque para sincronizar agora">
+        <span class="sync-dot" id="syncDot-lucro"></span>
+        <span id="syncStatus-lucro">sincronizando</span>
+      </div>
+    </div>
 
-- **Firebase App Check** (reCAPTCHA v3) — bloco novo no script-módulo
-  Firebase, condicional a `APP_CHECK_SITE_KEY` ser substituído por uma
-  chave real (placeholder por padrão = desativado, não bloqueia nada
-  enquanto não for configurado). Garante que pedidos ao Firestore vêm
-  mesmo desta app, não de um clone do código a imitar os pedidos.
-- **Regras do Firestore reforçadas**: além de verificar "é dono do
-  documento" (`isOwner`), passaram a validar também a FORMA dos dados
-  (`hasValidShape()` — `request.resource.data.keys().hasOnly([...])`),
-  impedindo um cliente alterado de injetar campos fora do schema v1
-  esperado (ex: um campo fake de assinatura ativa escrito diretamente no
-  próprio documento do utilizador).
-- **Desenho correto do gate de assinatura (Fase 3)**: documentado para
-  nunca confiar num campo dentro do documento que o próprio cliente pode
-  escrever — a validação de assinatura ativa vai sempre consultar a
-  coleção `customers/{uid}/subscriptions`, escrita exclusivamente pela
-  extensão Stripe via Cloud Functions (que ignoram as regras do cliente).
+    <div class="seg" id="lucroViewSeg" style="margin:0 0 14px;">
+      <div class="seg-opt" data-v="dia" onclick="setLucroView('dia')">Dia</div>
+      <div class="seg-opt" data-v="semana" onclick="setLucroView('semana')">Semana</div>
+      <div class="seg-opt active" data-v="mes" onclick="setLucroView('mes')">Mês</div>
+    </div>
 
-## 24. Cartão "Assinatura" em Configurações, com data de validade (v0.4.5)
+    <div class="month-nav" id="lucroDayWeekNav" style="display:none;">
+      <div class="month-nav-btn" onclick="changeLucroDayWeek(-1)">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none"><path d="M15 18l-6-6 6-6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </div>
+      <div style="text-align:center;">
+        <div class="month-nav-label" id="lucroLabel">Hoje</div>
+        <div id="lucroLabelYear" style="font-size:11px;color:var(--text-muted);font-weight:600;margin-top:1px;"></div>
+      </div>
+      <div class="month-nav-btn" onclick="changeLucroDayWeek(1)">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none"><path d="M9 18l6-6-6-6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </div>
+    </div>
+    <div class="month-nav" id="lucroMonthNav" style="display:flex;">
+      <div class="month-nav-btn" onclick="changeMonth(-1)">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none"><path d="M15 18l-6-6 6-6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </div>
+      <div><div class="month-nav-label" id="lucroLabelMes" onclick="openMonthPicker()">Junho 2026</div></div>
+      <div class="month-nav-btn" onclick="changeMonth(1)">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none"><path d="M9 18l6-6-6-6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </div>
+    </div>
 
-Novo cartão em Configurações → "Assinatura", logo abaixo de "Conta",
-mostrando o estado da assinatura e até quando está ativa — já preparado
-para a Fase 3 (Stripe), mesmo antes de ela estar configurada.
+    <div id="lucroContent"></div>
+  </div>
 
-- `fbListenSubscription(uid, callback)` (módulo Firebase) lê
-  `customers/{uid}/subscriptions` filtrando por `status in
-  ['active','trialing']` — essa coleção só é escrita pela extensão
-  Stripe (Cloud Functions, nunca pelo cliente). Se a coleção ainda não
-  existir ou estiver vazia, devolve `null` sem erro.
-- `window.__fbSubscription` tem três estados possíveis:
-  `undefined` (a verificar), `null` (verificado, sem assinatura — normal
-  antes do Stripe estar configurado), ou o documento da assinatura.
-- `renderSubscriptionCard()` traduz isso em texto: "A verificar…", "🔓 Sem
-  assinatura ativa" (com nota de que a cobrança ainda não está
-  configurada), ou "✅ Assinatura ativa" / "🎁 Período de teste" +
-  "Ativa até DD de mês de AAAA" (lido de `current_period_end`, aceitando
-  tanto Timestamp do Firestore quanto string/número, conforme a versão
-  da extensão). Se `cancel_at_period_end` estiver marcado, mostra
-  "Termina em [data] (cancelamento agendado)" em vez de "Ativa até".
+  <div class="loading" id="loadingState">Carregando seus dados…</div>
+</div>
+
+<div class="tabbar">
+  <div class="tabbar-inner">
+    <div class="tab" id="tabGanhos" onclick="goGanhos()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" stroke-linecap="round"/></svg>
+      Ganhos
+    </div>
+    <div class="tab" id="tabDespesas" onclick="goDespesas()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7l3-4h12l3 4M3 7h18M3 7v11a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V7M8 11h8"/></svg>
+      Despesas
+    </div>
+    <div class="tab active" id="tabLucro" onclick="goLucro()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" stroke-linecap="round"/><circle cx="19" cy="5" r="3" fill="currentColor" stroke="none"/></svg>
+      Lucro
+    </div>
+    <div class="tab" id="tabStats" onclick="goStats()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="M7 14l4-4 4 3 5-6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      Estatísticas
+    </div>
+    <div class="tab" id="tabSettings" onclick="goSettings()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1-1.6 1.7 1.7 0 0 0-1.9.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.9 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.6-1 1.7 1.7 0 0 0-.3-1.9l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.9.3h.1a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.6 1.7 1.7 0 0 0 1.9-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.9v.1a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.6 1z"/></svg>
+      Você
+    </div>
+    <div class="tab hidden-tab" id="tabDev" onclick="goDev()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.7 6.3a4 4 0 0 0-5.4 5.4L3 18l3 3 6.3-6.3a4 4 0 0 0 5.4-5.4l-2.5 2.5-2.5-.5-.5-2.5z"/></svg>
+      Dev
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="overlay" onclick="closeSheetOnBackdrop(event)">
+  <div class="sheet" id="sheet" onclick="event.stopPropagation()"></div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// Corrida+ — lógica do app.
+// Documentação detalhada de arquitetura, sincronização, encriptação e
+// easter eggs: ver corridaplus-docs.md (ficheiro separado).
+// Esquema de versão: de volta ao pré-1.0 (0.x.x) — a v1.0.0 fica
+// reservada para o lançamento com assinatura paga completa. A numeração
+// 4.x.x usada temporariamente para a integração Firebase foi abandonada.
+const APP_VERSION = '0.74';
+// Mostra o número da versão na tela de carregamento imediatamente (sem
+// esperar por loadAll/qualquer coisa assíncrona) — sempre visível,
+// independente da mensagem dinâmica ("A carregar…", "A sincronizar…",
+// "Atualizado…") que ocupa o elemento #splashMsg logo acima.
+(function showSplashVersion(){
+  const el = document.getElementById('splashVersion');
+  if(el) el.textContent = `v${APP_VERSION}`;
+})();
+
+if (!window.storage) {
+  window.storage = {
+    get: async (key) => {
+      const val = localStorage.getItem(key);
+      if(val === null) throw new Error('Key not found: ' + key);
+      return { key, value: val, shared: false };
+    },
+    set: async (key, value) => {
+      localStorage.setItem(key, value);
+      return { key, value, shared: false };
+    },
+    delete: async (key) => {
+      localStorage.removeItem(key);
+      return { key, deleted: true, shared: false };
+    },
+    list: async (prefix) => {
+      const keys = Object.keys(localStorage).filter(k => !prefix || k.startsWith(prefix));
+      return { keys, shared: false };
+    }
+  };
+}
+
+// --- STATE ---
+let profile = { name: '', photo: null };
+let bills = [];
+let monthData = {};
+let currentMonthKey = defaultReferenceMonthKey();
+let localSettings = { darkMode: 'system', themeColor: 'green' };
+
+let showHiddenData = false;
+let devMode = false;
+let devTapCount = 0;
+let devTapTimer = null;
+
+let encryptionEnabled = false;
+let encryptionPassword = '';
+let biometricUnlockEnabled = false;
+let requireUnlockEachSync = false;
+
+let devForceEasterEgg = false;
+
+let syncLog = [];
+const SYNC_LOG_MAX = 50;
+function logSyncEvent(type, message, extra){
+  syncLog.unshift({ ts: Date.now(), type, message, extra: extra || null });
+  if(syncLog.length > SYNC_LOG_MAX) syncLog.length = SYNC_LOG_MAX;
+  try{ window.storage.set('syncLog', JSON.stringify(syncLog)); }catch(e){}
+}
+
+let ganhosView = 'mes';
+let statsView = 'mes';
+let statsRefYear = new Date().getFullYear();
+let lucroView = 'mes';
+let lucroRefDate = new Date();
+let ganhosRefDate = new Date();
+let statsRefDate = new Date();
+
+let syncUrl = '';
+let syncPushTimer = null;
+const SYNC_DEBOUNCE_MS = 2000;
+const SYNC_KEYS = ['bills','monthData','profile'];
+const SYNC_PILL_SCREENS = ['ganhos','despesas','lucro','settings','stats'];
+
+const EXPENSE_CATEGORIES = [
+  { key:'combustivel',  label:'Combustível',       emoji:'⛽' },
+  { key:'aluguer',      label:'Aluguer carro',     emoji:'🚗' },
+  { key:'feira',        label:'Feira',             emoji:'🛒' },
+  { key:'manutencao',   label:'Manutenção',        emoji:'🔧' },
+  { key:'lavagem',      label:'Lavagem',           emoji:'🧼' },
+  { key:'pneu_oleo',    label:'Pneu / Óleo',       emoji:'🛞' },
+  { key:'estacionamento', label:'Estacionamento',  emoji:'🅿️' },
+  { key:'outro',        label:'Outro',             emoji:'📦' }
+];
+// Turno de trabalho — campo opcional no registo de ganhos. Se o utilizador
+// preencher, passa a aparecer um gráfico "Ganhos por turno" nas
+// Estatísticas, mostrando qual turno rende mais para essa pessoa.
+const TURNOS = [
+  { key:'manha',     label:'Manhã',      emoji:'🌅' },
+  { key:'tarde',     label:'Tarde',      emoji:'☀️' },
+  { key:'noite',     label:'Noite',      emoji:'🌙' },
+  { key:'madrugada', label:'Madrugada',  emoji:'🌃' }
+];
+const FUEL_TYPES = [
+  { key:'gasolina', label:'Gasolina', unit:'km/l',   priceUnit:'R$/litro' },
+  { key:'etanol',   label:'Etanol',   unit:'km/l',   priceUnit:'R$/litro' },
+  { key:'diesel',   label:'Diesel',   unit:'km/l',   priceUnit:'R$/litro' },
+  { key:'gnv',      label:'GNV',      unit:'km/m³',  priceUnit:'R$/m³' }
+];
+
+// --- Month key helpers ---
+function monthKeyFor(d){ return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0'); }
+function defaultReferenceMonthKey(){ return monthKeyFor(new Date()); }
+function previousMonthKey(key){
+  const [y,m] = key.split('-').map(Number);
+  return monthKeyFor(new Date(y, m-2, 1));
+}
+function monthLabelFor(key){
+  const [y,m] = key.split('-').map(Number);
+  return new Date(y, m-1, 1).toLocaleDateString('pt-BR', { month:'long', year:'numeric' });
+}
+function ensureMonthEntry(key){
+  if(!monthData[key]){
+    monthData[key] = { earnings: [], billOverrides: {}, billsPaid: {}, hiddenBills: {}, variableExpenses: [] };
+  }
+  const e = monthData[key];
+  if(!e.earnings) e.earnings = [];
+  if(!e.billOverrides) e.billOverrides = {};
+  if(!e.billsPaid) e.billsPaid = {};
+  if(!e.hiddenBills) e.hiddenBills = {};
+  if(!e.variableExpenses) e.variableExpenses = [];
+  return e;
+}
+
+// --- Date helpers (Dia/Semana views can span month boundaries) ---
+function isoDate(d){ return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0'); }
+function dateFromIso(s){ const [y,m,d] = s.split('-').map(Number); return new Date(y, m-1, d); }
+function addDays(d, n){ const r = new Date(d); r.setDate(r.getDate()+n); return r; }
+function startOfWeek(d){ const r = new Date(d); const dow = (r.getDay()+6)%7; return addDays(r, -dow); }
+function isoDateFromTs(ts){ return isoDate(new Date(ts)); }
+function allEarnings(){
+  let out = [];
+  Object.keys(monthData).forEach(k => out = out.concat(ensureMonthEntry(k).earnings));
+  return out;
+}
+function allVariableExpenses(){
+  let out = [];
+  Object.keys(monthData).forEach(k => out = out.concat(ensureMonthEntry(k).variableExpenses));
+  return out;
+}
+function earningsInRange(startIso, endIso){
+  return allEarnings().filter(e => e.date >= startIso && e.date <= endIso);
+}
+function variableExpensesInRange(startIso, endIso){
+  return allVariableExpenses().filter(e => { const d = e.date || isoDateFromTs(e.ts); return d >= startIso && d <= endIso; });
+}
+function sumAmount(list){ return list.reduce((s,e)=>s+(e.amount||0),0); }
+function sumKm(list){ return list.reduce((s,e)=>s+(e.km||0),0); }
+function sumHours(list){ return list.reduce((s,e)=>s+(e.hours||0),0); }
+function sumByPlatform(list, platform){ return list.filter(e=>e.platform===platform).reduce((s,e)=>s+(e.amount||0),0); }
+
+function billAmount(entry, bill){ return entry.billOverrides.hasOwnProperty(bill.id) ? entry.billOverrides[bill.id] : bill.defaultAmount; }
+const fmt = (n) => {
+  const rounded = Math.round(n * 100) / 100;
+  return '€ ' + (rounded === 0 ? 0 : rounded).toLocaleString('pt-BR', {minimumFractionDigits:2, maximumFractionDigits:2});
+};
+function uid(){ return Math.random().toString(36).slice(2,10) + Date.now().toString(36); }
+function escapeHtml(s){ return String(s).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
+function formatDate(ts){
+  const d = new Date(ts), today = new Date();
+  if(d.toDateString() === today.toDateString()) return 'hoje, ' + d.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
+  return d.toLocaleDateString('pt-BR', {day:'2-digit', month:'short'});
+}
+function formatDateStr(dateStr){
+  if(!dateStr) return '';
+  const [y,m,d] = dateStr.split('-').map(Number);
+  const dt = new Date(y, m-1, d);
+  const today = new Date();
+  if(dt.toDateString() === today.toDateString()) return 'hoje';
+  return dt.toLocaleDateString('pt-BR', { weekday:'short', day:'2-digit', month:'short' });
+}
+
+// --- STORAGE (local) ---
+async function loadLocalOnlySettings(){
+  try{ const su = await window.storage.get('syncUrl'); syncUrl = su.value || ''; }catch(e){ syncUrl = ''; }
+  try{ const ee = await window.storage.get('encryptionEnabled'); encryptionEnabled = ee.value === 'true' || ee.value === true; }catch(e){ encryptionEnabled = false; }
+  try{ const ep = await window.storage.get('encryptionPassword'); encryptionPassword = ep.value || ''; }catch(e){ encryptionPassword = ''; }
+  try{ const bu = await window.storage.get('biometricUnlockEnabled'); biometricUnlockEnabled = bu.value === 'true' || bu.value === true; }catch(e){ biometricUnlockEnabled = false; }
+  try{ const ru = await window.storage.get('requireUnlockEachSync'); requireUnlockEachSync = ru.value === 'true' || ru.value === true; }catch(e){ requireUnlockEachSync = false; }
+  try{ const sl = await window.storage.get('syncLog'); syncLog = JSON.parse(sl.value) || []; }catch(e){ syncLog = []; }
+  try{ const ns = await window.storage.get('useNormalizedSchema'); useNormalizedSchema = ns.value === 'true' || ns.value === true; }catch(e){ useNormalizedSchema = true; }
+  try{
+    const ls = await window.storage.get('localSettings');
+    const parsed = JSON.parse(ls.value);
+    localSettings = { ...localSettings, ...parsed };
+    if(parsed.ivaRate && !profile.ivaRate){ profile.ivaRate = parsed.ivaRate; }
+  }catch(e){}
+}
+
+async function loadFromLocalStorage(){
+  try{ const p  = await window.storage.get('profile');   profile   = JSON.parse(p.value); }catch(e){ profile   = { name:'', photo:null }; }
+  try{ const b  = await window.storage.get('bills');     bills     = JSON.parse(b.value); }catch(e){ bills     = []; }
+  try{ const md = await window.storage.get('monthData'); monthData = JSON.parse(md.value);}catch(e){ monthData = {}; }
+  if(profile && profile.vehicle) delete profile.vehicle;
+}
+
+// Aplica um payload vindo da nuvem por cima do estado local (usado tanto no
+// GET normal quanto na importação manual de JSON). Ver docs para a regra de
+// merge de bills (deleções locais são respeitadas).
+function applyCloudData(data){
+  const cloudBills = Array.isArray(data.bills) ? data.bills : [];
+  const localBillIds = new Set(bills.map(b => b.id));
+  const mergedBills = cloudBills.filter(cloudBill => localBillIds.has(cloudBill.id));
+  cloudBills.forEach(cloudBill => { if (!bills.find(b => b.id === cloudBill.id)) mergedBills.push(cloudBill); });
+  bills = mergedBills;
+  monthData = (data.monthData && typeof data.monthData === 'object') ? data.monthData : {};
+  const cloudProfile = (data.profile && typeof data.profile === 'object') ? data.profile : { name:'', photo:null };
+  const localPhoto = profile.photo;
+  profile = cloudProfile;
+  if(!profile.photo && localPhoto) profile.photo = localPhoto;
+  if(profile.photo) syncAllAvatars();
+  if(profile && profile.vehicle) delete profile.vehicle;
+
+  Object.keys(monthData).forEach(k => {
+    const e = monthData[k];
+    if(!e) return;
+    if(!e.earnings)          e.earnings          = [];
+    if(!e.variableExpenses)  e.variableExpenses   = [];
+    if(!e.billOverrides)     e.billOverrides      = {};
+    if(!e.billsPaid)         e.billsPaid          = {};
+    if(!e.hiddenBills)       e.hiddenBills        = {};
+    e.earnings.forEach(earning => { if(!earning.platform) earning.platform = 'uber'; });
+  });
+  bills.forEach(b => { if(!b.frequency) b.frequency = 'mensal'; });
+}
+
+async function persistLocalOnlySilently(){
+  try{ await window.storage.set('bills',     JSON.stringify(bills));     }catch(e){}
+  try{ await window.storage.set('monthData', JSON.stringify(monthData));}catch(e){}
+  try{ await window.storage.set('profile',   JSON.stringify(profile));   }catch(e){}
+  try{ await window.storage.set('localSettings', JSON.stringify(localSettings)); }catch(e){}
+}
+
+function showLoadingState(msg){
+  const el = document.getElementById('loadingState');
+  el.textContent = msg;
+  el.style.display = '';
+}
+function hideLoadingState(){ document.getElementById('loadingState').style.display = 'none'; }
+
+// --- CLOUD SYNC (Google Sheets via Apps Script) ---
+// Ver docs para a arquitetura completa (GET/POST, timeout/retry, migração,
+// encriptação). SYNC_TIMEOUT_MS/SYNC_MAX_RETRIES controlam o comportamento
+// de rede; PRE_PUSH_PULL_TIMEOUT_MS controla o pull silencioso feito antes
+// de cada envio (ver pullLatestAndMergeBeforePush mais abaixo).
+const SYNC_TIMEOUT_MS = 15000;
+const SYNC_MAX_RETRIES = 2;
+const PRE_PUSH_PULL_TIMEOUT_MS = 6000;
+
+async function _doCloudSync(attempt) {
+  attempt = attempt || 1;
+  if (!syncUrl || basicMode()) { setSyncStatus('nolink'); return; }
+  const startTime = Date.now();
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), SYNC_TIMEOUT_MS);
+  try {
+    const response = await fetch(syncUrl, { signal: controller.signal });
+    clearTimeout(timeoutId);
+    if (!response.ok) throw new Error(`A requisição falhou com o status: ${response.status}`);
+    const data = await response.json();
+    const elapsedMs = Date.now() - startTime;
+
+    if (data && typeof data.syncUrl === 'string' && data.syncUrl.trim() && data.syncUrl.trim() !== syncUrl) {
+      const newUrl = data.syncUrl.trim();
+      logSyncEvent('info', `Migração de planilha detectada`, `${elapsedMs}ms · nova URL configurada`);
+      syncUrl = newUrl;
+      try{ await window.storage.set('syncUrl', syncUrl); }catch(e){}
+      showToast('🔄 Migrando para nova planilha…');
+      await _doCloudSync();
+      return;
+    }
+
+    if(data && data.encrypted === true){
+      if(!requireUnlockEachSync && encryptionPassword){
+        try{
+          const decoded = await decryptPayload(data, encryptionPassword);
+          logSyncEvent('success', 'Sincronizado (decifrado automaticamente)', `${elapsedMs}ms`);
+          await finishCloudSync(decoded);
+          return;
+        }catch(e){
+          logSyncEvent('info', 'Dados encriptados, senha guardada não bateu — a pedir desbloqueio', `${elapsedMs}ms`);
+          pendingEncryptedPayload = data;
+          openUnlockSheet();
+          return;
+        }
+      }
+      logSyncEvent('info', 'Dados encriptados — a pedir desbloqueio', `${elapsedMs}ms`);
+      pendingEncryptedPayload = data;
+      openUnlockSheet();
+      return;
+    }
+
+    logSyncEvent('success', 'Sincronizado com sucesso', `${elapsedMs}ms · ${JSON.stringify(data).length} bytes`);
+    await finishCloudSync(data);
+  } catch (error) {
+    clearTimeout(timeoutId);
+    const elapsedMs = Date.now() - startTime;
+
+    if(error.name === 'AbortError'){
+      setSyncStatus('nolink');
+      logSyncEvent('timeout', `Tempo esgotado após ${(SYNC_TIMEOUT_MS/1000).toFixed(0)}s — a ligação com a planilha está lenta`, `${elapsedMs}ms · tentativa ${attempt}`);
+      showToast(`⏱️ Sincronização demorou demais (>${(SYNC_TIMEOUT_MS/1000).toFixed(0)}s) — tente novamente`);
+      return;
+    }
+
+    const looksTransient = elapsedMs < 500;
+    if(looksTransient && attempt <= SYNC_MAX_RETRIES){
+      const backoffMs = attempt * 800;
+      logSyncEvent('info', `Falha rápida (${error.message || error.name}) — a tentar de novo em ${backoffMs}ms`, `tentativa ${attempt} de ${SYNC_MAX_RETRIES+1}`);
+      await new Promise(r => setTimeout(r, backoffMs));
+      return _doCloudSync(attempt + 1);
+    }
+
+    setSyncStatus('nolink');
+    let host = '?';
+    try{ host = new URL(syncUrl).host; }catch(e){}
+    const hint = looksTransient
+      ? ` — falhou rápido mesmo após ${attempt} tentativas; provavelmente CORS, URL errada, ou a implantação do Apps Script não está publicada como "Qualquer pessoa"`
+      : '';
+    logSyncEvent('error', `${error.name || 'Error'}: ${error.message || 'Erro desconhecido'}${hint}`, `${elapsedMs}ms · host: ${host} · tentativa ${attempt}`);
+    console.error('Falha na sincronização com a nuvem:', error);
+    showToast('❌ Falha na sincronização');
+  }
+}
+
+// Atualiza a tela ativa depois de qualquer alteração de dados vinda da
+// nuvem (sync normal, merge pré-push, ou importação manual).
+function refreshActiveScreen(){
+  const activeScreenId = document.querySelector('.screen.active')?.id;
+  if (activeScreenId === 'screen-despesas') renderDespesas();
+  else if (activeScreenId === 'screen-stats') renderStats();
+  else if (activeScreenId === 'screen-lucro') renderLucro();
+  else if (activeScreenId === 'screen-settings') renderSettings();
+  else renderGanhos();
+}
+
+// ---------------------------------------------------------------
+// FORMATO DE ARMAZENAMENTO ALTERNATIVO ("schema v1") — Modo Dev
+// Por padrão a app grava/lê o formato "clássico" (bills/monthData/profile,
+// com monthData particionado por mês e ganhos/despesas aninhados lá
+// dentro). Esse formato funciona mas está longe de normalizado — ver
+// docs para a crítica completa. Este bloco implementa um formato
+// alternativo mais limpo (schemaVersion, ganhos/despesas em listas planas
+// com campo `date`, configurações separadas do perfil) SEM tocar em
+// nenhuma outra parte da app: internamente, a app continua a trabalhar
+// só com bills/monthData/profile, como sempre — a conversão acontece só
+// na fronteira da sincronização (aqui) e é sempre reversível sem perdas.
+//
+// - normalizeToSchemaV1(payload): bills/monthData/profile → schema v1
+// - denormalizeFromSchemaV1(data): schema v1 → bills/monthData/profile
+//
+// `useNormalizedSchema` (device-local, Modo Dev) decide se ESTE
+// dispositivo grava no formato novo. A LEITURA entende os dois formatos
+// sempre, em qualquer dispositivo — por isso é seguro ativar num
+// dispositivo só, sem coordenar com os outros: cada um decide sozinho em
+// que formato escreve, e todos conseguem ler o que os outros escreverem.
+// ---------------------------------------------------------------
+// Schema v1 (formato normalizado) é o padrão a partir de agora — ver
+// loadLocalOnlySettings() para o fallback que preserva esta escolha como
+// 'true' por padrão para quem nunca mexeu no interruptor do Modo Dev.
+let useNormalizedSchema = true;
+
+function normalizeToSchemaV1(payload){
+  const oldBills     = payload.bills || [];
+  const oldMonthData = payload.monthData || {};
+  const oldProfile   = payload.profile || {};
+
+  const earnings = [], expenses = [], billOverrides = [], billsPaid = [], hiddenBills = [];
+  Object.keys(oldMonthData).forEach(monthKey => {
+    const e = oldMonthData[monthKey] || {};
+    (e.earnings || []).forEach(x => earnings.push(x));
+    (e.variableExpenses || []).forEach(x => expenses.push(x));
+    Object.keys(e.billOverrides || {}).forEach(billId => {
+      billOverrides.push({ billId, month: monthKey, amount: e.billOverrides[billId] });
+    });
+    Object.keys(e.billsPaid || {}).forEach(billId => {
+      const p = e.billsPaid[billId] || {};
+      billsPaid.push({ billId, month: monthKey, amount: p.amount, paidAt: p.ts });
+    });
+    Object.keys(e.hiddenBills || {}).forEach(billId => {
+      hiddenBills.push({ billId, month: monthKey });
+    });
+  });
+
+  const {
+    name, photo, ivaRate, comissaoRate,
+    goalsEnabled, monthlyGoal, weeklyGoal,
+    easterEggDisabled, easterEggRate, birthdayDate,
+    ...restProfile
+  } = oldProfile;
+
+  return {
+    schemaVersion: 1,
+    updatedAt: new Date().toISOString(),
+    profile: { name: name || '', photo: photo || null, ...restProfile },
+    settings: {
+      ivaRate: ivaRate || 0,
+      comissaoRate: comissaoRate || 0,
+      goals: { enabled: !!goalsEnabled, monthly: monthlyGoal || 0, weekly: weeklyGoal || 0 }
+    },
+    features: {
+      easterEgg: { disabled: easterEggDisabled === false ? false : true, rate: typeof easterEggRate === 'number' ? easterEggRate : 0.03 },
+      birthday: { date: birthdayDate || '' }
+    },
+    bills: oldBills,
+    earnings, expenses, billOverrides, billsPaid, hiddenBills
+  };
+}
+
+function denormalizeFromSchemaV1(data){
+  const bills = Array.isArray(data.bills) ? data.bills : [];
+  const monthData = {};
+  function entryFor(monthKey){
+    const k = monthKey || defaultReferenceMonthKey();
+    if(!monthData[k]) monthData[k] = { earnings: [], variableExpenses: [], billOverrides: {}, billsPaid: {}, hiddenBills: {} };
+    return monthData[k];
+  }
+  (data.earnings || []).forEach(e => { entryFor((e.date||'').slice(0,7)).earnings.push(e); });
+  (data.expenses || []).forEach(e => { entryFor((e.date||'').slice(0,7)).variableExpenses.push(e); });
+  (data.billOverrides || []).forEach(o => { entryFor(o.month).billOverrides[o.billId] = o.amount; });
+  (data.billsPaid || []).forEach(p => { entryFor(p.month).billsPaid[p.billId] = { amount: p.amount, ts: p.paidAt }; });
+  (data.hiddenBills || []).forEach(h => { entryFor(h.month).hiddenBills[h.billId] = true; });
+
+  const s = data.settings || {};
+  const f = data.features || {};
+  const goals = s.goals || {};
+  const eggF = f.easterEgg || {};
+  const bdayF = f.birthday || {};
+  const profile = {
+    ...(data.profile || {}),
+    ivaRate: s.ivaRate || 0,
+    comissaoRate: s.comissaoRate || 0,
+    goalsEnabled: !!goals.enabled,
+    monthlyGoal: goals.monthly || 0,
+    weeklyGoal: goals.weekly || 0,
+    easterEggDisabled: eggF.disabled === false ? false : true,
+    easterEggRate: typeof eggF.rate === 'number' ? eggF.rate : 0.03,
+    birthdayDate: bdayF.date || ''
+  };
+
+  return { bills, monthData, profile };
+}
+
+// Ponto único de deteção de formato — se `raw` tiver schemaVersion, converte
+// para o formato clássico antes de seguir; senão devolve como veio. Usado
+// em todos os pontos onde dados vindos da nuvem (ou de um JSON colado
+// manualmente) entram na app.
+function resolveIncomingPayload(raw){
+  if(raw && raw.schemaVersion === 1) return denormalizeFromSchemaV1(raw);
+  return raw;
+}
+
+async function finishCloudSync(decoded){
+  const r = await syncWithCloud(resolveIncomingPayload(decoded), { ask: true, stamp: decoded.updatedAt });
+  if(r === 'pending'){ setSyncStatus('nolink'); showToast('Sincronização pausada — escolhe que dados manter'); return; }
+  if(r === 'push'){ await pushToCloud(undefined, true); }
+  setSyncStatus('synced');
+  showToast('✅ Sincronizado com sucesso');
+  refreshActiveScreen();
+}
+
+let pendingEncryptedPayload = null;
+
+function openUnlockSheet(){
+  const canBio = biometricUnlockEnabled && webAuthnSupported();
+  if(canBio){ triggerBiometricUnlockDirectly(); return; }
+  openUnlockPasswordSheet();
+}
+
+async function triggerBiometricUnlockDirectly(){
+  const envelope = pendingEncryptedPayload;
+  if(!envelope) return;
+  try{
+    const pwd = await verifyBiometricAndGetPassword();
+    const decoded = await decryptPayload(envelope, pwd);
+    pendingEncryptedPayload = null;
+    await finishCloudSync(decoded);
+  }catch(e){
+    openUnlockPasswordSheet(true);
+  }
+}
+
+function openUnlockPasswordSheet(biometricFailed){
+  openSheet(`
+    <div class="sheet-handle"></div>
+    <div class="sheet-title">🔒 Dados encriptados</div>
+    <div class="sheet-sub">${biometricFailed ? 'Não foi possível usar a biometria. Confirme com a senha para continuar.' : 'Confirme a senha para decifrar e sincronizar os seus dados.'}</div>
+    <div class="field" style="margin-top:12px;">
+      <label>Senha de encriptação</label>
+      <input type="password" id="unlockPasswordInput" placeholder="Digite a senha" onkeydown="if(event.key==='Enter') unlockWithPassword()" />
+    </div>
+    <button onclick="unlockWithPassword()" style="width:100%;margin-top:6px;padding:14px;border-radius:var(--r-md);border:none;background:var(--vault);color:#fff;font-weight:700;font-size:15px;cursor:pointer;">Desbloquear com senha</button>
+    ${biometricUnlockEnabled && webAuthnSupported() ? `<button onclick="triggerBiometricUnlockDirectly(); closeSheet();" style="width:100%;margin-top:10px;padding:12px;border-radius:var(--r-md);border:1.5px solid var(--line);background:transparent;color:var(--ink);font-weight:600;font-size:13px;cursor:pointer;">👤 Tentar biometria de novo</button>` : ''}
+    <button onclick="cancelUnlock()" style="width:100%;margin-top:10px;padding:12px;border:none;background:none;color:var(--text-muted);font-weight:600;font-size:13px;cursor:pointer;">Cancelar</button>
+  `);
+  setTimeout(()=>{ document.getElementById('unlockPasswordInput')?.focus(); }, 200);
+}
+
+function cancelUnlock(){
+  pendingEncryptedPayload = null;
+  closeSheet();
+  setSyncStatus('nolink');
+  showToast('Sincronização cancelada');
+}
+
+async function unlockWithPassword(){
+  const input = document.getElementById('unlockPasswordInput');
+  const pwd = input ? input.value : '';
+  if(!pwd){ showToast('Digite a senha'); return; }
+  const envelope = pendingEncryptedPayload;
+  if(!envelope) { closeSheet(); return; }
+  try{
+    const decoded = await decryptPayload(envelope, pwd);
+    encryptionPassword = pwd;
+    try{ await window.storage.set('encryptionPassword', encryptionPassword); }catch(e){}
+    pendingEncryptedPayload = null;
+    closeSheet();
+    await finishCloudSync(decoded);
+  }catch(e){
+    showToast('❌ Senha incorreta');
+    if(input) input.style.borderColor = 'var(--terracotta)';
+  }
+}
+
+// Mostra o ecrã de login (conta Google obrigatória) por cima da splash.
+function showLoginGate(){
+  hideLoadingState();
+  const splash = document.getElementById('splashScreen');
+  if(splash) splash.style.display = 'none';
+  const gate = document.getElementById('loginGate');
+  if(gate) gate.style.display = 'flex';
+}
+// Chamada pelo botão "Continuar com Google" no ecrã de login. A função do
+// módulo Firebase (window.fbSignInWithGoogle) já recarrega a página em
+// caso de sucesso; aqui só trata do estado visual do botão e do erro.
+// Chamada tanto pelo botão do ecrã de login (não usado automaticamente
+// por agora, login é opcional) quanto pelo botão em Configurações → Conta
+// — atualiza qualquer um dos dois pares botão/erro que existir na página.
+async function handleGoogleSignIn(){
+  const btns = [document.getElementById('loginGateBtn'), document.getElementById('settingsGoogleSignInBtn')].filter(Boolean);
+  const errs = [document.getElementById('loginGateError'), document.getElementById('settingsGoogleSignInError')].filter(Boolean);
+  errs.forEach(el => { el.textContent = ''; });
+  btns.forEach(b => { b.disabled = true; });
+  try{
+    if(window.fbSignInWithGoogle) await window.fbSignInWithGoogle();
+  }catch(e){
+    console.error('Login com Google falhou:', e);
+    errs.forEach(el => { el.textContent = 'Não foi possível entrar. Tenta novamente.'; });
+  }finally{
+    btns.forEach(b => { b.disabled = false; });
+  }
+}
+async function fbDoSignOut(){
+  if(!confirm('Sair da tua conta Google?')) return;
+  try{ if(window.fbSignOut) await window.fbSignOut(); }catch(e){}
+  location.reload();
+}
+
+// Mostra o estado da assinatura (Fase 3 — Stripe) em Configurações, com a
+// data até quando está ativa. window.__fbSubscription pode estar em três
+// estados: undefined (login feito, ainda a verificar), null (verificado,
+// sem assinatura ativa/em teste — normal enquanto o Stripe não estiver
+// configurado), ou o documento da assinatura (ver fbListenSubscription).
+function renderSubscriptionCard(){
+  const statusEl = document.getElementById('subscriptionStatus');
+  const detailEl = document.getElementById('subscriptionDetail');
+  if(!statusEl) return;
+
+  if(!window.__fbUser){
+    statusEl.textContent = 'Liga uma conta Google para ver';
+    if(detailEl) detailEl.textContent = '';
+    return;
+  }
+  if(window.__fbSubscription === undefined){
+    statusEl.textContent = 'A verificar…';
+    if(detailEl) detailEl.textContent = '';
+    return;
+  }
+  if(!window.__fbSubscription){
+    statusEl.textContent = '🔓 Sem assinatura ativa';
+    if(detailEl) detailEl.textContent = 'A cobrança ainda não está configurada nesta conta — por agora o acesso é livre.';
+    return;
+  }
+
+  const sub = window.__fbSubscription;
+  // current_period_end vem como Timestamp do Firestore (tem .toDate()) ou,
+  // conforme a versão da extensão Stripe, como string/número — cobre os
+  // dois casos.
+  let endDate = null;
+  const raw = sub.current_period_end;
+  if(raw){
+    if(typeof raw.toDate === 'function') endDate = raw.toDate();
+    else endDate = new Date(raw);
+  }
+  const endStr = (endDate && !isNaN(endDate)) ? endDate.toLocaleDateString('pt-BR', { day:'2-digit', month:'long', year:'numeric' }) : null;
+  const isTrial = sub.status === 'trialing';
+  statusEl.textContent = isTrial ? '🎁 Período de teste' : '✅ Assinatura ativa';
+  if(detailEl){
+    if(!endStr){ detailEl.textContent = ''; }
+    else if(sub.cancel_at_period_end){ detailEl.textContent = `Termina em ${endStr} (cancelamento agendado)`; }
+    else { detailEl.textContent = `${isTrial ? 'Teste termina' : 'Ativa até'} ${endStr}`; }
+  }
+}
+
+let unsubUserData = null;
+let unsubSubscription = null;
+async function loadAll(){
+  const splashMsg = document.getElementById('splashMsg');
+  const splash    = document.getElementById('splashScreen');
+  function setSplash(msg){ if(splashMsg) splashMsg.textContent = msg; }
+  function hideSplash(){
+    if(splash){ splash.style.opacity = '0'; setTimeout(()=>{ splash.style.display='none'; }, 400); }
+  }
+
+  // Login Google OPCIONAL por agora (enquanto em teste) — só verifica se
+  // há sessão guardada, sem bloquear o carregamento da app. Sem sessão,
+  // a app segue normalmente com Apps Script/local, como sempre; o botão
+  // "Continuar com Google" fica disponível em Configurações → Conta,
+  // para quem quiser ligar a conta sem que isso seja obrigatório.
+  // Só o primeiro carregamento da sessão corre a brincadeira e a verificação de
+  // atualização; tocar em "sincronizar" não as repete.
+  const isFirstLoad = !window.__appStarted;
+  window.__appStarted = true;
+  window.__fbUser = await (window.fbAuthReadyPromise || Promise.resolve(null));
+
+  await loadLocalOnlySettings();
+  devMode = localSettings.devMode === true;
+  await loadDeletedIdsFromStorage();
+  await loadFromLocalStorage();
+
+  applyTabVisibility();
+  if(repairTurnoList()){ persistLocalOnlySilently(); scheduleCloudPush(); }
+  applyAllAppearance();
+  hideLoadingState();
+  renderLucro();
+
+  if(window.__fbUser){
+    setSplash('A sincronizar…');
+    setSyncStatus('saving');
+    const uid = window.__fbUser.uid;
+    if(unsubUserData) unsubUserData();
+    unsubUserData = window.fbListenUserData(uid, (remoteData) => {
+      if(window._suppressRemote) return;
+      syncWithCloud(resolveIncomingPayload(remoteData), { ask: false, stamp: remoteData.updatedAt })
+        .then(r => { if(r === 'ok') refreshActiveScreen(); });
+    });
+    if(window.fbListenSubscription){
+      if(unsubSubscription) unsubSubscription();
+      unsubSubscription = window.fbListenSubscription(uid, (sub) => {
+        window.__fbSubscription = sub;
+        renderSettings();
+      });
+    }
+    initialCloudSync(uid).then(() => {
+      if(syncUrl && !profile.syncUrl) persistSyncUrl();
+      backupToSheetIfDue();
+    });
+  } else if(syncUrl){
+    // Sem sessão Google (modo básico): a planilha só existe para contas com login.
+    // Nada é lido nem enviado.
+    setSyncStatus('nolink');
+  } else {
+    setSyncStatus('nolink');
+  }
+
+  // Se a última abertura disparou um auto-update, este é o primeiro
+  // carregamento já com a versão nova. O aviso é mostrado na PRÓPRIA tela
+  // de carregamento (splash), em vez de um toast separado por cima dela —
+  // um toast nesse momento ficava tapado pela splash (z-index mais alto),
+  // então na prática nunca era visto. Unificando os dois na mesma tela,
+  // o aviso aparece garantidamente antes dela desaparecer.
+  const updateApplied = await consumePendingUpdateNotice();
+  if(updateApplied){
+    setSplash(`✅ Atualizado para v${APP_VERSION}`);
+    await new Promise(r => setTimeout(r, 1100));
+  }
+  hideSplash();
+
+  if(isFirstLoad) await maybeRunEasterEgg();
+  if(isFirstLoad && basicMode() && !localSettings.welcomeDone) showWelcomeSheet();
+  if(isFirstLoad && !window.__fbUser) await runDailySummaryCheck();
+
+  // Verificação silenciosa de atualização: se houver uma versão mais nova
+  // publicada, atualiza sozinho (recarrega a página), sem perguntar nada
+  // ao utilizador. O aviso de "atualizado" só aparece na abertura seguinte,
+  // já com a versão nova (ver consumePendingUpdateNotice acima).
+  if(isFirstLoad) checkForUpdatesOnStartup();
+}
+
+async function persistProfile()   { await safeSet('profile',   profile);   }
+async function persistBills()     { await safeSet('bills',     bills);     }
+async function persistMonthData() { await safeSet('monthData', monthData); }
+async function persistLocalSettings() {
+  try{ await window.storage.set('localSettings', JSON.stringify(localSettings)); }catch(e){}
+}
+
+async function safeSet(key, value){
+  try{
+    await window.storage.set(key, JSON.stringify(value));
+    if(SYNC_KEYS.includes(key)){ scheduleCloudPush(); }
+    else { setSyncStatus(syncUrl ? 'synced' : 'nolink'); }
+    return true;
+  }catch(e){
+    setSyncStatus('nolink');
+    return null;
+  }
+}
+
+function scheduleCloudPush(){
+  if(window.__fbUser){ scheduleFirestorePush(); return; }
+  if(basicMode()){ setSyncStatus('nolink'); return; }
+  if(!syncUrl){ setSyncStatus('nolink'); return; }
+  setSyncStatus('saving');
+  clearTimeout(syncPushTimer);
+  syncPushTimer = setTimeout(pushToCloud, SYNC_DEBOUNCE_MS);
+}
+
+let firestorePushTimer = null;
+function scheduleFirestorePush(){
+  setSyncStatus('saving');
+  clearTimeout(firestorePushTimer);
+  firestorePushTimer = setTimeout(pushToFirestore, SYNC_DEBOUNCE_MS);
+}
+// Grava o estado atual (bills/monthData/profile) no documento Firestore
+// do utilizador autenticado, no mesmo formato "schema v1" já usado para a
+// sincronização via Apps Script — reaproveita normalizeToSchemaV1() tal
+// e qual, só muda o destino (Firestore em vez da planilha).
+// ---------------------------------------------------------------
+// FUSÃO COM BASE (três vias) — substitui a união por ID e as lápides.
+// A "base" é o último estado conhecido da nuvem (guardado localmente em
+// syncBase, por fonte: uma conta Firebase ou o Apps Script). Ao fundir:
+//  - se só um lado mudou desde a base, vence esse lado;
+//  - se os dois mudaram, vence o local (e campos diferentes são fundidos);
+//  - um item apagado de um lado sai do resultado se o outro lado não o mudou.
+// Assim as edições e as exclusões de cada aparelho chegam aos outros, sem
+// ressuscitar itens apagados e sem perder alterações ainda não enviadas.
+// ---------------------------------------------------------------
+const isNested = v => v !== null && typeof v === 'object';
+function stable(x){
+  if(Array.isArray(x)) return '[' + x.map(v => stable(v === undefined ? null : v)).join(',') + ']';
+  if(isNested(x)) return '{' + Object.keys(x).filter(k => x[k] !== undefined).sort().map(k => JSON.stringify(k) + ':' + stable(x[k])).join(',') + '}';
+  return JSON.stringify(x === undefined ? null : x);
+}
+// Identificador de cada item: id (registos) ou key (plataformas e turnos).
+// Sem nenhum dos dois, usa o próprio conteúdo, para o item não se perder.
+function idOf(it){ return (it && (it.id || it.key)) || (it ? stable(it) : null); }
+function mapById(arr){
+  const m = {};
+  (arr || []).forEach(it => { const id = idOf(it); if(id) m[id] = it; });
+  return m;
+}
+function arrFromMap(m, lArr, rArr){
+  const seen = new Set(), out = [];
+  [...(lArr || []), ...(rArr || [])].forEach(it => {
+    const id = idOf(it);
+    if(id && m[id] && !seen.has(id)){ seen.add(id); out.push(m[id]); }
+  });
+  Object.keys(m).forEach(id => { if(!seen.has(id)){ seen.add(id); out.push(m[id]); } });
+  return out;
+}
+function mergeObj(b, l, r){
+  const out = {};
+  const keys = new Set([...Object.keys(l || {}), ...Object.keys(r || {}), ...Object.keys(b || {})]);
+  keys.forEach(k => {
+    const inB = !!b && Object.prototype.hasOwnProperty.call(b, k);
+    const inL = !!l && Object.prototype.hasOwnProperty.call(l, k);
+    const inR = !!r && Object.prototype.hasOwnProperty.call(r, k);
+    const bv = inB ? b[k] : undefined, lv = inL ? l[k] : undefined, rv = inR ? r[k] : undefined;
+    const lChanged = inB ? (!inL || stable(bv) !== stable(lv)) : inL;
+    const rChanged = inB ? (!inR || stable(bv) !== stable(rv)) : inR;
+    if(!lChanged && !rChanged){ if(inL) out[k] = lv; return; }
+    if(lChanged && !rChanged){ if(inL) out[k] = lv; return; }
+    if(!lChanged && rChanged){ if(inR) out[k] = rv; return; }
+    if(inL && inR && isNested(lv) && isNested(rv)){ out[k] = mergeNode(bv, lv, rv); return; }
+    if(inL) out[k] = lv;
+  });
+  return out;
+}
+function mergeNode(b, l, r){
+  if(Array.isArray(b) || Array.isArray(l) || Array.isArray(r)){
+    const L = Array.isArray(l) ? l : [], R = Array.isArray(r) ? r : [];
+    return arrFromMap(mergeObj(mapById(Array.isArray(b) ? b : []), mapById(L), mapById(R)), L, R);
+  }
+  return mergeObj(b || {}, l || {}, r || {});
+}
+function mergeState(b, l, r){
+  b = b || {};
+  return {
+    bills: mergeNode(b.bills, l.bills, r.bills),
+    monthData: mergeNode(b.monthData, l.monthData, r.monthData),
+    profile: mergeNode(b.profile, l.profile, r.profile)
+  };
+}
+// Forma canónica: passa pelo mesmo conversor que a nuvem usa, para que
+// comparar local, base e remoto não dê diferenças falsas (ex: valores por omissão).
+function canon(st){
+  return resolveIncomingPayload(normalizeToSchemaV1({
+    bills: st.bills || [], monthData: st.monthData || {}, profile: st.profile || {}
+  }));
+}
+function currentState(){
+  return canon({
+    bills: JSON.parse(JSON.stringify(bills || [])),
+    monthData: JSON.parse(JSON.stringify(pruneEmptyMonths(monthData))),
+    profile: JSON.parse(JSON.stringify(profile || {}))
+  });
+}
+function hasData(st){
+  return (st.bills || []).length > 0 || Object.keys(st.monthData || {}).length > 0;
+}
+function hasLocalData(){ return hasData(currentState()); }
+function summarizeState(st){
+  let e = 0, x = 0;
+  Object.keys(st.monthData || {}).forEach(k => {
+    const m = st.monthData[k] || {};
+    e += (m.earnings || []).length;
+    x += (m.variableExpenses || []).length;
+  });
+  return `${e} ganhos · ${x} despesas variáveis · ${(st.bills || []).length} despesas fixas`;
+}
+async function applyState(st){
+  bills = st.bills || [];
+  monthData = st.monthData || {};
+  profile = st.profile || { name: '', photo: null };
+  if(profile.vehicle) delete profile.vehicle;
+  repairTurnoList();
+  if(profile.syncUrl) syncUrl = profile.syncUrl;
+  Object.keys(monthData).forEach(k => {
+    const e = monthData[k];
+    if(!e.earnings) e.earnings = [];
+    if(!e.variableExpenses) e.variableExpenses = [];
+    if(!e.billOverrides) e.billOverrides = {};
+    if(!e.billsPaid) e.billsPaid = {};
+    if(!e.hiddenBills) e.hiddenBills = {};
+    e.earnings.forEach(x => { if(!x.platform) x.platform = 'uber'; });
+  });
+  bills.forEach(b => { if(!b.frequency) b.frequency = 'mensal'; });
+  await persistLocalOnlySilently();
+}
+function sourceKey(){ return window.__fbUser ? 'firebase:' + window.__fbUser.uid : 'apps-script'; }
+async function loadSyncBase(){
+  try{
+    const r = await window.storage.get('syncBase');
+    const o = JSON.parse(r.value);
+    return (o && o.source === sourceKey()) ? o.state : null;
+  }catch(e){ return null; }
+}
+async function saveSyncBase(state){
+  try{ await window.storage.set('syncBase', JSON.stringify({ source: sourceKey(), state })); }catch(e){}
+}
+// Pergunta quando este aparelho tem dados que nunca foram sincronizados com a conta
+// e a nuvem já tem dados. Devolve 'cloud' | 'local' | null (decidir depois).
+function askCloudConflict(localSt, cloudSt, stamp){
+  return new Promise(resolve => {
+    window._conflictResolve = resolve;
+    const when = stamp
+      ? new Date(stamp).toLocaleString('pt-BR', { day:'2-digit', month:'2-digit', year:'numeric', hour:'2-digit', minute:'2-digit' })
+      : 'data desconhecida';
+    openSheet(`
+      <div class="sheet-handle"></div>
+      <div class="sheet-title">Dados diferentes</div>
+      <div class="sheet-sub">A tua conta já tem dados na nuvem, e este aparelho tem dados que ainda não foram sincronizados com ela.</div>
+      <div class="chart-box" style="margin-bottom:10px;">
+        <div class="chart-box-title">☁️ Dados da nuvem</div>
+        <div class="chart-box-sub">Guardados em ${escapeHtml(when)}</div>
+        <div style="font-size:12px;">${escapeHtml(summarizeState(cloudSt))}</div>
+      </div>
+      <div class="chart-box" style="margin-bottom:14px;">
+        <div class="chart-box-title">📱 Este aparelho</div>
+        <div class="chart-box-sub">Dados criados neste aparelho</div>
+        <div style="font-size:12px;">${escapeHtml(summarizeState(localSt))}</div>
+      </div>
+      <button class="btn btn-primary" onclick="resolveCloudConflict('local')">Manter os deste aparelho (substitui a nuvem)</button>
+      <button class="btn btn-danger-text" onclick="resolveCloudConflict('cloud')">Começar de novo com os da nuvem (apaga os deste aparelho)</button>
+      <button class="btn btn-ghost" onclick="resolveCloudConflict(null)">Decidir depois</button>
+    `);
+  });
+}
+function resolveCloudConflict(choice){
+  const r = window._conflictResolve;
+  window._conflictResolve = null;
+  closeSheet();
+  if(r) r(choice);
+}
+// Núcleo da sincronização: compara o remoto com o local, usando a base.
+// Devolve 'ok' (fundido e aplicado), 'push' (enviar o local por cima do remoto),
+// ou 'pending' (aguarda decisão do utilizador).
+async function syncWithCloud(remoteRaw, opts){
+  const ask = !!(opts && opts.ask);
+  const stamp = opts && opts.stamp;
+  const remote = canon(remoteRaw || {});
+  const base = await loadSyncBase();
+  if(base){
+    const merged = canon(mergeState(canon(base), currentState(), remote));
+    await applyState(merged);
+    await saveSyncBase(remote);
+    return 'ok';
+  }
+  if(!hasData(remote)) return 'push';
+  // Dados deste aparelho que ainda não foram sincronizados com esta conta, e a nuvem
+  // já tem dados: o utilizador escolhe. Em segundo plano, fica pendente.
+  if(!ask) return 'pending';
+  const choice = await askCloudConflict(currentState(), remote, stamp);
+  if(choice === 'cloud'){ await applyState(remote); await saveSyncBase(remote); return 'ok'; }
+  if(choice === 'local') return 'push';
+  return 'pending';
+}
+// Primeira sincronização da sessão Firebase (não bloqueia a app).
+async function initialCloudSync(uid){
+  window._syncPendingDecision = false;
+  try{
+    const raw = await window.fbLoadUserData(uid);
+    let r;
+    if(raw){
+      r = await syncWithCloud(resolveIncomingPayload(raw), { ask: true, stamp: raw.updatedAt });
+    } else if(hasLocalData()){
+      r = 'push';
+    } else {
+      setSyncStatus('synced');
+      return;
+    }
+    if(r === 'pending'){
+      window._syncPendingDecision = true;
+      setSyncStatus('nolink');
+      showToast('Escolhe que dados manter — toca em sincronizar');
+      return;
+    }
+    if(r === 'push'){ await pushToFirestore(true); }
+    else if(stable(currentState()) !== stable(canon(resolveIncomingPayload(raw)))){ await pushToFirestore(false); }
+    setSyncStatus('synced');
+    refreshActiveScreen();
+  }catch(e){
+    console.warn('Falha na sincronização inicial:', e);
+    setSyncStatus('nolink');
+  } finally {
+    runDailySummaryCheck();
+  }
+}
+// Grava o estado atual na conta Firebase. Por omissão, funde primeiro com a
+// nuvem; overwrite=true substitui a nuvem (usado quando o utilizador escolhe
+// "manter os deste aparelho" ou ao apagar tudo).
+async function pushToFirestore(overwrite){
+  if(!window.__fbUser) return;
+  const uid = window.__fbUser.uid;
+  try{
+    if(!overwrite){
+      const raw = await window.fbLoadUserData(uid);
+      if(raw){
+        const r = await syncWithCloud(resolveIncomingPayload(raw), { ask: false, stamp: raw.updatedAt });
+        if(r === 'pending') return;
+      }
+    }
+    const st = currentState();
+    await window.fbSaveUserData(uid, normalizeToSchemaV1(st));
+    await saveSyncBase(st);
+    setSyncStatus('synced');
+    await persistLocalOnlySilently();
+  }catch(e){
+    console.warn('Falha ao gravar no Firestore:', e);
+    setSyncStatus('nolink');
+  }
+}
+
+function pruneEmptyMonths(source){
+  const cleaned = {};
+  Object.keys(source).forEach(key => {
+    const e = source[key] || {};
+    const isEmpty =
+      (!e.earnings || e.earnings.length === 0) &&
+      (!e.variableExpenses || e.variableExpenses.length === 0) &&
+      (!e.billOverrides || Object.keys(e.billOverrides).length === 0) &&
+      (!e.billsPaid || Object.keys(e.billsPaid).length === 0) &&
+      (!e.hiddenBills || Object.keys(e.hiddenBills).length === 0);
+    if(!isEmpty) cleaned[key] = e;
+  });
+  return cleaned;
+}
+
+// ---------------------------------------------------------------
+// PULL-ANTES-DE-PUSH: antes de qualquer envio à nuvem, o app primeiro busca
+// o estado mais recente da planilha e faz merge com o estado local (em vez
+// de simplesmente sobrescrever com dados possivelmente desatualizados).
+// Isto evita que duas edições em dispositivos diferentes, feitas quase ao
+// mesmo tempo, façam um dispositivo apagar silenciosamente o trabalho do
+// outro. Ver docs para a estratégia de merge (união por ID em listas,
+// "local ganha" em conflitos de valor único).
+// ---------------------------------------------------------------
+// ---------------------------------------------------------------
+// LÁPIDES DE EXCLUSÃO ("tombstones") — necessárias porque o merge acima é
+// uma UNIÃO por ID: sem isto, apagar um ganho localmente e a seguir correr
+// pullLatestAndMergeBeforePush() faria esse ganho "voltar", porque ele
+// ainda existe na planilha e o merge não sabe distinguir "novo item criado
+// noutro dispositivo" de "item apagado neste". deletedIds guarda os IDs
+// apagados localmente (e ainda não confirmados como apagados na nuvem);
+// o merge ignora qualquer item remoto cujo ID esteja aqui. É limpo assim
+// que um push tiver sucesso (nesse ponto a nuvem já reflete a exclusão,
+// então não há mais risco de o item "voltar"). Device-local, persistido
+// em window.storage, nunca sincronizado como parte do payload.
+// ---------------------------------------------------------------
+let deletedIds = new Set();
+async function loadDeletedIdsFromStorage(){
+  try{ const d = await window.storage.get('deletedIds'); deletedIds = new Set(JSON.parse(d.value)); }
+  catch(e){ deletedIds = new Set(); }
+}
+async function persistDeletedIds(){
+  try{ await window.storage.set('deletedIds', JSON.stringify([...deletedIds])); }catch(e){}
+}
+function markDeleted(key){ /* substituído pela fusão com a base (ver syncWithCloud) */ }
+async function clearDeletedIdsAfterSuccessfulPush(){
+  if(deletedIds.size === 0) return;
+  deletedIds = new Set();
+  try{ await window.storage.set('deletedIds', JSON.stringify([])); }catch(e){}
+}
+
+// Puxa a planilha e funde com a base. Devolve:
+// 'ok' fundido · 'none' nada a fundir (encriptado, migração ou nuvem vazia) ·
+// 'pending' aguarda decisão · 'failed' rede/erro (não envia para não sobrescrever).
+async function pullLatestAndMergeBeforePush(){
+  if(!syncUrl) return 'none';
+  try{
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), PRE_PUSH_PULL_TIMEOUT_MS);
+    const response = await fetch(syncUrl, { signal: controller.signal, cache: 'no-store' });
+    clearTimeout(timeoutId);
+    if(!response.ok) return 'failed';
+    const data = await response.json();
+    if(data && data.encrypted === true) return 'none';
+    if(data && typeof data.syncUrl === 'string' && data.syncUrl.trim()) return 'none';
+    const r = await syncWithCloud(resolveIncomingPayload(data), { ask: false, stamp: data.updatedAt });
+    if(r === 'ok'){
+      logSyncEvent('info', 'Sincronizado com a nuvem antes de enviar (fusão)', 'pull-then-push');
+      refreshActiveScreen();
+      return 'ok';
+    }
+    if(r === 'push') return 'none';
+    return 'pending';
+  }catch(e){
+    return 'failed';
+  }
+}
+
+async function pushToCloud(migrationUrl, skipMerge){
+  if(!syncUrl || basicMode()) return;
+
+  // Busca e mescla a versão mais recente da nuvem ANTES de montar o payload
+  // a enviar — assim a edição do utilizador é aplicada sobre dados frescos,
+  // em vez de arriscar sobrescrever mudanças feitas noutro dispositivo.
+  // skipMerge=true é usado só por confirmResetAll(): apagar tudo é uma
+  // sobrescrita intencional, não uma edição incremental — não faz sentido
+  // "mesclar de volta" dados que o utilizador acabou de mandar apagar.
+  if(!skipMerge){
+    const pr = await pullLatestAndMergeBeforePush();
+    if(pr === 'failed' || pr === 'pending'){ setSyncStatus('nolink'); return; }
+  }
+
+  const rawPayload = currentState();
+  // Se ativado no Modo Dev, grava no formato normalizado (schema v1) em vez
+  // do formato clássico. A leitura entende os dois formatos sempre, então
+  // isto é seguro de ligar/desligar a qualquer momento.
+  const payload = useNormalizedSchema ? normalizeToSchemaV1(rawPayload) : rawPayload;
+  if(migrationUrl){ payload.syncUrl = migrationUrl; }
+  let body;
+  try{
+    body = (encryptionEnabled && encryptionPassword)
+      ? JSON.stringify(await encryptPayload(payload, encryptionPassword))
+      : JSON.stringify(payload);
+  }catch(e){
+    console.warn('Falha ao encriptar payload, enviando sem encriptação:', e);
+    body = JSON.stringify(payload);
+  }
+  const pushStart = Date.now();
+  const pushController = new AbortController();
+  const pushTimeoutId = setTimeout(() => pushController.abort(), SYNC_TIMEOUT_MS);
+  try{
+    await fetch(syncUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body,
+      signal: pushController.signal
+    });
+    clearTimeout(pushTimeoutId);
+    setSyncStatus('synced');
+    logSyncEvent('success', 'Dados enviados para a nuvem', `${Date.now()-pushStart}ms · ${body.length} bytes`);
+    await persistLocalOnlySilently();
+    // A nuvem agora reflete o estado local (incluindo exclusões) — as
+    // lápides deixam de ser necessárias.
+    await clearDeletedIdsAfterSuccessfulPush();
+    await saveSyncBase(rawPayload);
+  }catch(err){
+    clearTimeout(pushTimeoutId);
+    const elapsedMs = Date.now() - pushStart;
+    setSyncStatus('nolink');
+    if(err.name === 'AbortError'){
+      logSyncEvent('timeout', `Envio demorou demais (>${(SYNC_TIMEOUT_MS/1000).toFixed(0)}s) — ligação lenta`, `${elapsedMs}ms`);
+    } else {
+      console.warn('Falha ao enviar dados para a nuvem:', err);
+      logSyncEvent('error', `Falha ao enviar: ${err.message || 'erro desconhecido'}`, `${elapsedMs}ms`);
+    }
+  }
+}
+
+function setSyncStatus(state){
+  let label, dotClass;
+  if(state === 'saving'){ label = 'salvando…'; dotClass = 'sync-dot'; }
+  else if(state === 'synced'){ label = 'sincronizado'; dotClass = 'sync-dot'; }
+  else { label = 'offline / sem link'; dotClass = 'sync-dot off'; }
+  SYNC_PILL_SCREENS.forEach(screen => {
+    const dot = document.getElementById('syncDot-' + screen);
+    const txt = document.getElementById('syncStatus-' + screen);
+    if(dot) dot.className = dotClass;
+    if(txt) txt.textContent = label;
+  });
+}
+
+// --- NAVIGATION ---
+const TABS = ['tabGanhos','tabDespesas','tabLucro','tabStats','tabSettings','tabDev'];
+function activateTab(id){
+  TABS.forEach(t => document.getElementById(t).classList.toggle('active', t === id));
+  positionTabPill(id);
+}
+// ---------- Gota de vidro (só com o efeito transparente) ----------
+// Serve a barra de abas e todos os seletores (.seg): desliza até à opção ativa,
+// estica-se na direção do movimento, achata-se contra as paredes e recupera
+// a forma normal com mola ao chegar.
+// As animações (gota, deformação, mola, gestos) valem nos dois modos. O aspeto de vidro é só CSS.
+function isGlass(){ return true; }
+function currentTabId(){ return TABS.find(id => document.getElementById(id) && document.getElementById(id).classList.contains('active')); }
+function visibleTabIds(){ return TABS.filter(id => { const el = document.getElementById(id); return el && !el.classList.contains('hidden-tab'); }); }
+const TAB_NAV = { tabGanhos: () => goGanhos(), tabDespesas: () => goDespesas(), tabLucro: () => goLucro(), tabStats: () => goStats(), tabSettings: () => goSettings(), tabDev: () => goDev() };
+function glassPill(c){
+  let p = c.querySelector(':scope > .glass-pill');
+  if(!p){ p = document.createElement('div'); p.className = 'glass-pill'; c.prepend(p); }
+  return p;
+}
+function glassOptionsOf(c){
+  return c.classList.contains('tabbar-inner')
+    ? visibleTabIds().map(id => document.getElementById(id)).filter(Boolean)
+    : Array.from(c.querySelectorAll(':scope > .seg-opt'));
+}
+function glassIsHorizontal(c){ return getComputedStyle(c).flexDirection !== 'column'; }
+function glassPlace(c, opt, animate){
+  if(!isGlass() || !c) return;
+  const p = glassPill(c);
+  if(!opt || opt.classList.contains('hidden-tab') || opt.offsetParent === null){ p.classList.remove('on'); return; }
+  const anim = animate !== false;
+  p.style.transition = anim ? '' : 'none';
+  p.style.left = opt.offsetLeft + 'px';
+  p.style.top = opt.offsetTop + 'px';
+  p.style.width = opt.offsetWidth + 'px';
+  p.style.height = opt.offsetHeight + 'px';
+  if(anim){
+    // chega achatada no sentido do movimento e recupera a forma normal com mola
+    p.style.transform = glassIsHorizontal(c) ? 'scale(1.16, 0.82)' : 'scale(0.82, 1.16)';
+    void p.offsetWidth;
+    p.style.transform = '';
+  } else {
+    p.style.transform = '';
+  }
+  p.classList.add('on');
+}
+function positionTabPill(id, animate){
+  glassPlace(document.querySelector('.tabbar-inner'), document.getElementById(id || currentTabId()), animate);
+}
+function glassRefreshAll(animate){
+  if(!isGlass()) return;
+  document.querySelectorAll('.seg, .tabbar-inner').forEach(c => {
+    const act = glassOptionsOf(c).find(o => o.classList.contains('active'));
+    glassPlace(c, act, animate);
+  });
+}
+// Arrasto: a gota segue o dedo, estica-se com a velocidade e achata-se contra as paredes.
+let glassDrag = null;
+let glassClickBlock = false;
+function glassDragTo(c, d, pt){
+  const p = glassPill(c);
+  const horiz = glassIsHorizontal(c);
+  const first = d.opts[0], last = d.opts[d.opts.length - 1];
+  const size = horiz ? first.offsetWidth : first.offsetHeight;
+  const startOf = o => horiz ? o.offsetLeft : o.offsetTop;
+  const lo = startOf(first), hi = startOf(last);
+  const br = c.getBoundingClientRect();
+  const axisPt = horiz ? pt.x - br.left : pt.y - br.top;
+  const pos = axisPt - size / 2;
+  const clamped = Math.max(lo, Math.min(hi, pos));
+  const over = Math.max(0, lo - pos, pos - hi);
+  const squash = Math.min(0.2, over / 160);
+  const stretch = Math.min(0.2, Math.abs(d.v) * 0.0013);
+  const along = 1 + stretch - squash;
+  const cross = 1 - stretch * 0.9 + squash * 0.35;
+  p.style.transition = 'none';
+  if(horiz){
+    p.style.left = clamped + 'px';
+    p.style.top = first.offsetTop + 'px';
+    p.style.width = first.offsetWidth + 'px';
+    p.style.height = first.offsetHeight + 'px';
+    p.style.transform = `scale(${along}, ${cross})`;
+  } else {
+    p.style.top = clamped + 'px';
+    p.style.left = first.offsetLeft + 'px';
+    p.style.width = first.offsetWidth + 'px';
+    p.style.height = first.offsetHeight + 'px';
+    p.style.transform = `scale(${cross}, ${along})`;
+  }
+  p.classList.add('on');
+}
+function glassRelease(c, d, pt){
+  const horiz = glassIsHorizontal(c);
+  let best = 0, bestD = Infinity;
+  d.opts.forEach((o, i) => {
+    const r = o.getBoundingClientRect();
+    const oc = horiz ? r.left + r.width / 2 : r.top + r.height / 2;
+    const pc = horiz ? pt.x : pt.y;
+    const dist = Math.abs(pc - oc);
+    if(dist < bestD){ bestD = dist; best = i; }
+  });
+  const target = d.opts[best];
+  const active = d.opts.find(o => o.classList.contains('active'));
+  if(target !== active){ target.click(); }
+  else { glassPlace(c, active, true); }
+}
+document.addEventListener('pointerdown', e => {
+  glassClickBlock = false;
+  const c = e.target.closest ? e.target.closest('.seg, .tabbar-inner') : null;
+  if(!c || !isGlass()) return;
+  const opts = glassOptionsOf(c);
+  if(opts.length < 2) return;
+  glassDrag = { c, opts, x: e.clientX, y: e.clientY, lx: e.clientX, ly: e.clientY, lt: performance.now(), v: 0, moved: false, id: e.pointerId };
+}, true);
+document.addEventListener('pointermove', e => {
+  const d = glassDrag;
+  if(!d) return;
+  if(!d.moved){
+    if(Math.hypot(e.clientX - d.x, e.clientY - d.y) < 6) return;
+    d.moved = true;
+    try{ d.c.setPointerCapture(d.id); }catch(_){}
+  }
+  const now = performance.now();
+  const dt = Math.max(1, now - d.lt);
+  const delta = glassIsHorizontal(d.c) ? e.clientX - d.lx : e.clientY - d.ly;
+  d.v = 0.6 * d.v + 0.4 * (delta / dt);
+  d.lx = e.clientX; d.ly = e.clientY; d.lt = now;
+  glassDragTo(d.c, d, { x: e.clientX, y: e.clientY });
+}, { passive: true });
+function glassEnd(e, cancelled){
+  const d = glassDrag;
+  glassDrag = null;
+  if(!d || !d.moved) return;
+  try{ d.c.releasePointerCapture(d.id); }catch(_){}
+  glassClickBlock = true;
+  if(cancelled){
+    glassPlace(d.c, d.opts.find(o => o.classList.contains('active')), true);
+    return;
+  }
+  glassRelease(d.c, d, { x: e.clientX, y: e.clientY });
+}
+document.addEventListener('pointerup', e => glassEnd(e, false));
+document.addEventListener('pointercancel', e => glassEnd(e, true));
+document.addEventListener('click', e => {
+  if(glassClickBlock && e.isTrusted){ glassClickBlock = false; e.stopPropagation(); e.preventDefault(); }
+}, true);
+// Reposiciona a gota quando a opção ativa muda (qualquer seletor), ou quando surge um seletor novo
+const glassObserver = new MutationObserver(muts => {
+  if(!isGlass()) return;
+  const classChanged = muts.some(m => m.type === 'attributes' && m.target.matches && m.target.matches('.seg-opt, .tab'));
+  const childChanged = muts.some(m => m.type === 'childList' && !(m.target.classList && m.target.classList.contains('glass-pill')));
+  if(classChanged || childChanged) glassRefreshAll(classChanged);
+});
+glassObserver.observe(document.body, { subtree: true, childList: true, attributes: true, attributeFilter: ['class'] });
+
+// Deslizar na horizontal sobre o conteúdo: aba seguinte ou anterior.
+const SCREEN_ORDER = ['screen-ganhos','screen-despesas','screen-lucro','screen-stats','screen-settings','screen-dev'];
+function showScreen(id){
+  const prev = document.querySelector('.screen.active');
+  const from = prev ? SCREEN_ORDER.indexOf(prev.id) : -1;
+  const to = SCREEN_ORDER.indexOf(id);
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active', 'slide-r', 'slide-l'));
+  const next = document.getElementById(id);
+  next.classList.add('active');
+  if(from >= 0 && to >= 0 && from !== to){ next.classList.add(to > from ? 'slide-r' : 'slide-l'); }
+  const appEl = document.getElementById('app');
+  if(appEl && appEl.scrollTop > 0) appEl.scrollTop = 0;
+}
+function goGanhos(){ showScreen('screen-ganhos'); activateTab('tabGanhos'); renderGanhos(); }
+function goSettings(){ showScreen('screen-settings'); activateTab('tabSettings'); renderSettings(); }
+function goDev(){ if(!devMode) return; showScreen('screen-dev'); activateTab('tabDev'); renderSettings(); }
+function goStats(){ showScreen('screen-stats'); activateTab('tabStats'); renderStats(); }
+function goDespesas(){ showScreen('screen-despesas'); activateTab('tabDespesas'); renderDespesas(); }
+function goLucro(){ showScreen('screen-lucro'); activateTab('tabLucro'); renderLucro(); }
+function applyTabVisibility(){
+  const t = document.getElementById('tabDev');
+  if(t) t.classList.toggle('hidden-tab', !devMode);
+}
+
+// --- APPEARANCE (device-only, never synced) ---
+const THEME_COLORS = [
+  { key:'green',     vault:'#1F3A2E', vaultLight:'#3E6650', vault2:'#2C4F3D', brass:'#B8862B', brassLight:'#D9A949', textDark:'#8FCBA8', label:'Verde (padrão)' },
+  { key:'blue',      vault:'#1A2E4A', vaultLight:'#2E5075', vault2:'#243D63', brass:'#4A90C4', brassLight:'#6AAFD4', textDark:'#8AB8E8', label:'Azul' },
+  { key:'purple',    vault:'#2D1F4A', vaultLight:'#5040A0', vault2:'#3D2C6A', brass:'#9B6FC4', brassLight:'#B890D4', textDark:'#C3A8EE', label:'Roxo' },
+  { key:'terracotta',vault:'#4A2010', vaultLight:'#8B4020', vault2:'#6A2E18', brass:'#C4803A', brassLight:'#D4A060', textDark:'#F0A878', label:'Terracota' },
+  { key:'slate',     vault:'#1A2535', vaultLight:'#2E4060', vault2:'#243050', brass:'#7090B0', brassLight:'#90B0C8', textDark:'#A8C2E0', label:'Ardósia' },
+];
+
+function applyThemeColor(key){
+  const theme = THEME_COLORS.find(t=>t.key===key) || THEME_COLORS[0];
+  const root = document.documentElement;
+  root.style.setProperty('--vault',       theme.vault);
+  root.style.setProperty('--vault-2',     theme.vault2);
+  root.style.setProperty('--vault-light', theme.vaultLight);
+  root.style.setProperty('--switch-on', theme.vaultLight);
+  root.style.setProperty('--vault-text-dark', theme.textDark);
+  root.style.setProperty('--brass',       theme.brass);
+  root.style.setProperty('--brass-light', theme.brassLight);
+  updateThemeColorMeta();
+}
+// Atualiza só a seleção nos círculos existentes, para a animação acontecer.
+function updateThemeSwatches(key){
+  document.querySelectorAll('#themeColorGrid .theme-color-swatch').forEach(el => {
+    el.classList.toggle('selected', el.dataset.key === key);
+  });
+}
+async function setThemeColor(key){
+  localSettings.themeColor = key;
+  await persistLocalSettings();
+  softChange(() => applyThemeColor(key));
+  updateThemeSwatches(key);
+}
+function updateThemeColorMeta(){
+  const metaLight = document.getElementById('themeColorMeta');
+  const metaDark  = document.getElementById('themeColorMetaDark');
+  const isDark = document.body.classList.contains('dark');
+  const theme  = THEME_COLORS.find(t => t.key === (localSettings.themeColor || 'green')) || THEME_COLORS[0];
+  if(metaLight) metaLight.setAttribute('content', isDark ? '#111114' : theme.vault);
+  if(metaDark)  metaDark.setAttribute('content', isDark ? '#111114' : theme.vault);
+}
+function applyDarkModeClass(){
+  const mode = localSettings.darkMode || 'system';
+  if(mode === 'dark'){ document.body.classList.add('dark'); }
+  else if(mode === 'light'){ document.body.classList.remove('dark'); }
+  else {
+    const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+    document.body.classList.toggle('dark', prefersDark);
+  }
+  updateThemeColorMeta();
+}
+async function setDarkMode(mode){
+  localSettings.darkMode = mode;
+  await persistLocalSettings();
+  softChange(() => { applyDarkModeClass(); applyCustomBackground(); });
+  renderSettings();
+}
+function applyAllAppearance(){
+  applyThemeColor(localSettings.themeColor || 'green');
+  applyDarkModeClass();
+  applyLiquidGlass();
+  applyCustomBackground();
+}
+// Imagem de fundo: preferência deste aparelho (localSettings.bgImage). Ativa por omissão; o interruptor só a esconde.
+function bgActive(){ return localSettings.bgImage && localSettings.bgEnabled !== false ? localSettings.bgImage : null; }
+async function toggleBgImage(){
+  localSettings.bgEnabled = !(localSettings.bgEnabled !== false);
+  await persistLocalSettings();
+  applyBodyTone();
+  applyCustomBackground();
+  renderBgImageRow();
+  showToast(localSettings.bgEnabled !== false ? 'Imagem de fundo ativada' : 'Imagem de fundo desativada');
+}
+// Decide se a imagem é clara ou escura (média de luminosidade, já com o véu leve).
+function imageTone(dataUrl){
+  return new Promise(resolve => {
+    const img = new Image();
+    img.onload = () => {
+      try{
+        const c = document.createElement('canvas');
+        c.width = 24; c.height = 24;
+        const ctx = c.getContext('2d');
+        ctx.drawImage(img, 0, 0, 24, 24);
+        const d = ctx.getImageData(0, 0, 24, 24).data;
+        let sum = 0, n = 0;
+        for(let i = 0; i < d.length; i += 4){
+          sum += (0.2126 * d[i] + 0.7152 * d[i + 1] + 0.0722 * d[i + 2]) / 255;
+          n++;
+        }
+        resolve((sum / n) * 0.78 < 0.5 ? 'dark' : 'light');
+      }catch(e){ resolve('light'); }
+    };
+    img.onerror = () => resolve('light');
+    img.src = dataUrl;
+  });
+}
+// Liga/desliga o texto claro sobre o fundo, conforme o tom da imagem (só modo claro).
+function applyBodyTone(){
+  const img = bgActive();
+  document.body.classList.toggle('bg-ink-light', !!img && localSettings.bgTone === 'dark');
+  document.body.classList.toggle('bg-img', !!img);
+}
+let bgTimer = null;
+// Granulação (ruído) para o desfoque.
+const GRAIN_SVG = "url(\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>\")";
+function bgNum(k){ const v = Number(localSettings[k]); return isNaN(v) ? 0 : Math.max(0, Math.min(100, v)); }
+// Véu: a 0 é o véu leve atual; a 100 é o véu totalmente opaco (a imagem fica tapada).
+function bgCss(img){
+  const dark = document.body.classList.contains('dark');
+  const V = bgNum('bgVeil') / 100;
+  const base = dark ? '14,14,18' : '20,16,12';
+  const baseA = ((dark ? 0.62 : 0.22) * (1 - V)).toFixed(3);
+  const cream = dark ? '22,22,28' : '246,239,226';
+  return `linear-gradient(rgba(${base},${baseA}), rgba(${base},${baseA})), linear-gradient(rgba(${cream},${V.toFixed(3)}), rgba(${cream},${V.toFixed(3)})), url("${img}")`;
+}
+// Desfoque (0 a 100) e granulação, que sobe com o desfoque.
+function applyBgEffects(el){
+  const B = bgNum('bgBlur');
+  el.style.filter = B > 0 ? `blur(${(B * 0.2).toFixed(1)}px)` : '';
+  el.style.transform = B > 0 ? 'scale(1.04)' : '';
+  const g = document.getElementById('customBgGrain');
+  if(g){ g.style.backgroundImage = GRAIN_SVG; g.style.opacity = (B / 100 * 0.5).toFixed(3); }
+}
+function applyCustomBackground(){
+  const el = document.getElementById('customBg');
+  if(!el) return;
+  const img = bgActive();
+  if(img && !localSettings.bgTone){
+    imageTone(img).then(async t => { localSettings.bgTone = t; await persistLocalSettings(); applyBodyTone(); });
+  }
+  applyBodyTone();
+  applyBgEffects(el);
+  const want = img ? bgCss(img) : '';
+  if((el.dataset.bg || '') === want) return;
+  // Mesma imagem (mudam só o véu ou o desfoque): atualiza já, sem fade
+  if((el.dataset.img || '') === (img || '')){
+    el.dataset.bg = want;
+    el.style.backgroundImage = want;
+    el.style.backgroundSize = 'cover';
+    el.style.backgroundPosition = 'center';
+    el.classList.toggle('on', !!want);
+    return;
+  }
+  // Imagem nova ou removida: sai com fade, troca, entra
+  clearTimeout(bgTimer);
+  el.classList.remove('on');
+  const delay = el.dataset.bg ? 260 : 30;
+  bgTimer = setTimeout(() => {
+    el.dataset.bg = want;
+    el.dataset.img = img || '';
+    el.style.backgroundImage = want;
+    el.style.backgroundSize = 'cover';
+    el.style.backgroundPosition = 'center';
+    if(want) el.classList.add('on');
+  }, delay);
+}
+// Ao ativar ou desativar o efeito transparente, a imagem entra de novo com fade.
+function replayCustomBg(){
+  const el = document.getElementById('customBg');
+  if(!el || !el.dataset.bg) return;
+  el.classList.remove('on');
+  setTimeout(() => el.classList.add('on'), 30);
+}
+// Reduz a imagem para no máximo 1080 px no lado maior, sem cortar (ao contrário do avatar).
+function resizeBgToDataUrl(file){
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onerror = () => reject(new Error('leitura'));
+    reader.onload = () => {
+      const img = new Image();
+      img.onerror = () => reject(new Error('imagem'));
+      img.onload = () => {
+        try{
+          const k = Math.min(1, 1080 / Math.max(img.naturalWidth, img.naturalHeight));
+          const c = document.createElement('canvas');
+          c.width = Math.round(img.naturalWidth * k);
+          c.height = Math.round(img.naturalHeight * k);
+          c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+          let d = c.toDataURL('image/jpeg', 0.8);
+          if(d.length > 900000) d = c.toDataURL('image/jpeg', 0.6);
+          if(d.length > 900000) return reject(new Error('grande'));
+          resolve(d);
+        }catch(err){ reject(err); }
+      };
+      img.src = reader.result;
+    };
+    reader.readAsDataURL(file);
+  });
+}
+async function handleBgImage(input){
+  const file = input.files && input.files[0];
+  input.value = '';
+  if(!file || !file.type || !file.type.startsWith('image/')){ showToast('Escolhe um ficheiro de imagem'); return; }
+  try{
+    localSettings.bgImage = await resizeBgToDataUrl(file);
+    localSettings.bgTone = await imageTone(localSettings.bgImage);
+    await persistLocalSettings();
+    applyCustomBackground();
+    renderSettings();
+    showToast('Imagem de fundo aplicada');
+  }catch(e){
+    showToast('Não foi possível usar essa imagem (demasiado grande?)');
+  }
+}
+async function removeBgImage(){
+  delete localSettings.bgImage;
+  delete localSettings.bgTone;
+  await persistLocalSettings();
+  applyCustomBackground();
+  renderSettings();
+  showToast('Imagem de fundo removida');
+}
+async function setBgSetting(key, v, live){
+  localSettings[key] = Number(v);
+  const rg = document.getElementById(key === 'bgVeil' ? 'bgVeilRange' : 'bgBlurRange');
+  if(rg){ rg.style.setProperty('--fill', bgNum(key) + '%'); }
+  applyCustomBackground();
+  const lab = document.querySelector(`#bgImageRow [data-bglabel="${key}"]`);
+  if(lab) lab.textContent = (key === 'bgVeil' ? 'Véu sobre a imagem: ' : 'Desfoque com granulação: ') + bgNum(key) + '%';
+  if(!live) await persistLocalSettings();
+}
+function renderBgImageRow(){
+  const row = document.getElementById('bgImageRow');
+  if(!row) return;
+  const tem = !!localSettings.bgImage;
+  const on = localSettings.bgEnabled !== false;
+  const sl = (key, id, titulo, a, b) => `
+    <div class="range-title" data-bglabel="${key}">${titulo}: ${bgNum(key)}%</div>
+    <input id="${id}" class="gl-range" type="range" min="0" max="100" step="1" value="${bgNum(key)}" style="--fill:${bgNum(key)}%;"
+      oninput="setBgSetting('${key}', this.value, true)" onchange="setBgSetting('${key}', this.value, false)" />
+    <div class="range-ends"><span>${a}</span><span>${b}</span></div>`;
+  row.innerHTML = `
+    <div class="switch-row" style="margin-top:12px;">
+      <div class="switch-row-text">
+        <div class="switch-row-title">Imagem de fundo</div>
+        <div class="switch-row-sub">Mostra a imagem atrás da app. Desligada, a imagem fica guardada neste aparelho.</div>
+      </div>
+      <div class="switch${on ? ' on' : ''}" onclick="toggleBgImage()"></div>
+    </div>
+    ${on ? `<div class="field" style="margin-top:10px;">
+      <div id="bgPreview" style="height:72px;border-radius:var(--r-md);border:1.5px solid var(--line);background:var(--cream-2);background-size:cover;background-position:center;margin-bottom:10px;"></div>
+      <div style="display:flex;gap:8px;">
+        <label style="flex:1;display:block;margin:0;text-align:center;padding:12px;border-radius:var(--r-md);background:var(--vault);color:#fff;font-weight:700;font-size:13px;text-transform:none;letter-spacing:0;cursor:pointer;">Escolher imagem<input type="file" accept="image/*" style="display:none;" onchange="handleBgImage(this)" /></label>
+        ${tem ? `<button onclick="removeBgImage()" style="padding:12px 16px;border-radius:var(--r-md);border:1.5px solid var(--line);background:transparent;color:var(--terracotta);font-weight:700;font-size:13px;cursor:pointer;">Remover</button>` : ''}
+      </div>
+      ${tem ? `<div class="chart-box" style="margin-top:12px;">${sl('bgVeil', 'bgVeilRange', 'Véu sobre a imagem', 'Normal', 'Opaco')}${sl('bgBlur', 'bgBlurRange', 'Desfoque com granulação', 'Nítido', 'Desfocado')}</div>` : ''}
+    </div>` : ''}`;
+  if(on && tem){
+    const pv = document.getElementById('bgPreview');
+    if(pv){ pv.style.backgroundImage = `url("${localSettings.bgImage}")`; }
+  }
+}
+// Liga a transição suave de cores durante a mudança; desliga depois de a animação acabar.
+let softTimer = null;
+function softChange(fn){
+  document.documentElement.classList.add('soft-change');
+  fn();
+  clearTimeout(softTimer);
+  softTimer = setTimeout(() => document.documentElement.classList.remove('soft-change'), 650);
+}
+function applyLiquidGlass(){
+  document.body.classList.toggle('glass', localSettings.liquidGlass === true);
+  applyGlassVars();
+  glassRefreshAll(false);
+}
+// Intensidade do vidro: 0 = mais transparente, 50 = padrão (o atual), 100 = mais opaco.
+function glassLevel(){
+  const v = Number(localSettings.glassLevel);
+  return isNaN(v) ? 50 : Math.max(0, Math.min(100, v));
+}
+function glassLevelLabel(L){ return L < 35 ? 'Mais transparente' : (L > 65 ? 'Mais opaco' : 'Padrão'); }
+function applyGlassVars(){
+  const L = glassLevel();
+  document.body.style.setProperty('--gl-k', (0.4 + 1.2 * L / 100).toFixed(3));
+  document.body.style.setProperty('--gl-b', (0.35 + 1.3 * L / 100).toFixed(3));
+}
+// Ao arrastar, só atualiza o aspeto; ao soltar, guarda.
+// "Ímã": perto de 0, 50 ou 100, o valor encaixa na posição exata (margem de 6 pontos).
+function snapGlass(v){
+  const n = Number(v);
+  const pts = [0, 50, 100];
+  const near = pts.reduce((best, p) => Math.abs(p - n) < Math.abs(best - n) ? p : best, pts[0]);
+  return Math.abs(near - n) <= 6 ? near : n;
+}
+// Ao arrastar, só atualiza o aspeto; ao soltar, guarda.
+async function setGlassLevel(v, live){
+  const L = snapGlass(v);
+  localSettings.glassLevel = L;
+  const inp = document.getElementById('glassRange');
+  if(inp){ inp.value = L; inp.style.setProperty('--fill', L + '%'); }
+  applyGlassVars();
+  const lab = document.getElementById('glassTitle');
+  if(lab) lab.textContent = 'Intensidade: ' + glassLevelLabel(L);
+  if(!live) await persistLocalSettings();
+}
+function renderGlassControls(){
+  const box = document.getElementById('glassControls');
+  if(!box) return;
+  const on = localSettings.liquidGlass === true;
+  box.style.display = on ? 'block' : 'none';
+  if(!on){ box.innerHTML = ''; return; }
+  const L = glassLevel();
+  box.innerHTML = `<div class="chart-box" style="margin-top:12px;">
+      <div class="range-title" id="glassTitle">Intensidade: ${glassLevelLabel(L)}</div>
+      <input id="glassRange" class="gl-range" type="range" min="0" max="100" step="1" value="${L}" style="--fill:${L}%;"
+        oninput="setGlassLevel(this.value, true)" onchange="setGlassLevel(this.value, false)" />
+      <div class="range-ends range-3"><span>Transparente</span><span>Padrão</span><span>Opaco</span></div>
+    </div>`;
+}
+async function toggleLiquidGlass(){
+  localSettings.liquidGlass = !(localSettings.liquidGlass === true);
+  await persistLocalSettings();
+  // Sai com fade, troca o efeito e volta com fade (interface e menu)
+  const fadeEls = [document.getElementById('app'), document.querySelector('.tabbar')].filter(Boolean);
+  fadeEls.forEach(el => el.classList.add('fade-out'));
+  setTimeout(() => {
+    try{
+      softChange(() => applyLiquidGlass());
+      const swG = document.getElementById('swGlass');
+      if(swG) swG.className = 'switch' + (localSettings.liquidGlass === true ? ' on' : '');
+    }catch(e){
+      console.warn('Falha ao aplicar o efeito transparente:', e);
+    }finally{
+      fadeEls.forEach(el => el.classList.remove('fade-out'));
+    }
+  }, 220);
+  showToast(localSettings.liquidGlass ? '🪟 Liquid glass ativado' : 'Liquid glass desativado');
+}
+
+// --- SETTINGS & PROFILE ---
+function personAvatarHtml(){
+  return profile.photo ? `style="background-image:url(${profile.photo});background-size:cover;background-position:center;"` : '';
+}
+function personAvatarInner(){
+  return profile.photo ? '' : (profile.name || '?').trim().charAt(0).toUpperCase();
+}
+
+function renderSettings(){
+  const syncUrlInput = document.getElementById('syncUrl');
+  if(syncUrlInput) syncUrlInput.value = syncUrl || '';
+  const vEl = document.getElementById('appVersionDisplay');
+  if(vEl) vEl.textContent = APP_VERSION;
+  renderSyncUrlUI();
+  renderCustomPlatformsList();
+
+  const photoSrc = currentPhotoUrl();
+  const avatarText = photoSrc ? '' : ((profile.name||'').trim().charAt(0) || '?').toUpperCase();
+  const u = window.__fbUser;
+  const googleG = `<svg width="12" height="12" viewBox="0 0 48 48" style="vertical-align:-1px;"><path fill="#FFC107" d="M43.611 20.083H42V20H24v8h11.303c-1.649 4.657-6.08 8-11.303 8-6.627 0-12-5.373-12-12s5.373-12 12-12c3.059 0 5.842 1.154 7.961 3.039l5.657-5.657C34.046 6.053 29.268 4 24 4 12.955 4 4 12.955 4 24s8.955 20 20 20 20-8.955 20-20c0-1.341-.138-2.65-.389-3.917z"/><path fill="#FF3D00" d="M6.306 14.691l6.571 4.819C14.655 15.108 18.961 12 24 12c3.059 0 5.842 1.154 7.961 3.039l5.657-5.657C34.046 6.053 29.268 4 24 4 16.318 4 9.656 8.337 6.306 14.691z"/><path fill="#4CAF50" d="M24 44c5.166 0 9.86-1.977 13.409-5.192l-6.19-5.238A11.91 11.91 0 0 1 24 36c-5.202 0-9.619-3.317-11.283-7.946l-6.522 5.025C9.505 39.556 16.227 44 24 44z"/><path fill="#1976D2" d="M43.611 20.083H42V20H24v8h11.303a12.04 12.04 0 0 1-4.087 5.571l.003-.002 6.19 5.238C36.971 39.205 44 34 44 24c0-1.341-.138-2.65-.389-3.917z"/></svg>`;
+  const showUid = !!localSettings.showUid;
+  const accountBlock = u
+    ? `<div style="margin-top:12px;">
+         <div style="font-size:11px;font-weight:700;color:var(--vault-2);margin-bottom:6px;">${googleG} Conectado com Google</div>
+         <div style="display:flex;align-items:flex-end;justify-content:space-between;gap:10px;">
+           <div style="font-size:11px;color:var(--text-muted);line-height:1.8;min-width:0;word-break:break-all;">
+             <div>📧 ${escapeHtml(u.email || '—')}</div>
+             <div style="font-family:'JetBrains Mono',monospace;display:flex;align-items:center;gap:6px;">🆔 <span>${showUid ? escapeHtml(u.uid) : '****'}</span>
+               <button onclick="toggleUidVisibility()" style="font-size:10px;padding:2px 8px;border-radius:var(--r-full);border:1px solid var(--line);background:#fff;color:var(--vault-2);font-weight:700;cursor:pointer;font-family:'Inter',sans-serif;">${showUid ? 'ocultar' : 'mostrar'}</button>
+             </div>
+           </div>
+           <button onclick="fbDoSignOut()" style="flex-shrink:0;background:#fff;color:#C62828;border:1.5px solid var(--line);padding:8px 16px;border-radius:var(--r-full);font-weight:800;font-size:12px;cursor:pointer;">Sair</button>
+         </div>
+       </div>`
+    : `<div style="font-size:11px;color:var(--text-muted);line-height:1.5;margin-top:12px;">Sem conta Google ligada. Liga uma para usar a tua foto e sincronizar na nuvem.</div>
+       <button id="settingsGoogleSignInBtn" onclick="handleGoogleSignIn()" style="display:flex;align-items:center;gap:8px;background:#fff;color:#2A2420;border:1.5px solid var(--line);padding:10px 18px;border-radius:100px;font-weight:700;font-size:13px;cursor:pointer;margin-top:10px;">${googleG} Continuar com Google</button>
+       <div id="settingsGoogleSignInError" style="font-size:11px;color:var(--terracotta);margin-top:6px;"></div>`;
+  const subBlock = `
+      <div style="margin-top:14px;padding-top:12px;border-top:1px solid var(--line);">
+        <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;color:var(--text-muted);margin-bottom:4px;">Assinatura</div>
+        <div id="subscriptionStatus" style="font-weight:700;font-size:var(--text-sm);">—</div>
+        <div id="subscriptionDetail" style="font-size:11px;color:var(--text-muted);margin-top:3px;line-height:1.5;"></div>
+      </div>`;
+  document.getElementById('profileCardsList').innerHTML = `
+    <div class="profile-card">
+      <div class="profile-card-head">
+        <label style="cursor:pointer;">
+          <div class="profile-card-avatar" id="profileAvatar" style="background-color:var(--vault-light);">
+            ${avatarText}
+            <div class="profile-card-avatar-label">trocar</div>
+          </div>
+          <input type="file" accept="image/*" style="display:none;" onchange="handleProfilePhotoChange(this)" />
+        </label>
+        <div class="profile-card-info">
+          <input class="profile-card-name-input" type="text" value="${escapeHtml(profile.name||'')}" placeholder="${escapeHtml((u && u.displayName) || 'Seu nome')}" maxlength="30"
+            oninput="updateProfileName(this.value)" />
+        </div>
+      </div>
+      ${profile.photo ? `<div class="profile-card-actions"><button class="profile-action-btn danger" onclick="removeProfilePhoto()">Repor foto do Google</button></div>` : ''}
+      ${accountBlock}
+      ${subBlock}
+    </div>`;
+  const avEl = document.getElementById('profileAvatar');
+  if(avEl && photoSrc){
+    avEl.style.backgroundImage = `url("${photoSrc}")`;
+    avEl.style.backgroundSize = 'cover';
+    avEl.style.backgroundPosition = 'center';
+    avEl.style.backgroundRepeat = 'no-repeat';
+  }
+  renderSubscriptionCard();
+
+  const currentDark = localSettings.darkMode || 'system';
+  document.querySelectorAll('#darkModeSeg .seg-opt').forEach(el => el.classList.toggle('active', el.dataset.m === currentDark));
+
+  const grid = document.getElementById('themeColorGrid');
+  if(grid){
+    const currentColor = localSettings.themeColor || 'green';
+    grid.innerHTML = THEME_COLORS.map(t => `
+      <div data-key="${t.key}" class="theme-color-swatch ${t.key===currentColor?'selected':''}"
+           style="background:${t.vault};"
+           title="${t.label}"
+           onclick="setThemeColor('${t.key}')"></div>
+    `).join('');
+  }
+
+  const ivaEl = document.getElementById('ivaRate');
+  if(ivaEl) ivaEl.value = profile.ivaRate || '';
+  const comEl = document.getElementById('comissaoRate');
+  if(comEl) comEl.value = profile.comissaoRate || '';
+
+  const swTurno = document.getElementById('swTurno');
+  if(swTurno) swTurno.className = 'switch' + (showTurno() ? ' on' : '');
+  const swKm = document.getElementById('swKm');
+  if(swKm) swKm.className = 'switch' + (showKm() ? ' on' : '');
+  const swCustom = document.getElementById('swCustomPlat');
+  if(swCustom) swCustom.className = 'switch' + (customPlatformsOn() ? ' on' : '');
+  const customBody = document.getElementById('customPlatformsBody');
+  if(customBody) customBody.style.display = customPlatformsOn() ? 'block' : 'none';
+  document.body.classList.toggle('basic-mode', basicMode());
+  const bb = document.getElementById('basicBanner');
+  if(bb) bb.style.display = basicMode() ? 'block' : 'none';
+  const swCom = document.getElementById('swComissao');
+  if(swCom) swCom.className = 'switch' + (comissaoOn() ? ' on' : '');
+  const comFieldsRow = document.getElementById('comissaoFieldsRow');
+  if(comFieldsRow) comFieldsRow.style.display = comissaoOn() ? 'block' : 'none';
+  const swIva = document.getElementById('swIva');
+  if(swIva) swIva.className = 'switch' + (ivaOn() ? ' on' : '');
+  const ivaFieldsRow = document.getElementById('ivaFieldsRow');
+  if(ivaFieldsRow) ivaFieldsRow.style.display = ivaOn() ? 'block' : 'none';
+  const tnRow = document.getElementById('turnoNamesRow');
+  if(tnRow){
+    tnRow.style.display = showTurno() ? 'block' : 'none';
+    if(showTurno()){
+      const all = getTurnos();
+      const actives = all.filter(t => !t.archived);
+      const archived = all.filter(t => t.archived);
+      const lbl = 'display:block;font-size:10px;font-weight:700;color:var(--vault-2);margin-bottom:6px;text-transform:uppercase;';
+      const inputStyle = 'width:100%;padding:10px 12px;border:1.5px solid var(--line);border-radius:var(--r-md);font-size:14px;';
+      const rowFor = (t) => `
+        <div style="display:flex;gap:8px;align-items:flex-end;margin-bottom:10px;">
+          <div style="width:64px;"><label style="${lbl}">Emoji</label>
+            <input type="text" maxlength="4" value="${escapeHtml(t.emoji)}" onchange="updateTurnoField('${t.key}','emoji',this.value)" class="theme-input" style="${inputStyle}text-align:center;font-size:18px;padding:10px 4px;" /></div>
+          <div style="flex:1;min-width:0;"><label style="${lbl}">Nome</label>
+            <input type="text" maxlength="14" value="${escapeHtml(t.label)}" onchange="updateTurnoField('${t.key}','name',this.value)" class="theme-input" style="${inputStyle}" /></div>
+          <div class="bill-delete" onclick="${t.archived ? `restoreTurno('${t.key}')` : `removeTurno('${t.key}')`}" title="${t.archived ? 'Reativar' : 'Remover'}" style="padding:10px 4px;font-size:${t.archived ? '12px' : '16px'};font-weight:700;color:${t.archived ? 'var(--vault-2)' : 'var(--terracotta)'};white-space:nowrap;">${t.archived ? '↺ reativar' : '✕'}</div>
+        </div>`;
+      tnRow.innerHTML =
+        `<div class="section-sub" style="margin-bottom:10px;">Muda o nome e o emoji, remove os que não usas, ou adiciona outros. Os turnos removidos continuam nos relatórios dos ganhos antigos.</div>` +
+        actives.map(rowFor).join('') +
+        (archived.length ? `<div class="section-sub" style="margin:6px 0 8px;font-weight:700;">Removidos</div>` + archived.map(rowFor).join('') : '') +
+        `<div style="border-top:1.5px dashed var(--line);margin:12px 0 10px;padding-top:12px;">
+          <div class="section-sub" style="margin-bottom:8px;font-weight:700;">Adicionar turno</div>
+          <div style="display:flex;gap:8px;align-items:flex-end;">
+            <div style="width:64px;"><label style="${lbl}">Emoji</label>
+              <input type="text" id="newTurnoEmoji" maxlength="4" placeholder="🕒" class="theme-input" style="${inputStyle}text-align:center;font-size:18px;padding:10px 4px;" /></div>
+            <div style="flex:1;min-width:0;"><label style="${lbl}">Nome</label>
+              <input type="text" id="newTurnoName" maxlength="14" placeholder="ex: Almoço" class="theme-input" style="${inputStyle}" /></div>
+          </div>
+          <button onclick="addTurno()" style="width:100%;margin-top:10px;padding:12px;border-radius:var(--r-md);border:none;background:var(--vault);color:#fff;font-weight:700;font-size:14px;cursor:pointer;">＋ Adicionar turno</button>
+        </div>
+        <button onclick="restoreDefaultTurnos()" style="width:100%;margin-top:4px;padding:12px;border-radius:var(--r-md);border:1.5px solid var(--line);background:transparent;color:var(--ink);font-weight:700;font-size:13px;cursor:pointer;">↺ Repor turnos padrão</button>`;
+    } else {
+      tnRow.innerHTML = '';
+    }
+  }
+  renderBgImageRow();
+  renderGlassControls();
+  const swGlass = document.getElementById('swGlass');
+  if(swGlass) swGlass.className = 'switch' + (localSettings.liquidGlass === true ? ' on' : '');
+  const swDaily = document.getElementById('swDailySummary');
+  if(swDaily) swDaily.className = 'switch' + (featureOn('dailySummaryEnabled') ? ' on' : '');
+  const goalsSw = document.getElementById('goalsEnabledSwitch');
+  if(goalsSw) goalsSw.className = 'switch' + (profile.goalsEnabled ? ' on' : '');
+  const goalsFieldsRow = document.getElementById('goalsFieldsRow');
+  if(goalsFieldsRow) goalsFieldsRow.style.display = profile.goalsEnabled ? 'block' : 'none';
+  const monthlyGoalEl = document.getElementById('monthlyGoalInput');
+  if(monthlyGoalEl) monthlyGoalEl.value = profile.monthlyGoal || '';
+  const weeklyGoalEl = document.getElementById('weeklyGoalInput');
+  if(weeklyGoalEl) weeklyGoalEl.value = profile.weeklyGoal || '';
+
+  const devPanel = document.getElementById('devPanel');
+  if(devPanel){
+    devPanel.style.display = devMode ? 'block' : 'none';
+    const vLabel = document.getElementById('devVersionLabel');
+    if(vLabel) vLabel.textContent = APP_VERSION;
+    const sw = document.getElementById('hiddenModeSwitch');
+    if(sw) sw.className = 'switch' + (showHiddenData ? ' on' : '');
+    const container = document.getElementById('hiddenDataContainer');
+    if(container) container.innerHTML = showHiddenData ? renderHiddenDataList() : '';
+    const schemaSw = document.getElementById('normalizedSchemaSwitch');
+    if(schemaSw) schemaSw.className = 'switch' + (useNormalizedSchema ? ' on' : '');
+    const encSw = document.getElementById('encryptionSwitch');
+    if(encSw) encSw.className = 'switch' + (encryptionEnabled ? ' on' : '');
+    const encRow = document.getElementById('encryptionPasswordRow');
+    if(encRow) encRow.style.display = encryptionEnabled ? 'block' : 'none';
+    const bioSw = document.getElementById('biometricSwitch');
+    if(bioSw) bioSw.className = 'switch' + (biometricUnlockEnabled ? ' on' : '');
+    const reqSw = document.getElementById('requireUnlockSwitch');
+    if(reqSw) reqSw.className = 'switch' + (requireUnlockEachSync ? ' on' : '');
+    renderSyncLog();
+    // Easter egg: "on" só quando explicitamente ativada (profile.easterEggDisabled === false).
+    // Sem essa flag definida (novo perfil / novo dispositivo), fica desativada por padrão.
+    const eggSw = document.getElementById('easterEggEnabledSwitch');
+    if(eggSw) eggSw.className = 'switch' + (profile.easterEggDisabled === false ? ' on' : '');
+    const eggRateInput = document.getElementById('easterEggRateInput');
+    if(eggRateInput) eggRateInput.value = (typeof profile.easterEggRate === 'number' ? profile.easterEggRate * 100 : 3);
+    const forceBtn = document.getElementById('forceEasterEggBtn');
+    if(forceBtn) forceBtn.textContent = devForceEasterEgg ? '✅ Vai forçar na próxima abertura' : '🎭 Forçar na próxima abertura';
+    const forceSumBtn = document.getElementById('forceDailySummaryBtn');
+    if(forceSumBtn) forceSumBtn.textContent = devForceDailySummary ? '✅ Vai forçar o resumo na próxima abertura' : '📊 Forçar resumo na próxima abertura';
+  const forceBdayBtn = document.getElementById('forceBirthdayBtn');
+    if(forceBdayBtn) forceBdayBtn.textContent = devForceBirthday ? '✅ Vai forçar na próxima abertura' : '🎉 Forçar na próxima abertura';
+    // Data de aniversário: campo fica vazio se nunca foi configurada — não
+    // pré-preenche com nenhuma data padrão (ver shouldTriggerBirthday).
+    const bdayInput = document.getElementById('birthdayDateInput');
+    if(bdayInput) bdayInput.value = profile.birthdayDate || '';
+    const ta = document.getElementById('importJsonInput');
+    if(ta) ta.style.background = document.body.classList.contains('dark') ? '#1C1C23' : '#fff';
+  }
+}
+
+function updateIvaRate(value){
+  profile.ivaRate = parseFloat(value) || 0;
+  persistProfile();
+  renderGanhos(); renderDespesas();
+  showToast(`IVA ${profile.ivaRate > 0 ? profile.ivaRate + '%' : 'desativado'}`);
+}
+function updateComissaoRate(value){
+  profile.comissaoRate = parseFloat(value) || 0;
+  persistProfile();
+  renderGanhos(); renderDespesas();
+  showToast(`Comissão ${profile.comissaoRate > 0 ? profile.comissaoRate + '%' : 'desativada'}`);
+}
+
+// --- METAS (semanal/mensal) — configuráveis em "Você", exibidas como
+// gráfico de progresso em Estatísticas (ver renderStatsMonth/renderStatsWeek
+// e goalProgressHTML). Guardadas em profile, sincronizadas normalmente.
+async function toggleGoalsEnabled(){
+  profile.goalsEnabled = !profile.goalsEnabled;
+  await persistProfile();
+  renderSettings();
+  showToast(profile.goalsEnabled ? '🎯 Metas ativadas' : 'Metas desativadas');
+}
+async function updateMonthlyGoal(value){
+  profile.monthlyGoal = parseFloat(value) || 0;
+  await persistProfile();
+  showToast(profile.monthlyGoal > 0 ? `Meta mensal: ${fmt(profile.monthlyGoal)}` : 'Meta mensal removida');
+}
+async function updateWeeklyGoal(value){
+  profile.weeklyGoal = parseFloat(value) || 0;
+  await persistProfile();
+  showToast(profile.weeklyGoal > 0 ? `Meta semanal: ${fmt(profile.weeklyGoal)}` : 'Meta semanal removida');
+}
+
+// --- PLATAFORMAS PERSONALIZADAS — opcional, cada uma entra como mais uma
+// opção de plataforma no sheet de "Novo ganho" (ver openAddIncomeSheet) e
+// no balde "pessoal" dos cálculos (ver isTvdePlatform/findCustomPlatform).
+// Guardadas em profile.customPlatforms: [{ key, label }].
+function renderCustomPlatformsList(){
+  const box = document.getElementById('customPlatformsList');
+  if(!box) return;
+  const list = (profile.customPlatforms || []).filter(cp => !cp.archived);
+  if(list.length === 0){ box.innerHTML = '<div class="empty-note">Nenhuma plataforma extra adicionada.</div>'; return; }
+  box.innerHTML = list.map(cp => `
+    <div class="income-row-compact" style="margin-bottom:8px;">
+      ${platformBadge(cp.key, 28)}
+      <div style="flex:1;"><div class="income-name">${escapeHtml(cp.label)}</div><div class="income-sub">${cp.taxed ? 'Com IVA e comissão' : 'Pessoal (sem IVA)'}</div></div>
+      <button onclick="toggleCustomTaxed('${cp.key}')" style="font-size:10px;padding:5px 10px;border-radius:var(--r-full);border:1.5px solid var(--line);background:#fff;color:var(--vault-2);font-weight:700;cursor:pointer;white-space:nowrap;">${cp.taxed ? 'tirar IVA' : 'pôr IVA'}</button>
+      <div class="bill-delete" onclick="removeCustomPlatform('${cp.key}')" title="Remover">✕</div>
+    </div>`).join('');
+}
+async function addCustomPlatform(){
+  const input = document.getElementById('newCustomPlatformName');
+  const label = (input?.value || '').trim();
+  if(!label){ showToast('Digite o nome da plataforma'); return; }
+  const key = 'custom_' + label.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]+/g,'_').replace(/^_+|_+$/g,'') || uid();
+  profile.customPlatforms = profile.customPlatforms || [];
+  const existing = profile.customPlatforms.find(cp => cp.key === key);
+  if(existing && !existing.archived){ showToast('Essa plataforma já existe'); return; }
+  if(existing){ existing.archived = false; existing.label = label; existing.taxed = window._newCustomTaxed === true; }
+  else { profile.customPlatforms.push({ key, label, taxed: window._newCustomTaxed === true }); }
+  await persistProfile();
+  if(input) input.value = '';
+  pickNewCustomTaxed(false);
+  renderCustomPlatformsList();
+  showToast(`${label} adicionada`);
+}
+function pickNewCustomTaxed(v){
+  window._newCustomTaxed = v === true;
+  document.querySelectorAll('#newCustomTaxedSeg .seg-opt').forEach(el => el.classList.toggle('active', (el.dataset.x === '1') === (v === true)));
+}
+// Resumo do dia anterior. Mostrado na primeira abertura do dia (dispositivo),
+// só quando o interruptor está ligado e existe algum registo nesse dia.
+// A data da última vez que foi mostrado fica em localSettings (não sincroniza),
+// para cada aparelho mostrar um resumo por dia.
+async function runDailySummaryCheck(){
+  const forced = devForceDailySummary;
+  const today = isoDate(new Date());
+  if(!forced){
+    if(!featureOn('dailySummaryEnabled')) return;
+    if(localSettings.lastSummaryDay === today) return;
+  }
+  const y = isoDate(addDays(new Date(), -1));
+  const items = earningsInRange(y, y);
+  const expenses = variableExpensesInRange(y, y);
+  if(!forced && items.length === 0 && expenses.length === 0) return;
+  if(forced){
+    devForceDailySummary = false;
+  } else {
+    localSettings.lastSummaryDay = today;
+    await persistLocalSettings();
+  }
+  showDailySummary(y, items, expenses);
+}
+function showDailySummary(y, items, expenses){
+  const apps   = items.filter(e => isTvdePlatform(e.platform)).reduce((s,e) => s + (e.amount||0), 0);
+  const part   = items.filter(e => !isTvdePlatform(e.platform)).reduce((s,e) => s + (e.amount||0), 0);
+  const comb   = combustivelAmount(expenses);
+  const varOther = expenses.filter(e => e.category !== 'combustivel').reduce((s,e) => s + (e.amount||0), 0);
+  const iva = ivaAmount(apps), com = comissaoAmount(apps);
+  const liquido = (apps - iva - com) - comb + part;
+  const lucro = liquido - varOther;
+  const km = sumKm(items);
+  const dateStr = dateFromIso(y).toLocaleDateString('pt-BR', { weekday:'long', day:'2-digit', month:'long' });
+  const dateCap = dateStr.charAt(0).toUpperCase() + dateStr.slice(1);
+  openSheet(`
+    <div class="sheet-handle"></div>
+    <div class="sheet-title">☀️ Resumo de ontem</div>
+    <div class="sheet-sub">${escapeHtml(dateCap)}</div>
+    <div class="stat-cards">
+      <div class="stat-card"><div class="stat-card-label">🚖 Bruto TVDE</div><div class="stat-card-value">${fmt(apps)}</div></div>
+      <div class="stat-card"><div class="stat-card-label">🚘 Pessoal</div><div class="stat-card-value">${fmt(part)}</div></div>
+      ${comb > 0 ? `<div class="stat-card"><div class="stat-card-label">⛽ Combustível</div><div class="stat-card-value negative">− ${fmt(comb)}</div></div>` : ''}
+      ${varOther > 0 ? `<div class="stat-card"><div class="stat-card-label">Outras despesas</div><div class="stat-card-value negative">− ${fmt(varOther)}</div></div>` : ''}
+      ${showKm() ? `<div class="stat-card"><div class="stat-card-label">🛣️ Km</div><div class="stat-card-value">${km.toLocaleString('pt-BR',{maximumFractionDigits:1})} km</div></div>` : ''}
+      <div class="stat-card" style="border-color:var(--vault);grid-column:1/-1;">
+        <div class="stat-card-label">💰 Lucro do dia</div>
+        <div class="stat-card-value ${lucro < 0 ? 'negative' : ''}" style="font-size:24px;">${fmt(lucro)}</div>
+      </div>
+    </div>
+    ${showTurno() ? (turnoBreakdownHTML(items) || '<div class="section-sub" style="font-size:11px;margin-bottom:10px;">Sem turno registado ontem.</div>') : ''}
+    <div class="section-sub" style="font-size:11px;margin-bottom:14px;">Não inclui despesas fixas, como nas vistas de dia.</div>
+    <button class="btn btn-primary" onclick="closeSheet()">Fechar</button>
+  `);
+}
+function toggleForceDailySummary(){
+  devForceDailySummary = !devForceDailySummary;
+  renderSettings();
+  showToast(devForceDailySummary ? '📊 Vai mostrar o resumo na próxima abertura' : 'Forçar resumo desativado');
+}
+async function toggleCustomTaxed(key){
+  const cp = (profile.customPlatforms || []).find(x => x.key === key);
+  if(!cp) return;
+  cp.taxed = !cp.taxed;
+  await persistProfile();
+  renderSettings();
+  showToast(cp.taxed ? `${cp.label}: com IVA e comissão` : `${cp.label}: pessoal (sem IVA)`);
+}
+async function removeCustomPlatform(key){
+  if(!confirm('Remover esta plataforma? Ganhos já registados com ela continuam guardados, só deixa de aparecer como opção nova.')) return;
+  profile.customPlatforms = (profile.customPlatforms || []).map(cp => cp.key === key ? { ...cp, archived: true } : cp);
+  await persistProfile();
+  renderCustomPlatformsList();
+}
+// Card de progresso reutilizável — usado em Estatísticas (visão Mês e
+// Semana) quando profile.goalsEnabled e a respetiva meta > 0. Compara o
+// lucro líquido do período em curso com a meta definida.
+function goalProgressHTML(current, goal, label){
+  if(!goal || goal <= 0) return '';
+  const pct = Math.max(0, Math.min(100, Math.round((current / goal) * 100)));
+  const reached = current >= goal;
+  const remaining = Math.max(0, goal - current);
+  const barColor = reached ? 'var(--vault-light)' : 'var(--brass)';
+  return `
+  <div class="chart-box" style="margin-bottom:14px;">
+    <div class="chart-box-title">🎯 ${escapeHtml(label)}</div>
+    <div class="chart-box-sub">${reached ? 'Meta atingida! 🎉' : `Faltam ${fmt(remaining)} para a meta`}</div>
+    <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px;">
+      <span style="font-family:'JetBrains Mono',monospace;font-weight:700;font-size:20px;">${fmt(current)}</span>
+      <span style="font-size:12px;color:var(--text-muted);">meta: ${fmt(goal)}</span>
+    </div>
+    <div class="goal-bar-bg" style="background:var(--cream-2);border-radius:100px;height:14px;overflow:hidden;">
+      <div style="width:${pct}%;height:100%;border-radius:100px;background:${barColor};transition:width 0.3s ease;"></div>
+    </div>
+    <div style="text-align:right;margin-top:6px;font-size:12px;font-weight:700;color:${reached?'var(--vault-light)':'var(--text-muted)'};">${pct}%</div>
+  </div>`;
+}
+
+let profileNameTimer = null;
+function updateProfileName(value){
+  profile.name = value;
+  clearTimeout(profileNameTimer);
+  profileNameTimer = setTimeout(() => {
+    persistProfile();
+    syncAllAvatars();
+    renderGanhos();
+  }, 500);
+}
+
+function resizeImageToDataUrl(file, size = 200){
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onerror = () => reject(new Error('Não foi possível ler o arquivo.'));
+    reader.onload = () => {
+      const img = new Image();
+      img.onerror = () => reject(new Error('Arquivo de imagem inválido.'));
+      img.onload = () => {
+        try{
+          const srcSize = Math.min(img.naturalWidth || img.width, img.naturalHeight || img.height);
+          const sx = ((img.naturalWidth  || img.width)  - srcSize) / 2;
+          const sy = ((img.naturalHeight || img.height) - srcSize) / 2;
+          const canvas = document.createElement('canvas');
+          canvas.width = size;
+          canvas.height = size;
+          const ctx = canvas.getContext('2d');
+          ctx.imageSmoothingEnabled = true;
+          ctx.imageSmoothingQuality = 'high';
+          ctx.drawImage(img, sx, sy, srcSize, srcSize, 0, 0, size, size);
+          let dataUrl = canvas.toDataURL('image/jpeg', 0.82);
+          if(dataUrl.length > 350000){ dataUrl = canvas.toDataURL('image/jpeg', 0.6); }
+          resolve(dataUrl);
+        }catch(err){ reject(err); }
+      };
+      img.src = reader.result;
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+async function handleProfilePhotoChange(inputEl){
+  const file = inputEl.files && inputEl.files[0];
+  if(!file) return;
+  if(!file.type || !file.type.startsWith('image/')){ showToast('Selecione um arquivo de imagem.'); inputEl.value=''; return; }
+  try{
+    const dataUrl = await resizeImageToDataUrl(file, 200);
+    profile.photo = dataUrl;
+    await persistProfile();
+    syncAllAvatars();
+    renderSettings();
+    renderGanhos();
+    showToast('Foto atualizada');
+  }catch(e){ console.warn('Falha ao processar foto de perfil:', e); showToast('Não foi possível processar a imagem.'); }
+  finally { inputEl.value = ''; }
+}
+
+async function removeProfilePhoto(){
+  delete profile.photo;
+  await persistProfile();
+  syncAllAvatars();
+  renderSettings();
+  renderGanhos();
+  showToast('Foto removida');
+}
+
+function syncAllAvatars(){
+  const photo = currentPhotoUrl();
+  const initial = ((profile.name||'').trim().charAt(0) || '?').toUpperCase();
+  document.querySelectorAll('.income-avatar').forEach(av => {
+    if(photo){
+      av.style.backgroundImage = `url(${photo})`;
+      av.style.backgroundSize = 'contain';
+      av.style.backgroundPosition = 'center';
+      av.style.backgroundRepeat = 'no-repeat';
+      av.textContent = '';
+    } else {
+      av.style.backgroundImage = '';
+      av.textContent = initial;
+    }
+  });
+}
+
+function unlockSyncUrl(){
+  document.getElementById('syncUrlLockedView').style.display = 'none';
+  document.getElementById('syncUrlEditView').style.display   = 'block';
+  const input = document.getElementById('syncUrl');
+  if(input){ input.value = syncUrl || ''; input.focus(); }
+}
+function lockSyncUrl(){
+  const input = document.getElementById('syncUrl');
+  if(input) syncUrl = input.value.trim();
+  saveSyncUrl();
+  renderSyncUrlUI();
+}
+function renderSyncUrlUI(){
+  const locked = document.getElementById('syncUrlLockedView');
+  const edit   = document.getElementById('syncUrlEditView');
+  const masked = document.getElementById('syncUrlMasked');
+  if(!locked || !edit) return;
+  if(syncUrl){
+    locked.style.display = 'flex';
+    edit.style.display   = 'none';
+    if(masked) masked.textContent = syncUrl.length > 50 ? syncUrl.slice(0,30) + '…' + syncUrl.slice(-15) : syncUrl;
+  } else {
+    locked.style.display = 'none';
+    edit.style.display   = 'block';
+  }
+}
+
+let syncUrlSaveTimer = null;
+// Cópia de segurança na planilha, no máximo uma vez por dia, ao abrir a app.
+// Só com sessão. Envia o estado atual; não lê nem funde nada. Não corre
+// enquanto houver uma decisão pendente sobre os dados.
+async function backupToSheetIfDue(){
+  if(!window.__fbUser || !syncUrl || window._syncPendingDecision) return;
+  const last = Number(localSettings.lastSheetBackup) || 0;
+  if(Date.now() - last < 24 * 60 * 60 * 1000) return;
+  const payload = normalizeToSchemaV1(currentState());
+  let body;
+  try{
+    body = (encryptionEnabled && encryptionPassword)
+      ? JSON.stringify(await encryptPayload(payload, encryptionPassword))
+      : JSON.stringify(payload);
+  }catch(e){
+    body = JSON.stringify(payload);
+  }
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), SYNC_TIMEOUT_MS);
+  const started = Date.now();
+  try{
+    await fetch(syncUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body,
+      signal: controller.signal
+    });
+    clearTimeout(timeoutId);
+    localSettings.lastSheetBackup = Date.now();
+    await persistLocalSettings();
+    logSyncEvent('success', 'Cópia diária guardada na planilha', `${Date.now() - started}ms · ${body.length} bytes`);
+  }catch(e){
+    clearTimeout(timeoutId);
+    logSyncEvent('error', `Cópia diária na planilha falhou: ${e.message || e.name}`, `${Date.now() - started}ms`);
+  }
+}
+// O endereço da planilha fica no perfil da conta Google (segue a conta entre aparelhos).
+// Sem sessão, não é guardado nem usado.
+async function persistSyncUrl(){
+  if(!window.__fbUser) return;
+  profile.syncUrl = syncUrl || '';
+  await persistProfile();
+}
+function saveSyncUrl(){
+  const input = document.getElementById('syncUrl');
+  if(input) syncUrl = input.value.trim();
+  clearTimeout(syncUrlSaveTimer);
+  syncUrlSaveTimer = setTimeout(async () => {
+    try{ await window.storage.set('syncUrl', syncUrl); }catch(e){}
+    await persistSyncUrl();
+    setSyncStatus(syncUrl ? 'synced' : 'nolink');
+    showToast(syncUrl ? '🔗 URL guardada' : 'Sincronização desativada');
+  }, 500);
+}
+async function scheduleMigrationUrl(){
+  const input = document.getElementById('migrationUrlInput');
+  const url = (input?.value || '').trim();
+  if(!url){ showToast('Cole a URL nova primeiro'); return; }
+  if(!url.startsWith('https://')){ showToast('❌ A URL deve começar com https://'); return; }
+  if(url === syncUrl){ showToast('É a mesma URL já em uso'); return; }
+  if(!confirm(`Agendar migração desta planilha para:\n\n${url}\n\nEsta URL vai ser enviada UMA VEZ para a planilha atual. Qualquer dispositivo (incluindo este) que sincronizar com a mesma planilha vai migrar sozinho para a URL nova. Continuar?`)) return;
+  showToast('🔄 A enviar URL de migração…');
+  await pushToCloud(url);
+  if(input) input.value = '';
+  showToast('✅ URL de migração enviada — os dispositivos vão migrar ao sincronizar');
+  renderSettings();
+}
+
+async function importFromJson(){
+  let raw = (document.getElementById('importJsonInput')?.value || '').trim();
+  if(!raw){ showToast('Cole o JSON antes de importar'); return; }
+  let data;
+  try{ data = JSON.parse(raw); }
+  catch(e1){
+    let cleaned = raw.replace(/[\u201C\u201D]/g, '"').replace(/[\u2018\u2019]/g, "'");
+    if(cleaned.length > 1 && cleaned[0] === '"' && cleaned[cleaned.length-1] === '"'){ cleaned = cleaned.slice(1, -1); }
+    cleaned = cleaned.replace(/""/g, '"');
+    try{ data = JSON.parse(cleaned); }
+    catch(e2){ showToast('❌ JSON inválido — verifique o texto colado'); return; }
+  }
+  if(!data || typeof data !== 'object' || (!data.bills && !data.monthData && !data.earnings)){ showToast('❌ Formato não reconhecido'); return; }
+  applyCloudData(resolveIncomingPayload(data));
+  await persistLocalOnlySilently();
+  scheduleCloudPush();
+  showToast('✅ Dados importados com sucesso!');
+  const el = document.getElementById('importJsonInput');
+  if(el){ el.value = ''; el.style.borderColor = 'var(--vault-light)'; }
+  renderGanhos();
+  renderSettings();
+}
+// ---------------------------------------------------------------
+// EXPORTAÇÃO PARA EXCEL — gera um .xlsx com 4 folhas, pensado para servir
+// de base à declaração de IRS (ganhos discriminados, despesas, despesas
+// fixas, e um resumo mensal já com IVA/comissão/lucro calculados). Usa a
+// biblioteca SheetJS (carregada via CDN no <head>) — só gera o ficheiro
+// no próprio dispositivo, nada é enviado para fora.
+// ---------------------------------------------------------------
+function exportDataToExcel(){
+  if(typeof XLSX === 'undefined'){
+    showToast('❌ Biblioteca de exportação não carregou — verifica a ligação à internet');
+    return;
+  }
+  const btn = document.getElementById('exportExcelBtn');
+  if(btn) btn.disabled = true;
+  try{
+    const monthKeys = Object.keys(monthData).sort();
+    if(monthKeys.length === 0){ showToast('Ainda não há dados para exportar'); return; }
+
+    // --- Folha 1: Ganhos (todos, todos os meses) ---
+    const ganhosRows = [];
+    monthKeys.forEach(mKey => {
+      const entry = ensureMonthEntry(mKey);
+      entry.earnings.forEach(e => {
+        const tvde = isTvdePlatform(e.platform);
+        const iva = tvde ? ivaAmount(e.amount) : 0;
+        const com = tvde ? comissaoAmount(e.amount) : 0;
+        ganhosRows.push({
+          'Data': e.date || '',
+          'Plataforma': platformLabel(e.platform),
+          'Turno': e.turno ? (getTurnos().find(t=>t.key===e.turno)?.label || e.turno) : '',
+          'Bruto (€)': Math.round((e.amount||0)*100)/100,
+          'IVA (€)': Math.round(iva*100)/100,
+          'Comissão (€)': Math.round(com*100)/100,
+          'Líquido (€)': Math.round((e.amount - iva - com)*100)/100,
+          'Km': e.km || '',
+          'Horas': e.hours || ''
+        });
+      });
+    });
+
+    // --- Folha 2: Despesas variáveis (todos os meses) ---
+    const despesasRows = [];
+    monthKeys.forEach(mKey => {
+      const entry = ensureMonthEntry(mKey);
+      entry.variableExpenses.forEach(exp => {
+        const cat = EXPENSE_CATEGORIES.find(c => c.key === exp.category);
+        despesasRows.push({
+          'Data': exp.date || isoDateFromTs(exp.ts),
+          'Categoria': cat ? cat.label : exp.category,
+          'Valor (€)': Math.round((exp.amount||0)*100)/100,
+          'Litros': exp.liters || '',
+          'Nota': exp.note || ''
+        });
+      });
+    });
+
+    // --- Folha 3: Despesas fixas (cadastro atual) ---
+    const billsRows = bills.map(b => ({
+      'Nome': b.name,
+      'Frequência': b.frequency === 'diaria' ? 'Diária' : b.frequency === 'semanal' ? 'Semanal' : 'Mensal',
+      'Valor (€)': Math.round((b.defaultAmount||0)*100)/100,
+      'Criada em': b.createdMonthKey || ''
+    }));
+
+    // --- Folha 4: Resumo mensal (IVA, comissão, despesas, lucro) ---
+    const resumoRows = monthKeys.map(mKey => {
+      const entry = ensureMonthEntry(mKey);
+      const apps = entry.earnings.filter(e=>isTvdePlatform(e.platform)).reduce((s,e)=>s+(e.amount||0),0);
+      const pessoal = entry.earnings.filter(e=>!isTvdePlatform(e.platform)).reduce((s,e)=>s+(e.amount||0),0);
+      const iva = ivaAmount(apps);
+      const com = comissaoAmount(apps);
+      const comb = entry.variableExpenses.filter(e=>e.category==='combustivel').reduce((s,e)=>s+(e.amount||0),0);
+      const varOutras = entry.variableExpenses.filter(e=>e.category!=='combustivel').reduce((s,e)=>s+(e.amount||0),0);
+      const fixas = totalFixedBills(entry, mKey);
+      const liquido = (apps - iva - com) - comb + pessoal;
+      const lucro = liquido - fixas - varOutras;
+      return {
+        'Mês': monthLabelFor(mKey),
+        'Bruto TVDE (€)': Math.round(apps*100)/100,
+        'Bruto Pessoal (€)': Math.round(pessoal*100)/100,
+        'IVA (€)': Math.round(iva*100)/100,
+        'Comissão (€)': Math.round(com*100)/100,
+        'Combustível (€)': Math.round(comb*100)/100,
+        'Outras despesas variáveis (€)': Math.round(varOutras*100)/100,
+        'Despesas fixas (€)': Math.round(fixas*100)/100,
+        'Lucro líquido (€)': Math.round(lucro*100)/100
+      };
+    });
+
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(ganhosRows), 'Ganhos');
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(despesasRows), 'Despesas');
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(billsRows), 'Despesas Fixas');
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(resumoRows), 'Resumo Mensal');
+
+    const filename = `corridaplus-dados-${isoDate(new Date())}.xlsx`;
+    XLSX.writeFile(wb, filename);
+    showToast('✅ Ficheiro exportado');
+  }catch(e){
+    console.error('Falha ao exportar para Excel:', e);
+    showToast('❌ Não foi possível gerar o ficheiro');
+  }finally{
+    if(btn) btn.disabled = false;
+  }
+}
+
+function confirmResetAll(){
+  const opt = (scope, title, desc, danger) => `
+    <button class="btn theme-card" onclick="openResetCodeSheet('${scope}')" style="text-align:left;border:1.5px solid ${danger ? 'var(--terracotta)' : 'var(--line)'};color:${danger ? 'var(--terracotta)' : 'var(--ink)'};margin-bottom:10px;padding:14px;">
+      <div style="font-weight:800;font-size:14px;">${title}</div>
+      <div style="font-size:11px;font-weight:500;color:var(--text-muted);margin-top:4px;line-height:1.5;">${desc}</div>
+    </button>`;
+  openSheet(`
+    <div class="sheet-handle"></div>
+    <div class="sheet-title">O que queres apagar?</div>
+    <div class="sheet-sub">Escolhe uma opção. Cada uma pede um código de confirmação.</div>
+    ${opt('data', '🧾 Apagar só os dados', 'Ganhos, despesas variáveis, despesas fixas e o histórico. Mantém as configurações, o nome e a foto.')}
+    ${opt('settings', '⚙️ Redefinir só as configurações', 'Tema, IVA, comissão, metas, plataformas extra, opcionais, resumo de ontem, encriptação e biometria. Mantém os dados, o nome e a foto.')}
+    ${opt('all', '🗑️ Apagar tudo', 'Dados, configurações, nome e foto. Recomeça como se fosse uma app nova.', true)}
+    <button class="btn btn-ghost" onclick="closeSheet()">Cancelar</button>
+  `);
+}
+const RESET_TEXTS = {
+  data:     { title: 'Apagar os dados', what: 'ganhos, despesas variáveis, despesas fixas e o histórico, neste aparelho e na nuvem. As configurações, o nome e a foto são mantidos.' },
+  settings: { title: 'Redefinir as configurações', what: 'tema, IVA, comissão, metas, plataformas extra, opcionais, resumo de ontem, encriptação e biometria, neste aparelho e na nuvem. Os dados, o nome e a foto são mantidos.' },
+  all:      { title: 'Apagar tudo', what: 'todos os dados, todas as configurações, o nome, a foto e o endereço da planilha de sincronização, neste aparelho e na nuvem. Também sai da conta Google neste aparelho. A assinatura não é afetada: continua ativa na conta e volta a aparecer ao entrar de novo.' }
+};
+function openResetCodeSheet(scope){
+  const t = RESET_TEXTS[scope];
+  if(!t) return;
+  const alphabet = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  const bytes = crypto.getRandomValues(new Uint8Array(8));
+  let code = '';
+  for(const b of bytes) code += alphabet[b % alphabet.length];
+  window._resetCode = code;
+  window._resetScope = scope;
+  openSheet(`
+    <div class="sheet-handle"></div>
+    <div class="sheet-title" style="color:var(--terracotta);">⚠️ ${t.title}</div>
+    <div class="sheet-sub">Esta ação é permanente e não pode ser desfeita.</div>
+    <div style="font-size:12px;line-height:1.6;margin-bottom:14px;">
+      Vão ser apagados: ${t.what}<br><br>
+      Não existe cópia de segurança automática nem forma de recuperar depois de confirmar. Recomenda-se exportar antes de continuar.<br><br>
+      A Corrida+ não se responsabiliza por perdas de dados ou de configurações resultantes desta ação.
+    </div>
+    <div class="field">
+      <label>Para confirmar, escreve este código</label>
+      <div style="font-family:'JetBrains Mono',monospace;font-weight:700;font-size:20px;letter-spacing:0.2em;text-align:center;padding:10px;background:var(--cream-2);border-radius:var(--r-md);margin-bottom:10px;user-select:all;">${code}</div>
+      <input type="text" id="resetCodeInput" autocomplete="off" autocapitalize="characters" maxlength="8" placeholder="Escreve o código" oninput="checkResetCode(this.value)" style="text-transform:uppercase;letter-spacing:0.15em;text-align:center;font-family:'JetBrains Mono',monospace;" />
+    </div>
+    <button class="btn btn-primary danger" id="resetConfirmBtn" onclick="executeResetAll()" disabled style="opacity:0.4;">Apagar permanentemente</button>
+    <button class="btn btn-ghost" onclick="openResetChoiceAgain()">Voltar</button>
+  `);
+}
+function openResetChoiceAgain(){ confirmResetAll(); }
+function checkResetCode(value){
+  const ok = (value || '').trim().toUpperCase() === window._resetCode;
+  const btn = document.getElementById('resetConfirmBtn');
+  if(btn){ btn.disabled = !ok; btn.style.opacity = ok ? '1' : '0.4'; }
+}
+async function executeResetAll(){
+  const scope = window._resetScope;
+  const typed = (document.getElementById('resetCodeInput')?.value || '').trim().toUpperCase();
+  if(!scope || !window._resetCode || typed !== window._resetCode) return;
+  window._resetCode = null;
+  window._resetScope = null;
+  closeSheet();
+  await performReset(scope);
+}
+// Aplica a redefinição. Os dados e as configurações são limpos localmente e
+// depois enviados para a nuvem com substituição (sem fusão), para não voltarem.
+// Ignora alterações remotas durante a reposição: a nuvem antiga não pode
+// voltar a aplicar-se localmente enquanto a reposição não tiver sido gravada.
+async function performReset(scope){
+  window._suppressRemote = true;
+  try{ await performResetInner(scope); }
+  finally{ window._suppressRemote = false; }
+}
+async function performResetInner(scope){
+  const eraseData = scope === 'data' || scope === 'all';
+  const eraseSettings = scope === 'settings' || scope === 'all';
+  if(eraseData){ bills = []; monthData = {}; }
+  if(eraseSettings){
+    const keepIdentity = scope === 'settings';
+    profile = { name: keepIdentity ? (profile.name || '') : '', photo: keepIdentity ? (profile.photo || null) : null };
+    localSettings = { darkMode: 'system', themeColor: 'green', devMode: false, welcomeDone: scope === 'all' ? false : localSettings.welcomeDone === true };
+    devMode = false;
+    applyTabVisibility();
+    encryptionEnabled = false;
+    encryptionPassword = '';
+    biometricUnlockEnabled = false;
+    requireUnlockEachSync = false;
+    useNormalizedSchema = true;
+    devForceEasterEgg = false;
+    devForceBirthday = false;
+    for(const [k, v] of [['encryptionEnabled', false], ['encryptionPassword', ''], ['biometricUnlockEnabled', false], ['requireUnlockEachSync', false], ['useNormalizedSchema', true]]){
+      try{ await window.storage.set(k, v); }catch(e){}
+    }
+    try{ await window.storage.delete('biometricCredentialId'); }catch(e){}
+  }
+  if(scope === 'all'){
+    syncUrl = '';
+    try{ await window.storage.delete('syncUrl'); }catch(e){}
+  }
+  await saveSyncBase(currentState());
+  await persistLocalOnlySilently();
+  clearTimeout(syncPushTimer);
+  clearTimeout(firestorePushTimer);
+  if(window.__fbUser){ setSyncStatus('saving'); await pushToFirestore(true); }
+  else if(syncUrl){ setSyncStatus('saving'); await pushToCloud(undefined, true); }
+  applyAllAppearance();
+  renderSettings();
+  showToast(scope === 'data' ? 'Dados apagados' : scope === 'settings' ? 'Configurações redefinidas' : 'Tudo apagado');
+  if(scope === 'all' && window.__fbUser){
+    try{ await window.fbSignOut(); }catch(e){}
+    location.reload();
+    return;
+  }
+  goGanhos();
+  if(scope === 'all' && basicMode()) showWelcomeSheet();
+}
+
+// Exportação: escolhe entre a planilha Excel e o arquivo de configurações (.json),
+// que pode ser importado em Modo Dev → Importar dados.
+function openExportChoice(){
+  openSheet(`
+    <div class="sheet-handle"></div>
+    <div class="sheet-title">Exportar</div>
+    <div class="sheet-sub">Escolhe o formato.</div>
+    <button class="btn btn-primary" onclick="closeSheet(); exportDataToExcel()" style="text-align:left;margin-bottom:10px;">
+      <div style="font-weight:800;">📊 Planilha Excel (.xlsx)</div>
+      <div style="font-size:11px;font-weight:500;opacity:0.85;margin-top:3px;">Para a declaração de IRS: ganhos, despesas, despesas fixas e resumo mensal.</div>
+    </button>
+    <button class="btn theme-card" onclick="closeSheet(); exportSettingsJson()" style="text-align:left;border:1.5px solid var(--line);color:var(--ink);">
+      <div style="font-weight:800;">🗂️ Arquivo de configurações (.json)</div>
+      <div style="font-size:11px;font-weight:500;color:var(--text-muted);margin-top:3px;">Cópia completa de dados e configurações, para guardar ou transferir para outro aparelho.</div>
+    </button>
+    <button class="btn btn-ghost" onclick="closeSheet()">Cancelar</button>
+  `);
+}
+function exportSettingsJson(){
+  const schema = normalizeToSchemaV1(currentState());
+  const text = JSON.stringify(schema, null, 2);
+  const blob = new Blob([text], { type: 'application/json;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `corridaplus-config-${isoDate(new Date())}.json`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  showToast('✅ Arquivo de configurações exportado');
+}
+
+// --- STATS / CHARTS helpers ---
+function lastNMonthKeys(n){ return Object.keys(monthData).sort().slice(-n); }
+function monthShortLabel(key){
+  const [y,m] = key.split('-').map(Number);
+  const shortMonth = new Date(y, m-1, 1).toLocaleDateString('pt-BR', { month:'short' }).replace('.','');
+  return `${shortMonth} ${String(y).slice(2)}`;
+}
+function chartBoxWrap(title, sub, inner){
+  return `<div class="chart-box">
+    <div class="chart-box-title">${escapeHtml(title)}</div>
+    <div class="chart-box-sub">${escapeHtml(sub)}</div>
+    ${inner}
+  </div>`;
+}
+function groupedBarSVG(labels, series){
+  const w = 300, h = 170, padBottom = 22, padTop = 10, padLeft = 2;
+  const maxVal = Math.max(1, ...series.flatMap(s => s.values));
+  const n = Math.max(1, labels.length);
+  const groupWidth = (w - padLeft) / n;
+  const barGap = 3;
+  const barWidth = Math.max(2, (groupWidth - barGap * (series.length + 1)) / series.length);
+  let bars = '';
+  labels.forEach((label, i) => {
+    const groupX = padLeft + i * groupWidth;
+    series.forEach((s, si) => {
+      const val = s.values[i] || 0;
+      const barH = (val / maxVal) * (h - padBottom - padTop);
+      const x = groupX + barGap + si * (barWidth + barGap);
+      const y = h - padBottom - barH;
+      bars += `<rect x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${barWidth.toFixed(1)}" height="${Math.max(0,barH).toFixed(1)}" rx="3" fill="${s.color}"></rect>`;
+    });
+    const labelX = groupX + groupWidth / 2;
+    bars += `<text x="${labelX.toFixed(1)}" y="${h - 6}" font-size="9" text-anchor="middle" class="chart-text">${escapeHtml(label)}</text>`;
+  });
+  const legend = series.map(s => `<div class="chart-legend-item"><span class="chart-legend-dot" style="background:${s.color};"></span>${escapeHtml(s.name)}</div>`).join('');
+  return `<svg viewBox="0 0 ${w} ${h}" style="width:100%; height:auto; display:block;">${bars}</svg><div class="chart-legend">${legend}</div>`;
+}
+function stackedBarSVG(labels, despesasVals, lucroVals){
+  const w = 300, h = 170, padBottom = 22, padTop = 10, padLeft = 2;
+  const totalVals = labels.map((_,i) => (despesasVals[i]||0) + (lucroVals[i]||0));
+  const maxVal = Math.max(1, ...totalVals);
+  const n = Math.max(1, labels.length);
+  const groupWidth = (w - padLeft) / n;
+  const barWidth = Math.max(4, groupWidth - 8);
+  const chartH = h - padBottom - padTop;
+  let bars = '';
+  labels.forEach((label, i) => {
+    const desp = despesasVals[i] || 0;
+    const lucro = lucroVals[i] || 0;
+    const total = desp + lucro;
+    const totalH = (total / maxVal) * chartH;
+    const despH  = (desp  / maxVal) * chartH;
+    const lucroH = (lucro / maxVal) * chartH;
+    const x = padLeft + i * groupWidth + (groupWidth - barWidth) / 2;
+    const baseY = h - padBottom;
+    if(despH > 0){ bars += `<rect x="${x.toFixed(1)}" y="${(baseY - despH).toFixed(1)}" width="${barWidth.toFixed(1)}" height="${despH.toFixed(1)}" rx="0" fill="#C0544A"></rect>`; }
+    if(lucroH > 0){
+      const ly = baseY - despH - lucroH;
+      bars += `<rect x="${x.toFixed(1)}" y="${ly.toFixed(1)}" width="${barWidth.toFixed(1)}" height="${(lucroH + 3).toFixed(1)}" rx="3" fill="#3E6650"></rect>`;
+      bars += `<rect x="${x.toFixed(1)}" y="${(ly + 3).toFixed(1)}" width="${barWidth.toFixed(1)}" height="3" rx="0" fill="#3E6650"></rect>`;
+    }
+    const labelX = padLeft + i * groupWidth + groupWidth / 2;
+    bars += `<text x="${labelX.toFixed(1)}" y="${h - 6}" font-size="9" text-anchor="middle" class="chart-text">${escapeHtml(label)}</text>`;
+  });
+  const legend = `<div class="chart-legend">
+    <div class="chart-legend-item"><span class="chart-legend-dot" style="background:#3E6650;"></span>Ganhos</div>
+    <div class="chart-legend-item"><span class="chart-legend-dot" style="background:#C0544A;"></span>Despesas</div>
+  </div>`;
+  return `<svg viewBox="0 0 ${w} ${h}" style="width:100%; height:auto; display:block;">${bars}</svg>${legend}`;
+}
+function horizontalBarsHTML(items){
+  const maxVal = Math.max(1, ...items.map(it => Math.abs(it.value)));
+  return items.map(it => {
+    const pct = Math.max(2, Math.round((Math.abs(it.value) / maxVal) * 100));
+    return `
+      <div style="margin-bottom:12px;">
+        <div style="display:flex; justify-content:space-between; gap:8px; font-size:12px; margin-bottom:5px;">
+          <span style="font-weight:600;">${escapeHtml(it.label)}</span>
+          <span style="color:var(--text-muted); white-space:nowrap;">${fmt(it.value)}</span>
+        </div>
+        <div style="background:var(--cream-2); border-radius:100px; height:9px; overflow:hidden;">
+          <div style="width:${pct}%; height:100%; border-radius:100px; background:${it.color};"></div>
+        </div>
+      </div>`;
+  }).join('');
+}
+// Gráfico "Ganhos por turno" — só aparece se pelo menos um ganho do
+// período tiver o campo opcional `turno` preenchido (ver getTurnos() e o
+// seletor em openAddIncomeSheet). Destaca qual turno rendeu mais no total.
+function kmStatsHTML(items, lucro){
+  if(!showKm()) return '';
+  const km = sumKm(items);
+  if(km <= 0) return '';
+  const porKm = lucro / km;
+  return chartBoxWrap('🛣️ Quilometragem', 'Lucro do período ÷ km registados', `
+    <div class="stat-cards" style="margin-bottom:0;">
+      <div class="stat-card"><div class="stat-card-label">Km registados</div><div class="stat-card-value">${km.toLocaleString('pt-BR',{maximumFractionDigits:1})} km</div></div>
+      <div class="stat-card"><div class="stat-card-label">Lucro por km</div><div class="stat-card-value ${porKm<0?'negative':''}">${fmt(porKm)}</div></div>
+    </div>`);
+}
+function turnoBreakdownHTML(items){
+  if(!showTurno()) return '';
+  const withTurno = items.filter(e => e.turno);
+  if(withTurno.length === 0) return '';
+  const totals = {};
+  withTurno.forEach(e => { totals[e.turno] = (totals[e.turno] || 0) + (e.amount || 0); });
+  const bars = getTurnos()
+    .filter(t => totals[t.key] > 0)
+    .map(t => ({ label: `${t.emoji} ${t.label}`, value: totals[t.key], color: '#B8862B' }));
+  if(bars.length === 0) return '';
+  const best = bars.reduce((a, b) => (b.value > a.value ? b : a));
+  return chartBoxWrap('Ganhos por turno', `Melhor turno: ${best.label}`, horizontalBarsHTML(bars));
+}
+function weekOfMonthFromDateStr(dateStr){
+  const day = parseInt(dateStr.split('-')[2], 10);
+  return Math.min(5, Math.ceil(day / 7));
+}
+function weeksInMonth(key){
+  const [y,m] = key.split('-').map(Number);
+  const daysInMonth = new Date(y, m, 0).getDate();
+  return Math.ceil(daysInMonth / 7);
+}
+
+function setStatsView(v){
+  statsView = v;
+  document.querySelectorAll('#statsViewSeg .seg-opt').forEach(el => el.classList.toggle('active', el.dataset.v === v));
+  document.getElementById('statsMonthNav').style.display = (v === 'mes') ? 'flex' : 'none';
+  document.getElementById('statsYearNav').style.display = (v === 'ano') ? 'flex' : 'none';
+  document.getElementById('statsDayWeekNav').style.display = (v === 'dia' || v === 'semana') ? 'flex' : 'none';
+  renderStats();
+}
+function changeStatsDayWeek(delta){
+  statsRefDate = addDays(statsRefDate, statsView === 'semana' ? delta*7 : delta);
+  renderStats();
+}
+function changeStatsYear(delta){
+  statsRefYear += delta;
+  document.getElementById('statsLabelAno').textContent = String(statsRefYear);
+  renderStats();
+}
+
+// --- IVA / Comissão (impostos aplicados sobre bruto Uber+Bolt) ---
+function ivaAmount(grossEarnings){
+  const rate = ivaRate();
+  return grossEarnings * (rate / 100);
+}
+function ivaRate(){ return ivaOn() ? (parseFloat(profile.ivaRate) || 0) : 0; }
+function comissaoAmount(grossEarnings){
+  const rate = comissaoRate();
+  return grossEarnings * (rate / 100);
+}
+function comissaoRate(){ return comissaoOn() ? (parseFloat(profile.comissaoRate) || 0) : 0; }
+
+function ganhosAppsAmount(items){
+  return items.filter(e => isTvdePlatform(e.platform)).reduce((s,e)=>s+(e.amount||0),0);
+}
+function ganhosParticularsAmount(items){
+  return items.filter(e => e.platform === 'particular' || e.platform === 'outros').reduce((s,e)=>s+(e.amount||0),0);
+}
+function combustivelAmount(expenses){
+  return expenses.filter(e => e.category === 'combustivel').reduce((s,e)=>s+(e.amount||0),0);
+}
+function computeLiquido(items, expenses){
+  const apps = ganhosAppsAmount(items);
+  const iva  = ivaAmount(apps);
+  const com  = comissaoAmount(apps);
+  const comb = combustivelAmount(expenses);
+  const part = ganhosParticularsAmount(items);
+  return (apps - iva - com) - comb + part;
+}
+function computeLiquidoFromEntry(entry){
+  const apps = entry.earnings.filter(e=>isTvdePlatform(e.platform)).reduce((s,e)=>s+(e.amount||0),0);
+  const comb = entry.variableExpenses.filter(e=>e.category==='combustivel').reduce((s,e)=>s+(e.amount||0),0);
+  const iva  = ivaAmount(apps);
+  const com  = comissaoAmount(apps);
+  const part = entry.earnings.filter(e=>!isTvdePlatform(e.platform)).reduce((s,e)=>s+(e.amount||0),0);
+  return (apps - iva - com) - comb + part;
+}
+
+function renderStatsDay(){
+  const dateIso = isoDate(statsRefDate);
+  const isToday = dateIso === isoDate(new Date());
+  const [dy,dm,dd] = dateIso.split('-').map(Number);
+  const dateObj = new Date(dy,dm-1,dd);
+  const dayLabel  = isToday ? 'Hoje' : dateObj.toLocaleDateString('pt-BR',{weekday:'long',day:'2-digit',month:'long'});
+  const yearLabel = isToday ? String(dy) : String(dy);
+  document.getElementById('statsLabel').textContent = dayLabel;
+  const yearEl = document.getElementById('statsLabelYear');
+  if(yearEl) yearEl.textContent = yearLabel;
+  const items    = earningsInRange(dateIso, dateIso);
+  const expenses = variableExpensesInRange(dateIso, dateIso);
+  const box = document.getElementById('statsContent');
+  if(items.length === 0 && expenses.length === 0){
+    box.innerHTML = '<div class="stats-empty">Nenhum dado neste dia ainda.</div>'; return;
+  }
+  const tvde      = items.filter(e=>isTvdePlatform(e.platform));
+  const part      = items.filter(e=>!isTvdePlatform(e.platform));
+  const brutoTVDE = tvde.reduce((s,e)=>s+(e.amount||0),0);
+  const brutoPart = part.reduce((s,e)=>s+(e.amount||0),0);
+  const comb      = combustivelAmount(expenses);
+  const varOther  = expenses.filter(e=>e.category!=='combustivel').reduce((s,e)=>s+(e.amount||0),0);
+  const iva       = ivaAmount(brutoTVDE);
+  const ivaVal    = ivaRate();
+  const com       = comissaoAmount(brutoTVDE);
+  const comVal    = comissaoRate();
+  const liquido   = (brutoTVDE - iva - com) - comb + brutoPart;
+  const lucro     = liquido - varOther;
+  const totalUber = sumByPlatform(items,'uber'), totalBolt = sumByPlatform(items,'bolt');
+  const totalPart = sumByPlatform(items,'particular'), totalOut = sumByPlatform(items,'outros');
+
+  let html = `<div class="stat-cards">
+    ${brutoTVDE>0?`<div class="stat-card"><div class="stat-card-label">🚖 Bruto TVDE</div><div class="stat-card-value">${fmt(brutoTVDE)}</div></div>`:''}
+    ${comb>0?`<div class="stat-card"><div class="stat-card-label">⛽ Combustível</div><div class="stat-card-value negative">− ${fmt(comb)}</div></div>`:''}
+    ${ivaVal>0&&brutoTVDE>0?`<div class="stat-card"><div class="stat-card-label">IVA (${ivaVal}%)</div><div class="stat-card-value negative">− ${fmt(iva)}</div></div>`:''}
+    ${comVal>0&&brutoTVDE>0?`<div class="stat-card"><div class="stat-card-label">Comissão (${comVal}%)</div><div class="stat-card-value negative">− ${fmt(com)}</div></div>`:''}
+    ${brutoPart>0?`<div class="stat-card"><div class="stat-card-label">🚘 Pessoal</div><div class="stat-card-value">${fmt(brutoPart)}</div></div>`:''}
+    <div class="stat-card"><div class="stat-card-label">💧 Líquido</div><div class="stat-card-value">${fmt(liquido)}</div></div>
+    ${varOther>0?`<div class="stat-card"><div class="stat-card-label">Outras despesas</div><div class="stat-card-value negative">− ${fmt(varOther)}</div></div>`:''}
+    <div class="stat-card" style="border-color:var(--vault);"><div class="stat-card-label">💰 Lucro do dia</div><div class="stat-card-value ${lucro<0?'negative':''}">${fmt(lucro)}</div></div>
+  </div>`;
+
+  const breakdownBars = [];
+  if(totalUber>0) breakdownBars.push({label:'Uber', value:totalUber, color:'#0a0a0a'});
+  if(totalBolt>0) breakdownBars.push({label:'Bolt', value:totalBolt, color:'#34D17B'});
+  if(totalPart>0) breakdownBars.push({label:'Particular', value:totalPart, color:'#5A6B8A'});
+  if(totalOut>0)  breakdownBars.push({label:'Outros', value:totalOut, color:'#8A6B5A'});
+  if(breakdownBars.length > 1){ html += chartBoxWrap('Por plataforma', 'Faturamento bruto hoje', horizontalBarsHTML(breakdownBars)); }
+  html += kmStatsHTML(items, lucro) + turnoBreakdownHTML(items);
+  box.innerHTML = html;
+}
+
+function renderStatsWeek(){
+  const start = startOfWeek(statsRefDate);
+  const end   = addDays(start, 6);
+  const startIso = isoDate(start), endIso = isoDate(end);
+  const [sy,sm,sd] = startIso.split('-').map(Number);
+  const [ey,em,ed] = endIso.split('-').map(Number);
+  const fmtD = d => new Date(...d).toLocaleDateString('pt-BR',{day:'2-digit',month:'short'});
+  const yearSuffix = sy !== ey ? `${sy}–${ey}` : String(sy);
+  document.getElementById('statsLabel').textContent = `${fmtD([sy,sm-1,sd])} – ${fmtD([ey,em-1,ed])}`;
+  const yearEl = document.getElementById('statsLabelYear');
+  if(yearEl) yearEl.textContent = yearSuffix;
+  const items    = earningsInRange(startIso, endIso);
+  const expenses = variableExpensesInRange(startIso, endIso);
+  const box = document.getElementById('statsContent');
+  if(items.length === 0 && expenses.length === 0){
+    box.innerHTML = '<div class="stats-empty">Nenhum dado nesta semana ainda.</div>'; return;
+  }
+  const tvde      = items.filter(e=>isTvdePlatform(e.platform));
+  const part      = items.filter(e=>!isTvdePlatform(e.platform));
+  const brutoTVDE = tvde.reduce((s,e)=>s+(e.amount||0),0);
+  const brutoPart = part.reduce((s,e)=>s+(e.amount||0),0);
+  const comb      = combustivelAmount(expenses);
+  const varOther  = expenses.filter(e=>e.category!=='combustivel').reduce((s,e)=>s+(e.amount||0),0);
+  const iva       = ivaAmount(brutoTVDE);
+  const ivaVal    = ivaRate();
+  const com       = comissaoAmount(brutoTVDE);
+  const comVal    = comissaoRate();
+  const liquido   = (brutoTVDE - iva - com) - comb + brutoPart;
+  // Despesas fixas diárias/semanais contam aqui pelo valor real (× dias/×1),
+  // não por rateio — bills mensais ficam de fora de propósito.
+  const fixasSemanaReal = weeklyFixedBills(start);
+  const lucro     = liquido - varOther - fixasSemanaReal;
+  const totalUber = sumByPlatform(items,'uber'), totalBolt = sumByPlatform(items,'bolt');
+  const totalPart = sumByPlatform(items,'particular'), totalOut = sumByPlatform(items,'outros');
+
+  let html = '';
+  if(profile.goalsEnabled){
+    // Sem meta semanal definida, a meta mínima passa a ser as próprias
+    // despesas fixas diárias/semanais da semana (mesmo valor já descontado
+    // do lucro acima) — não há rateio de despesas mensais aqui.
+    const hasCustomGoal = profile.weeklyGoal && profile.weeklyGoal > 0;
+    const weeklyGoalValue = hasCustomGoal ? profile.weeklyGoal : fixasSemanaReal;
+    const weeklyGoalLabel = hasCustomGoal ? 'Meta de lucro semanal' : 'Meta de lucro semanal (mínimo — despesas fixas da semana)';
+    html += goalProgressHTML(lucro, weeklyGoalValue, weeklyGoalLabel);
+  }
+  html += `<div class="stat-cards">
+    ${brutoTVDE>0?`<div class="stat-card"><div class="stat-card-label">🚖 Bruto TVDE</div><div class="stat-card-value">${fmt(brutoTVDE)}</div></div>`:''}
+    ${comb>0?`<div class="stat-card"><div class="stat-card-label">⛽ Combustível</div><div class="stat-card-value negative">− ${fmt(comb)}</div></div>`:''}
+    ${ivaVal>0&&brutoTVDE>0?`<div class="stat-card"><div class="stat-card-label">IVA (${ivaVal}%)</div><div class="stat-card-value negative">− ${fmt(iva)}</div></div>`:''}
+    ${comVal>0&&brutoTVDE>0?`<div class="stat-card"><div class="stat-card-label">Comissão (${comVal}%)</div><div class="stat-card-value negative">− ${fmt(com)}</div></div>`:''}
+    ${brutoPart>0?`<div class="stat-card"><div class="stat-card-label">🚘 Pessoal</div><div class="stat-card-value">${fmt(brutoPart)}</div></div>`:''}
+    <div class="stat-card"><div class="stat-card-label">💧 Líquido</div><div class="stat-card-value">${fmt(liquido)}</div></div>
+    ${varOther>0?`<div class="stat-card"><div class="stat-card-label">Outras despesas</div><div class="stat-card-value negative">− ${fmt(varOther)}</div></div>`:''}
+    ${fixasSemanaReal>0?`<div class="stat-card"><div class="stat-card-label">🏠 Despesas fixas (diárias/semanais)</div><div class="stat-card-value negative">− ${fmt(fixasSemanaReal)}</div></div>`:''}
+    <div class="stat-card" style="border-color:var(--vault);"><div class="stat-card-label">💰 Lucro da semana</div><div class="stat-card-value ${lucro<0?'negative':''}">${fmt(lucro)}</div></div>
+  </div>`;
+
+  const dayLabels=[], dayDespesas=[], dayGanhos=[];
+  for(let i=0;i<7;i++){
+    const d=addDays(start,i); const dIso=isoDate(d);
+    const dTVDE = items.filter(x=>x.date===dIso&&(isTvdePlatform(x.platform))).reduce((s,x)=>s+(x.amount||0),0);
+    const dPart = items.filter(x=>x.date===dIso&&(!isTvdePlatform(x.platform))).reduce((s,x)=>s+(x.amount||0),0);
+    const dComb = expenses.filter(x=>(x.date||isoDateFromTs(x.ts))===dIso&&x.category==='combustivel').reduce((s,x)=>s+(x.amount||0),0);
+    const dVar  = expenses.filter(x=>(x.date||isoDateFromTs(x.ts))===dIso&&x.category!=='combustivel').reduce((s,x)=>s+(x.amount||0),0);
+    const dDesp = dComb + ivaAmount(dTVDE) + comissaoAmount(dTVDE) + dVar;
+    dayLabels.push(new Date(d.getFullYear(),d.getMonth(),d.getDate()).toLocaleDateString('pt-BR',{weekday:'narrow'}));
+    dayDespesas.push(Math.max(0, dDesp));
+    dayGanhos.push(Math.max(0, dTVDE + dPart));
+  }
+  html += chartBoxWrap('Ganhos vs. despesas por dia', 'Verde = ganhos · Vermelho = despesas', groupedBarSVG(dayLabels, [
+    { name:'Ganhos',   color:'#3E6650',  values: dayGanhos },
+    { name:'Despesas', color:'#C0544A',  values: dayDespesas }
+  ]));
+
+  const breakdownBars = [];
+  if(totalUber>0) breakdownBars.push({label:'Uber', value:totalUber, color:'#0a0a0a'});
+  if(totalBolt>0) breakdownBars.push({label:'Bolt', value:totalBolt, color:'#34D17B'});
+  if(totalPart>0) breakdownBars.push({label:'Particular', value:totalPart, color:'#5A6B8A'});
+  if(totalOut>0)  breakdownBars.push({label:'Outros', value:totalOut, color:'#8A6B5A'});
+  if(breakdownBars.length > 1){ html += chartBoxWrap('Por plataforma', 'Faturamento bruto da semana', horizontalBarsHTML(breakdownBars)); }
+  html += kmStatsHTML(items, lucro) + turnoBreakdownHTML(items);
+  box.innerHTML = html;
+}
+
+function renderStatsMonth(){
+  const [curY, curM] = currentMonthKey.split('-').map(Number);
+  const monthNameYear = new Date(curY, curM-1, 1).toLocaleDateString('pt-BR', { month:'long', year:'numeric' });
+  document.getElementById('statsLabelMes').textContent = monthNameYear;
+  const box = document.getElementById('statsContent');
+  const monthKeys = lastNMonthKeys(6);
+  const entry = ensureMonthEntry(currentMonthKey);
+  const hasAnyData = monthKeys.length > 0 || entry.earnings.length > 0 || entry.variableExpenses.length > 0;
+  if(!hasAnyData){
+    box.innerHTML = '<div class="stats-empty">Ainda não há dados suficientes. Use o app por um tempo e volte aqui 📊</div>';
+    return;
+  }
+
+  const tvdeEarnings  = entry.earnings.filter(e=>isTvdePlatform(e.platform));
+  const partEarnings  = entry.earnings.filter(e=>!isTvdePlatform(e.platform));
+  const brutoTVDE     = tvdeEarnings.reduce((s,e)=>s+(e.amount||0),0);
+  const brutoPart     = partEarnings.reduce((s,e)=>s+(e.amount||0),0);
+  const bruto         = brutoTVDE + brutoPart;
+  const combMes       = entry.variableExpenses.filter(e=>e.category==='combustivel').reduce((s,e)=>s+(e.amount||0),0);
+  const varOtherMes   = entry.variableExpenses.filter(e=>e.category!=='combustivel').reduce((s,e)=>s+(e.amount||0),0);
+  const iva           = ivaAmount(brutoTVDE);
+  const ivaVal        = ivaRate();
+  const com           = comissaoAmount(brutoTVDE);
+  const comVal        = comissaoRate();
+  const liquidoTVDE   = (brutoTVDE - iva - com) - combMes;
+  const liquido       = liquidoTVDE + brutoPart;
+  const fixasMes      = totalFixedBills(entry);
+  const lucroMes      = liquido - fixasMes - varOtherMes;
+  const totalUber     = totalEarningsByPlatform(entry,'uber');
+  const totalBolt     = totalEarningsByPlatform(entry,'bolt');
+  const totalPart     = totalEarningsByPlatform(entry,'particular');
+  const totalOut      = totalEarningsByPlatform(entry,'outros');
+
+  const tvdeCardsArr = [];
+  if(totalUber>0) tvdeCardsArr.push(`<div class="stat-card"><div class="stat-card-label">${platformBadge('uber',14)} Uber</div><div class="stat-card-value">${fmt(totalUber)}</div></div>`);
+  if(totalBolt>0) tvdeCardsArr.push(`<div class="stat-card"><div class="stat-card-label">${platformBadge('bolt',14)} Bolt</div><div class="stat-card-value">${fmt(totalBolt)}</div></div>`);
+  tvdeCardsArr.push(`<div class="stat-card"><div class="stat-card-label">Bruto TVDE</div><div class="stat-card-value">${fmt(brutoTVDE)}</div></div>`);
+  if(ivaVal>0) tvdeCardsArr.push(`<div class="stat-card"><div class="stat-card-label">IVA (${ivaVal}%)</div><div class="stat-card-value negative">− ${fmt(iva)}</div></div>`);
+  if(comVal>0) tvdeCardsArr.push(`<div class="stat-card"><div class="stat-card-label">Comissão (${comVal}%)</div><div class="stat-card-value negative">− ${fmt(com)}</div></div>`);
+  if(combMes>0) tvdeCardsArr.push(`<div class="stat-card"><div class="stat-card-label">Combustível</div><div class="stat-card-value negative">− ${fmt(combMes)}</div></div>`);
+  tvdeCardsArr.push(`<div class="stat-card"><div class="stat-card-label">Líquido TVDE</div><div class="stat-card-value">${fmt(liquidoTVDE)}</div></div>`);
+  if(tvdeCardsArr.length % 2 === 1){
+    tvdeCardsArr[tvdeCardsArr.length-1] = tvdeCardsArr[tvdeCardsArr.length-1].replace('class="stat-card"', 'class="stat-card" style="grid-column:1/-1;"');
+  }
+  let html = '';
+  if(profile.goalsEnabled){
+    // Sem meta mensal definida, a meta mínima passa a ser as despesas fixas
+    // do mês — cobrir os custos fixos é o objetivo mais básico possível.
+    const hasCustomGoal = profile.monthlyGoal && profile.monthlyGoal > 0;
+    const monthlyGoalValue = hasCustomGoal ? profile.monthlyGoal : fixasMes;
+    const monthlyGoalLabel = hasCustomGoal ? 'Meta de lucro mensal' : 'Meta de lucro mensal (mínimo — despesas fixas)';
+    html += goalProgressHTML(lucroMes, monthlyGoalValue, monthlyGoalLabel);
+  }
+  html += `
+  <div class="chart-box" style="margin-bottom:14px;">
+    <div class="chart-box-title">🚖 TVDE — Uber &amp; Bolt</div>
+    <div class="chart-box-sub">${monthNameYear}</div>
+    <div class="stat-cards" style="margin-bottom:0;">
+      ${tvdeCardsArr.join('\n      ')}
+    </div>
+  </div>`;
+
+  if(brutoPart > 0){
+    const pessoalCardsArr = [];
+    if(totalPart>0) pessoalCardsArr.push(`<div class="stat-card"><div class="stat-card-label">Particular</div><div class="stat-card-value">${fmt(totalPart)}</div></div>`);
+    if(totalOut>0) pessoalCardsArr.push(`<div class="stat-card"><div class="stat-card-label">Outros</div><div class="stat-card-value">${fmt(totalOut)}</div></div>`);
+    (profile.customPlatforms || []).forEach(cp => {
+      if(isTvdePlatform(cp.key)) return;
+      const t = totalEarningsByPlatform(entry, cp.key);
+      if(t > 0) pessoalCardsArr.push(`<div class="stat-card"><div class="stat-card-label">${escapeHtml(cp.label)}</div><div class="stat-card-value">${fmt(t)}</div></div>`);
+    });
+    pessoalCardsArr.push(`<div class="stat-card"><div class="stat-card-label">Total pessoal</div><div class="stat-card-value">${fmt(brutoPart)}</div></div>`);
+    if(pessoalCardsArr.length % 2 === 1){
+      pessoalCardsArr[pessoalCardsArr.length-1] = pessoalCardsArr[pessoalCardsArr.length-1].replace('class="stat-card"', 'class="stat-card" style="grid-column:1/-1;"');
+    }
+    html += `
+  <div class="chart-box" style="margin-bottom:14px;">
+    <div class="chart-box-title">🚘 Pessoal</div>
+    <div class="chart-box-sub">Sem desconto de IVA · ${monthNameYear}</div>
+    <div class="stat-cards" style="margin-bottom:0;">
+      ${pessoalCardsArr.join('\n      ')}
+    </div>
+  </div>`;
+  }
+
+  const resumoCardsArr = [];
+  resumoCardsArr.push(`<div class="stat-card"><div class="stat-card-label">💧 Líquido total</div><div class="stat-card-value">${fmt(liquido)}</div></div>`);
+  resumoCardsArr.push(`<div class="stat-card"><div class="stat-card-label">Despesas fixas</div><div class="stat-card-value negative">− ${fmt(fixasMes)}</div></div>`);
+  if(varOtherMes>0) resumoCardsArr.push(`<div class="stat-card"><div class="stat-card-label">Outras despesas</div><div class="stat-card-value negative">− ${fmt(varOtherMes)}</div></div>`);
+  resumoCardsArr.push(`<div class="stat-card" style="border-color:var(--vault);"><div class="stat-card-label">💰 Lucro do mês</div><div class="stat-card-value ${lucroMes<0?'negative':''}">${fmt(lucroMes)}</div></div>`);
+  if(resumoCardsArr.length % 2 === 1){
+    const lastIdx = resumoCardsArr.length-1;
+    resumoCardsArr[lastIdx] = resumoCardsArr[lastIdx].includes('style="border-color:var(--vault);"')
+      ? resumoCardsArr[lastIdx].replace('style="border-color:var(--vault);"', 'style="border-color:var(--vault);grid-column:1/-1;"')
+      : resumoCardsArr[lastIdx].replace('class="stat-card"', 'class="stat-card" style="grid-column:1/-1;"');
+  }
+  html += `
+  <div class="chart-box" style="margin-bottom:14px;">
+    <div class="chart-box-title">📊 Resumo do mês</div>
+    <div class="chart-box-sub">${monthNameYear}</div>
+    <div class="stat-cards" style="margin-bottom:0;">
+      ${resumoCardsArr.join('\n      ')}
+    </div>
+  </div>`;
+
+  const nWeeks = weeksInMonth(currentMonthKey);
+  const weekApps  = Array(nWeeks).fill(0);
+  const weekComb  = Array(nWeeks).fill(0);
+  const weekPart  = Array(nWeeks).fill(0);
+  const weekVar   = Array(nWeeks).fill(0);
+  entry.earnings.forEach(e => {
+    const w = weekOfMonthFromDateStr(e.date) - 1;
+    if(w < 0 || w >= nWeeks) return;
+    if(isTvdePlatform(e.platform)) weekApps[w] += (e.amount||0);
+    else weekPart[w] += (e.amount||0);
+  });
+  entry.variableExpenses.forEach(e => {
+    const d = e.date || (new Date(e.ts).toISOString().slice(0,10));
+    const w = weekOfMonthFromDateStr(d) - 1;
+    if(w < 0 || w >= nWeeks) return;
+    if(e.category==='combustivel') weekComb[w] += (e.amount||0);
+    else weekVar[w] += (e.amount||0);
+  });
+  // Sem rateio: cada semana leva só as despesas fixas diárias/semanais
+  // reais; as mensais aparecem à parte, uma vez, no total do mês.
+  const weekFixed = Array.from({length:nWeeks}, (_,i) => weekBucketFixedBills(currentMonthKey, i));
+  const monthlyOnlyBills = fixasMes - weekFixed.reduce((s,v)=>s+v,0);
+  const weekLabels  = Array.from({length:nWeeks}, (_,i) => `Sem. ${i+1}`);
+  const weekGanhos  = weekApps.map((a,i) => Math.max(0, a + weekPart[i]));
+  const weekDespesas = weekApps.map((a,i) => {
+    const iva = ivaAmount(a);
+    const com = comissaoAmount(a);
+    return weekComb[i] + iva + com + weekFixed[i] + weekVar[i];
+  });
+  html += chartBoxWrap('Ganhos vs. despesas por semana', 'Verde = ganhos · Vermelho = despesas (fixas diárias/semanais + variáveis)', groupedBarSVG(weekLabels, [
+    { name:'Ganhos',   color:'#3E6650', values: weekGanhos },
+    { name:'Despesas', color:'#C0544A', values: weekDespesas }
+  ]));
+
+  // Mensal + semanais lado a lado: lucro de cada semana, depois as despesas
+  // mensais (que não pertencem a nenhuma semana), e o lucro do mês.
+  const weekLucroRows = weekApps.map((a,i) => {
+    const liq = (a - ivaAmount(a) - comissaoAmount(a)) - weekComb[i] + weekPart[i];
+    const lucroSem = liq - weekFixed[i] - weekVar[i];
+    return `<div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--line);font-size:13px;"><span>${weekLabels[i]}</span><span style="font-family:'JetBrains Mono',monospace;font-weight:700;color:${lucroSem<0?'var(--terracotta)':'inherit'};">${fmt(lucroSem)}</span></div>`;
+  }).join('');
+  html += chartBoxWrap('Lucro por semana e do mês', 'Semanas (sem despesas mensais) + despesas mensais = lucro do mês', `
+    ${weekLucroRows}
+    <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--line);font-size:13px;"><span>Despesas mensais</span><span style="font-family:'JetBrains Mono',monospace;font-weight:700;color:var(--terracotta);">− ${fmt(monthlyOnlyBills)}</span></div>
+    <div style="display:flex;justify-content:space-between;padding:10px 0 2px;font-size:14px;font-weight:700;"><span>💰 Lucro do mês</span><span style="font-family:'JetBrains Mono',monospace;color:${lucroMes<0?'var(--terracotta)':'var(--vault-light)'};">${fmt(lucroMes)}</span></div>`);
+
+  if(monthKeys.length){
+    const despesasVals = monthKeys.map(k => {
+      const e = ensureMonthEntry(k);
+      const apps = e.earnings.filter(x=>isTvdePlatform(x.platform)).reduce((s,x)=>s+(x.amount||0),0);
+      const comb = e.variableExpenses.filter(x=>x.category==='combustivel').reduce((s,x)=>s+(x.amount||0),0);
+      const varO = e.variableExpenses.filter(x=>x.category!=='combustivel').reduce((s,x)=>s+(x.amount||0),0);
+      return comb + ivaAmount(apps) + comissaoAmount(apps) + totalFixedBills(e) + varO;
+    });
+    const ganhosVals = monthKeys.map(k => {
+      const e = ensureMonthEntry(k);
+      return e.earnings.reduce((s,x)=>s+(x.amount||0),0);
+    });
+    const mLabels = monthKeys.map(k => {
+      const [y,m] = k.split('-').map(Number);
+      const shortMonth = new Date(y,m-1,1).toLocaleDateString('pt-BR',{month:'short'}).replace('.','');
+      return `${shortMonth} ${String(y).slice(2)}`;
+    });
+    html += chartBoxWrap('Ganhos vs. despesas — últimos meses', 'Verde = ganhos · Vermelho = despesas', groupedBarSVG(mLabels, [
+      { name:'Ganhos',   color:'#3E6650', values: ganhosVals },
+      { name:'Despesas', color:'#C0544A', values: despesasVals }
+    ]));
+  }
+
+  const categoryTotals = {};
+  monthKeys.forEach(k => {
+    const e = ensureMonthEntry(k);
+    e.variableExpenses.forEach(exp => { categoryTotals[exp.category] = (categoryTotals[exp.category]||0) + (exp.amount||0); });
+  });
+  entry.variableExpenses.forEach(exp => { categoryTotals[exp.category] = (categoryTotals[exp.category]||0) + (exp.amount||0); });
+  const categoryItems = Object.entries(categoryTotals).filter(([,v])=>v>0).map(([cat,val]) => {
+    const found = EXPENSE_CATEGORIES.find(c => c.key === cat);
+    return { label: found ? `${found.emoji} ${found.label}` : cat, value: val, color:'#C97259' };
+  });
+  if(categoryItems.length){ html += chartBoxWrap('Despesas por categoria', 'Totais acumulados', horizontalBarsHTML(categoryItems)); }
+  html += kmStatsHTML(entry.earnings, lucroMes) + turnoBreakdownHTML(entry.earnings);
+
+  box.innerHTML = html;
+}
+
+function renderStatsYear(){
+  const yearLabel = String(statsRefYear);
+  document.getElementById('statsLabelAno').textContent = yearLabel;
+  const box = document.getElementById('statsContent');
+  const monthKeysInYear = Array.from({length:12}, (_,i) => `${statsRefYear}-${String(i+1).padStart(2,'0')}`);
+  const entries = monthKeysInYear.map(k => ensureMonthEntry(k));
+  const hasAnyData = entries.some(e => e.earnings.length > 0 || e.variableExpenses.length > 0);
+  if(!hasAnyData){ box.innerHTML = `<div class="stats-empty">Ainda não há dados em ${yearLabel}. 📊</div>`; return; }
+
+  let totalUber=0, totalBolt=0, totalPart=0, totalOut=0, totalCustomAno=0, taxedAno=0, combAno=0, varOtherAno=0, fixasAno=0;
+  entries.forEach(e => {
+    totalUber += e.earnings.filter(x=>x.platform==='uber').reduce((s,x)=>s+(x.amount||0),0);
+    totalBolt += e.earnings.filter(x=>x.platform==='bolt').reduce((s,x)=>s+(x.amount||0),0);
+    totalPart += e.earnings.filter(x=>x.platform==='particular').reduce((s,x)=>s+(x.amount||0),0);
+    totalOut  += e.earnings.filter(x=>x.platform==='outros').reduce((s,x)=>s+(x.amount||0),0);
+    // Plataformas personalizadas entram no mesmo balde "pessoal" — ver
+    // isTvdePlatform(): só Uber/Bolt ficam de fora desta soma.
+    totalCustomAno += e.earnings.filter(x=>!isTvdePlatform(x.platform) && x.platform!=='particular' && x.platform!=='outros').reduce((s,x)=>s+(x.amount||0),0);
+    taxedAno += e.earnings.filter(x=>isTvdePlatform(x.platform) && x.platform!=='uber' && x.platform!=='bolt').reduce((s,x)=>s+(x.amount||0),0);
+    combAno     += e.variableExpenses.filter(x=>x.category==='combustivel').reduce((s,x)=>s+(x.amount||0),0);
+    varOtherAno += e.variableExpenses.filter(x=>x.category!=='combustivel').reduce((s,x)=>s+(x.amount||0),0);
+    fixasAno    += totalFixedBills(e);
+  });
+  const brutoTVDE = totalUber + totalBolt + taxedAno;
+  const brutoPart = totalPart + totalOut + totalCustomAno;
+  const ivaVal    = ivaRate();
+  const comVal    = comissaoRate();
+  const iva       = ivaAmount(brutoTVDE);
+  const com       = comissaoAmount(brutoTVDE);
+  const liquidoTVDE = (brutoTVDE - iva - com) - combAno;
+  const liquido     = liquidoTVDE + brutoPart;
+  const lucroAno    = liquido - fixasAno - varOtherAno;
+
+  const tvdeCardsArr = [];
+  if(totalUber>0) tvdeCardsArr.push(`<div class="stat-card"><div class="stat-card-label">${platformBadge('uber',14)} Uber</div><div class="stat-card-value">${fmt(totalUber)}</div></div>`);
+  if(totalBolt>0) tvdeCardsArr.push(`<div class="stat-card"><div class="stat-card-label">${platformBadge('bolt',14)} Bolt</div><div class="stat-card-value">${fmt(totalBolt)}</div></div>`);
+  tvdeCardsArr.push(`<div class="stat-card"><div class="stat-card-label">Bruto TVDE</div><div class="stat-card-value">${fmt(brutoTVDE)}</div></div>`);
+  if(ivaVal>0) tvdeCardsArr.push(`<div class="stat-card"><div class="stat-card-label">IVA (${ivaVal}%)</div><div class="stat-card-value negative">− ${fmt(iva)}</div></div>`);
+  if(comVal>0) tvdeCardsArr.push(`<div class="stat-card"><div class="stat-card-label">Comissão (${comVal}%)</div><div class="stat-card-value negative">− ${fmt(com)}</div></div>`);
+  if(combAno>0) tvdeCardsArr.push(`<div class="stat-card"><div class="stat-card-label">Combustível</div><div class="stat-card-value negative">− ${fmt(combAno)}</div></div>`);
+  tvdeCardsArr.push(`<div class="stat-card"><div class="stat-card-label">Líquido TVDE</div><div class="stat-card-value">${fmt(liquidoTVDE)}</div></div>`);
+  if(tvdeCardsArr.length % 2 === 1){
+    tvdeCardsArr[tvdeCardsArr.length-1] = tvdeCardsArr[tvdeCardsArr.length-1].replace('class="stat-card"', 'class="stat-card" style="grid-column:1/-1;"');
+  }
+  let html = `
+  <div class="chart-box" style="margin-bottom:14px;">
+    <div class="chart-box-title">🚖 TVDE — Uber &amp; Bolt</div>
+    <div class="chart-box-sub">${yearLabel}</div>
+    <div class="stat-cards" style="margin-bottom:0;">
+      ${tvdeCardsArr.join('\n      ')}
+    </div>
+  </div>`;
+
+  if(brutoPart > 0){
+    const pessoalCardsArr = [];
+    if(totalPart>0) pessoalCardsArr.push(`<div class="stat-card"><div class="stat-card-label">Particular</div><div class="stat-card-value">${fmt(totalPart)}</div></div>`);
+    if(totalOut>0) pessoalCardsArr.push(`<div class="stat-card"><div class="stat-card-label">Outros</div><div class="stat-card-value">${fmt(totalOut)}</div></div>`);
+    if(totalCustomAno>0) pessoalCardsArr.push(`<div class="stat-card"><div class="stat-card-label">Outras plataformas</div><div class="stat-card-value">${fmt(totalCustomAno)}</div></div>`);
+    pessoalCardsArr.push(`<div class="stat-card"><div class="stat-card-label">Total pessoal</div><div class="stat-card-value">${fmt(brutoPart)}</div></div>`);
+    if(pessoalCardsArr.length % 2 === 1){
+      pessoalCardsArr[pessoalCardsArr.length-1] = pessoalCardsArr[pessoalCardsArr.length-1].replace('class="stat-card"', 'class="stat-card" style="grid-column:1/-1;"');
+    }
+    html += `
+  <div class="chart-box" style="margin-bottom:14px;">
+    <div class="chart-box-title">🚘 Pessoal</div>
+    <div class="chart-box-sub">Sem desconto de IVA · ${yearLabel}</div>
+    <div class="stat-cards" style="margin-bottom:0;">
+      ${pessoalCardsArr.join('\n      ')}
+    </div>
+  </div>`;
+  }
+
+  const resumoCardsArr = [];
+  resumoCardsArr.push(`<div class="stat-card"><div class="stat-card-label">💧 Líquido total</div><div class="stat-card-value">${fmt(liquido)}</div></div>`);
+  resumoCardsArr.push(`<div class="stat-card"><div class="stat-card-label">Despesas fixas</div><div class="stat-card-value negative">− ${fmt(fixasAno)}</div></div>`);
+  if(varOtherAno>0) resumoCardsArr.push(`<div class="stat-card"><div class="stat-card-label">Outras despesas</div><div class="stat-card-value negative">− ${fmt(varOtherAno)}</div></div>`);
+  resumoCardsArr.push(`<div class="stat-card" style="border-color:var(--vault);"><div class="stat-card-label">💰 Lucro do ano</div><div class="stat-card-value ${lucroAno<0?'negative':''}">${fmt(lucroAno)}</div></div>`);
+  if(resumoCardsArr.length % 2 === 1){
+    const lastIdx = resumoCardsArr.length-1;
+    resumoCardsArr[lastIdx] = resumoCardsArr[lastIdx].includes('style="border-color:var(--vault);"')
+      ? resumoCardsArr[lastIdx].replace('style="border-color:var(--vault);"', 'style="border-color:var(--vault);grid-column:1/-1;"')
+      : resumoCardsArr[lastIdx].replace('class="stat-card"', 'class="stat-card" style="grid-column:1/-1;"');
+  }
+  html += `
+  <div class="chart-box" style="margin-bottom:14px;">
+    <div class="chart-box-title">📊 Resumo do ano</div>
+    <div class="chart-box-sub">${yearLabel}</div>
+    <div class="stat-cards" style="margin-bottom:0;">
+      ${resumoCardsArr.join('\n      ')}
+    </div>
+  </div>`;
+
+  const monthLabels = monthKeysInYear.map(k => {
+    const [y,m] = k.split('-').map(Number);
+    return new Date(y,m-1,1).toLocaleDateString('pt-BR',{month:'short'}).replace('.','');
+  });
+  const monthGanhos = entries.map(e => e.earnings.reduce((s,x)=>s+(x.amount||0),0));
+  const monthDespesas = entries.map(e => {
+    const apps = e.earnings.filter(x=>isTvdePlatform(x.platform)).reduce((s,x)=>s+(x.amount||0),0);
+    const comb = e.variableExpenses.filter(x=>x.category==='combustivel').reduce((s,x)=>s+(x.amount||0),0);
+    const varO = e.variableExpenses.filter(x=>x.category!=='combustivel').reduce((s,x)=>s+(x.amount||0),0);
+    return comb + ivaAmount(apps) + comissaoAmount(apps) + totalFixedBills(e) + varO;
+  });
+  html += chartBoxWrap('Ganhos vs. despesas por mês', 'Verde = ganhos · Vermelho = despesas', groupedBarSVG(monthLabels, [
+    { name:'Ganhos',   color:'#3E6650', values: monthGanhos },
+    { name:'Despesas', color:'#C0544A', values: monthDespesas }
+  ]));
+
+  const categoryTotals = {};
+  entries.forEach(entry => {
+    entry.variableExpenses.forEach(exp => { categoryTotals[exp.category] = (categoryTotals[exp.category]||0) + (exp.amount||0); });
+  });
+  const categoryItems = Object.entries(categoryTotals).filter(([,v])=>v>0).map(([cat,val]) => {
+    const found = EXPENSE_CATEGORIES.find(c => c.key === cat);
+    return { label: found ? `${found.emoji} ${found.label}` : cat, value: val, color:'#C97259' };
+  });
+  if(categoryItems.length){ html += chartBoxWrap('Despesas por categoria', 'Totais acumulados no ano', horizontalBarsHTML(categoryItems)); }
+  const allYearEarnings = entries.reduce((acc, e) => acc.concat(e.earnings), []);
+  html += kmStatsHTML(allYearEarnings, lucroAno) + turnoBreakdownHTML(allYearEarnings);
+
+  box.innerHTML = html;
+}
+
+// Modo básico: Estatísticas mostram só o resumo do mês (sem gráficos, turnos, km, metas).
+function renderStatsBasic(){
+  statsView = 'mes';
+  document.querySelectorAll('#statsViewSeg .seg-opt').forEach(el => el.classList.toggle('active', el.dataset.v === 'mes'));
+  document.getElementById('statsMonthNav').style.display = 'flex';
+  document.getElementById('statsYearNav').style.display = 'none';
+  document.getElementById('statsDayWeekNav').style.display = 'none';
+  const [curY, curM] = currentMonthKey.split('-').map(Number);
+  document.getElementById('statsLabelMes').textContent = new Date(curY, curM - 1, 1).toLocaleDateString('pt-BR', { month:'long', year:'numeric' });
+  const entry = ensureMonthEntry(currentMonthKey);
+  const apps = entry.earnings.filter(e => isTvdePlatform(e.platform)).reduce((s,e) => s + (e.amount||0), 0);
+  const part = entry.earnings.filter(e => !isTvdePlatform(e.platform)).reduce((s,e) => s + (e.amount||0), 0);
+  const comb = combustivelAmount(entry.variableExpenses);
+  const varOther = entry.variableExpenses.filter(e => e.category !== 'combustivel').reduce((s,e) => s + (e.amount||0), 0);
+  const fixas = totalFixedBills(entry);
+  const iva = ivaAmount(apps), com = comissaoAmount(apps);
+  const liquido = (apps - iva - com) - comb + part;
+  const lucro = liquido - fixas - varOther;
+  document.getElementById('statsContent').innerHTML = `
+    <div class="stat-cards">
+      <div class="stat-card"><div class="stat-card-label">🚖 Bruto TVDE</div><div class="stat-card-value">${fmt(apps)}</div></div>
+      <div class="stat-card"><div class="stat-card-label">🚘 Pessoal</div><div class="stat-card-value">${fmt(part)}</div></div>
+      <div class="stat-card"><div class="stat-card-label">⛽ Combustível</div><div class="stat-card-value negative">− ${fmt(comb)}</div></div>
+      <div class="stat-card"><div class="stat-card-label">Outras despesas</div><div class="stat-card-value negative">− ${fmt(varOther + fixas)}</div></div>
+      <div class="stat-card" style="border-color:var(--vault);grid-column:1/-1;"><div class="stat-card-label">💰 Lucro do mês</div><div class="stat-card-value ${lucro < 0 ? 'negative' : ''}">${fmt(lucro)}</div></div>
+    </div>
+    <div class="section-sub" style="font-size:11px;">Modo básico. Entra com a tua conta Google para ver gráficos, turnos, km e metas.</div>`;
+}
+function renderStats(){
+  if(basicMode()){ renderStatsBasic(); return; }
+  if(statsView === 'dia') renderStatsDay();
+  else if(statsView === 'semana') renderStatsWeek();
+  else if(statsView === 'ano') renderStatsYear();
+  else renderStatsMonth();
+}
+
+// --- LUCRO SCREEN ---
+function setLucroView(v){
+  lucroView = v;
+  document.querySelectorAll('#lucroViewSeg .seg-opt').forEach(el => el.classList.toggle('active', el.dataset.v === v));
+  document.getElementById('lucroMonthNav').style.display = (v === 'mes') ? 'flex' : 'none';
+  document.getElementById('lucroDayWeekNav').style.display = (v === 'mes') ? 'none' : 'flex';
+  renderLucro();
+}
+function changeLucroDayWeek(delta){
+  lucroRefDate = addDays(lucroRefDate, lucroView === 'semana' ? delta*7 : delta);
+  renderLucro();
+}
+
+function lucroBreakdownHTML(apps, comb, part, fixas, varOther, km, hours, context){
+  if(!showKm()) km = 0;
+  const iva      = ivaAmount(apps);
+  const ivaVal   = ivaRate();
+  const com      = comissaoAmount(apps);
+  const comVal   = comissaoRate();
+  const liquido  = (apps - iva - com) - comb + part;
+  const variaveis = varOther;
+  const lucro    = liquido - fixas - variaveis;
+  const lucroKm  = km > 0 ? lucro / km : null;
+  const lucroHora= hours > 0 ? lucro / hours : null;
+
+  const heroColor = lucro >= 0 ? 'var(--vault-light)' : 'var(--terracotta)';
+  const comLabel = ivaVal > 0 && comVal > 0 ? ' (após IVA + comissão)' : ivaVal > 0 ? ' (após IVA)' : comVal > 0 ? ' (após comissão)' : '';
+  let html = `
+    <div style="background:${heroColor};border-radius:var(--r-xl);padding:22px 20px 18px;color:#fff;margin-bottom:18px;box-shadow:var(--shadow-md);">
+      <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;opacity:0.75;margin-bottom:6px;">${context} · Lucro líquido${comLabel}</div>
+      <div style="font-family:'JetBrains Mono',monospace;font-weight:700;font-size:32px;letter-spacing:-0.02em;margin-bottom:2px;">${fmt(lucro)}</div>
+      ${km > 0 ? `<div style="font-size:12px;opacity:0.8;margin-top:4px;">${lucroKm !== null ? fmt(lucroKm) + '/km' : ''} ${lucroHora !== null ? '· ' + fmt(lucroHora) + '/h' : ''}</div>` : ''}
+    </div>`;
+
+  html += `<div class="chart-box" style="border-radius:var(--r-xl);padding:16px 18px;margin-bottom:18px;">
+    <div style="font-weight:700;font-size:var(--text-md);margin-bottom:14px;">Detalhamento</div>`;
+
+  html += lucroLineHTML('Faturamento bruto (apps)', apps, false, '#fff', true);
+  if(ivaVal > 0) html += lucroLineHTML(`IVA (${ivaVal}%)`, -iva, true);
+  if(comVal > 0) html += lucroLineHTML(`Comissão plataforma (${comVal}%)`, -com, true);
+  if(ivaVal > 0 || comVal > 0){
+    html += `<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;margin:4px 0;">
+      <span style="font-size:12px;font-weight:600;color:var(--text-muted);">Líquido TVDE (após taxas)</span>
+      <span style="font-family:'JetBrains Mono',monospace;font-weight:700;font-size:13px;">${fmt(apps - iva - com)}</span>
+    </div>`;
+  }
+  if(part > 0)      html += lucroLineHTML('Pessoal (Particular/Outros)', part, false);
+  if(comb > 0)      html += lucroLineHTML('Combustível', -comb, true);
+  if(fixas > 0)     html += lucroLineHTML('Despesas fixas', -fixas, true);
+  if(variaveis > 0) html += lucroLineHTML('Outras despesas variáveis', -variaveis, true);
+
+  html += `<div style="display:flex;justify-content:space-between;align-items:center;padding:12px 0 4px;border-top:2px solid var(--line);margin-top:6px;">
+    <span style="font-size:var(--text-md);font-weight:700;">${lucro >= 0 ? '💰 Lucro líquido' : '⚠️ Resultado'}</span>
+    <span style="font-family:'JetBrains Mono',monospace;font-weight:700;font-size:var(--text-lg);color:${lucro>=0?'var(--vault-light)':'var(--terracotta)'};">${fmt(lucro)}</span>
+  </div>`;
+  html += `</div>`;
+  return html;
+}
+function lucroLineHTML(label, value, isDeduction, bg, isBig){
+  const color = isDeduction ? 'var(--terracotta)' : 'var(--vault)';
+  return `<div style="display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid var(--line);">
+    <span style="font-size:12px;font-weight:600;color:var(--text-muted);">${label}</span>
+    <span style="font-family:'JetBrains Mono',monospace;font-weight:700;font-size:${isBig?'14px':'13px'};color:${value<0?'var(--terracotta)':'inherit'};">${value < 0 ? '− ' + fmt(-value) : fmt(value)}</span>
+  </div>`;
+}
+
+function renderLucroDay(){
+  const dateIso = isoDate(lucroRefDate);
+  const isToday = dateIso === isoDate(new Date());
+  const [dy,dm,dd] = dateIso.split('-').map(Number);
+  const dateObj = new Date(dy,dm-1,dd);
+  document.getElementById('lucroLabel').textContent = isToday ? 'Hoje' : dateObj.toLocaleDateString('pt-BR',{weekday:'long',day:'2-digit',month:'long'});
+  const yearEl = document.getElementById('lucroLabelYear');
+  if(yearEl) yearEl.textContent = String(dy);
+  const items    = earningsInRange(dateIso, dateIso);
+  const expenses = variableExpensesInRange(dateIso, dateIso);
+  const box = document.getElementById('lucroContent');
+  const dApps = items.filter(e=>isTvdePlatform(e.platform)).reduce((s,e)=>s+(e.amount||0),0);
+  const dPart = items.filter(e=>!isTvdePlatform(e.platform)).reduce((s,e)=>s+(e.amount||0),0);
+  if(dApps === 0 && dPart === 0 && expenses.length === 0){
+    box.innerHTML = '<div class="stats-empty">Nenhum ganho registado neste dia.</div>'; return;
+  }
+  const dComb    = combustivelAmount(expenses);
+  const dVarOther = expenses.filter(e=>e.category!=='combustivel').reduce((s,e)=>s+(e.amount||0),0);
+  const km = sumKm(items), hours = sumHours(items);
+  let html = lucroBreakdownHTML(dApps, dComb, dPart, 0, dVarOther, km, hours, isToday ? 'Hoje' : dayMonthLabel(lucroRefDate));
+  if(expenses.length > 0){
+    html += `<div class="chart-box"><div class="chart-box-title">Despesas do dia</div><div class="chart-box-sub">Registadas em ${isToday?'hoje':dayMonthLabel(lucroRefDate)}</div>`;
+    html += expenses.map(exp => {
+      const cat = EXPENSE_CATEGORIES.find(c=>c.key===exp.category)||EXPENSE_CATEGORIES[EXPENSE_CATEGORIES.length-1];
+      return `<div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--line);font-size:13px;"><span>${cat.emoji} ${cat.label}${exp.note?' · '+escapeHtml(exp.note):''}</span><span style="font-family:'JetBrains Mono',monospace;font-weight:700;color:var(--terracotta);">− ${fmt(exp.amount)}</span></div>`;
+    }).join('');
+    html += `</div>`;
+  }
+  box.innerHTML = html;
+}
+
+function renderLucroWeek(){
+  const start   = startOfWeek(lucroRefDate);
+  const end     = addDays(start, 6);
+  const startIso = isoDate(start), endIso = isoDate(end);
+  const [sy,sm,sd] = startIso.split('-').map(Number);
+  const [ey,em,ed] = endIso.split('-').map(Number);
+  const fmtD = ([y,m,d]) => new Date(y,m-1,d).toLocaleDateString('pt-BR',{day:'2-digit',month:'short'});
+  document.getElementById('lucroLabel').textContent = `${fmtD([sy,sm,sd])} – ${fmtD([ey,em,ed])}`;
+  const yearEl = document.getElementById('lucroLabelYear');
+  if(yearEl) yearEl.textContent = sy !== ey ? `${sy}–${ey}` : String(sy);
+  const items    = earningsInRange(startIso, endIso);
+  const expenses = variableExpensesInRange(startIso, endIso);
+  const box      = document.getElementById('lucroContent');
+  const wApps = items.filter(e=>isTvdePlatform(e.platform)).reduce((s,e)=>s+(e.amount||0),0);
+  const wPart = items.filter(e=>!isTvdePlatform(e.platform)).reduce((s,e)=>s+(e.amount||0),0);
+  if(wApps === 0 && wPart === 0 && expenses.length === 0){
+    box.innerHTML = '<div class="stats-empty">Nenhum dado nesta semana.</div>'; return;
+  }
+  const wComb    = combustivelAmount(expenses);
+  const wVarOther = expenses.filter(e=>e.category!=='combustivel').reduce((s,e)=>s+(e.amount||0),0);
+  const km = sumKm(items), hours = sumHours(items);
+  // Despesas fixas diárias/semanais desta semana, pelo valor real (sem
+  // ratear despesas mensais) — ver weeklyFixedBills().
+  const wFixas = weeklyFixedBills(start);
+  let html = lucroBreakdownHTML(wApps, wComb, wPart, wFixas, wVarOther, km, hours, 'Esta semana');
+
+  const dayLabels=[], lucroVals=[];
+  for(let i=0;i<7;i++){
+    const d = addDays(start,i);
+    const dIso = isoDate(d);
+    const dayItems = items.filter(it=>it.date===dIso);
+    const dayExp   = expenses.filter(e=>(e.date||isoDateFromTs(e.ts))===dIso);
+    const db = dayItems.filter(e=>isTvdePlatform(e.platform)).reduce((s,e)=>s+(e.amount||0),0);
+    const dp = dayItems.filter(e=>!isTvdePlatform(e.platform)).reduce((s,e)=>s+(e.amount||0),0);
+    const dc = dayExp.filter(e=>e.category==='combustivel').reduce((s,e)=>s+(e.amount||0),0);
+    const dv = dayExp.filter(e=>e.category!=='combustivel').reduce((s,e)=>s+(e.amount||0),0);
+    const dl = (db - dc - ivaAmount(db - dc)) + dp - dv;
+    dayLabels.push(weekdayLabel(d));
+    lucroVals.push(Math.max(0, dl));
+  }
+  html += chartBoxWrap('Lucro por dia', 'Lucro líquido de cada dia da semana', groupedBarSVG(dayLabels, [{ name:'Lucro', color:'#3E6650', values: lucroVals }]));
+  box.innerHTML = html;
+}
+
+function renderLucroMonth(){
+  const [curY, curM] = currentMonthKey.split('-').map(Number);
+  const monthNameYear = new Date(curY, curM-1, 1).toLocaleDateString('pt-BR', { month:'long', year:'numeric' });
+  document.getElementById('lucroLabelMes').textContent = monthNameYear;
+  const box   = document.getElementById('lucroContent');
+  const entry = ensureMonthEntry(currentMonthKey);
+  const mApps = entry.earnings.filter(e=>isTvdePlatform(e.platform)).reduce((s,e)=>s+(e.amount||0),0);
+  const mPart = entry.earnings.filter(e=>!isTvdePlatform(e.platform)).reduce((s,e)=>s+(e.amount||0),0);
+  if(mApps === 0 && mPart === 0){ box.innerHTML = '<div class="stats-empty">Nenhum ganho registado este mês.</div>'; return; }
+  const mComb    = entry.variableExpenses.filter(e=>e.category==='combustivel').reduce((s,e)=>s+(e.amount||0),0);
+  const mVarOther = entry.variableExpenses.filter(e=>e.category!=='combustivel').reduce((s,e)=>s+(e.amount||0),0);
+  const fixas    = totalFixedBills(entry);
+  const km       = totalKm(entry);
+  const hours    = entry.earnings.reduce((s,e)=>s+(e.hours||0),0);
+  let html = lucroBreakdownHTML(mApps, mComb, mPart, fixas, mVarOther, km, hours, monthLabelFor(currentMonthKey));
+
+  const nWeeks = weeksInMonth(currentMonthKey);
+  const weekLabels = Array.from({length:nWeeks},(_,i)=>`Sem.${i+1}`);
+  const wkApps = Array(nWeeks).fill(0), wkComb = Array(nWeeks).fill(0);
+  const wkPart = Array(nWeeks).fill(0), wkVar  = Array(nWeeks).fill(0);
+  entry.earnings.forEach(e=>{
+    const w=weekOfMonthFromDateStr(e.date)-1;
+    if(w<0||w>=nWeeks) return;
+    if(isTvdePlatform(e.platform)) wkApps[w]+=(e.amount||0);
+    else wkPart[w]+=(e.amount||0);
+  });
+  entry.variableExpenses.forEach(e=>{
+    const d=e.date||(new Date(e.ts).toISOString().slice(0,10));
+    const w=weekOfMonthFromDateStr(d)-1;
+    if(w<0||w>=nWeeks) return;
+    if(e.category==='combustivel') wkComb[w]+=(e.amount||0);
+    else wkVar[w]+=(e.amount||0);
+  });
+  const weekLucro = wkApps.map((a,i) => {
+    const liq = (a - ivaAmount(a) - comissaoAmount(a)) - wkComb[i] + wkPart[i];
+    return Math.max(0, liq - weekBucketFixedBills(currentMonthKey, i) - wkVar[i]);
+  });
+  html += chartBoxWrap('Lucro por semana', 'Sem despesas fixas mensais (essas entram só no total do mês)', groupedBarSVG(weekLabels, [{ name:'Lucro', color:'#3E6650', values: weekLucro }]));
+
+  const monthKeys = lastNMonthKeys(6);
+  if(monthKeys.length > 1){
+    const mLabels = monthKeys.map(monthShortLabel);
+    const mLucros = monthKeys.map(k=>{
+      const e = ensureMonthEntry(k);
+      const apps = e.earnings.filter(x=>isTvdePlatform(x.platform)).reduce((s,x)=>s+(x.amount||0),0);
+      const part = e.earnings.filter(x=>!isTvdePlatform(x.platform)).reduce((s,x)=>s+(x.amount||0),0);
+      const comb = e.variableExpenses.filter(x=>x.category==='combustivel').reduce((s,x)=>s+(x.amount||0),0);
+      const varO = e.variableExpenses.filter(x=>x.category!=='combustivel').reduce((s,x)=>s+(x.amount||0),0);
+      const liq  = (apps - ivaAmount(apps) - comissaoAmount(apps)) - comb + part;
+      return Math.max(0, liq - totalFixedBills(e) - varO);
+    });
+    html += chartBoxWrap('Evolução do lucro', 'Lucro líquido dos últimos meses', groupedBarSVG(mLabels, [{ name:'Lucro', color:'#3E6650', values: mLucros }]));
+  }
+  box.innerHTML = html;
+}
+
+function renderLucro(){
+  if(lucroView === 'dia') renderLucroDay();
+  else if(lucroView === 'semana') renderLucroWeek();
+  else renderLucroMonth();
+}
+
+// --- SHEETS ---
+function openSheet(html){ document.getElementById('sheet').innerHTML = html; document.getElementById('overlay').classList.add('show'); }
+function closeSheet(){
+  document.getElementById('overlay').classList.remove('show');
+  if(window._conflictResolve){ const r = window._conflictResolve; window._conflictResolve = null; r(null); }
+}
+function closeSheetOnBackdrop(e){ if(e.target.id === 'overlay') closeSheet(); }
+
+// --- MÊS navigation / picker ---
+function changeMonth(delta){
+  const [y,m] = currentMonthKey.split('-').map(Number);
+  currentMonthKey = monthKeyFor(new Date(y, m-1+delta, 1));
+  renderGanhos(); renderDespesas(); renderStats(); renderLucro();
+}
+
+let pickerYear = null;
+function openMonthPicker(){
+  const [y] = currentMonthKey.split('-').map(Number);
+  pickerYear = y;
+  openSheet(`
+    <div class="sheet-handle"></div>
+    <div class="sheet-title">Escolher mês</div>
+    <div class="sheet-sub">Toque em um mês para ir direto até ele.</div>
+    <div id="monthPickerBody"></div>
+    <button class="btn btn-ghost" onclick="closeSheet()">Cancelar</button>
+  `);
+  renderMonthPicker();
+}
+function changePickerYear(delta){ pickerYear += delta; renderMonthPicker(); }
+function renderMonthPicker(){
+  const [curY, curM] = currentMonthKey.split('-').map(Number);
+  const monthNames = Array.from({length:12}, (_,i) => new Date(2000,i,1).toLocaleDateString('pt-BR',{month:'short'}));
+  const cells = monthNames.map((label, i) => {
+    const m = i+1;
+    const isCurrent  = (pickerYear === curY && m === curM);
+    const key = pickerYear + '-' + String(m).padStart(2,'0');
+    return `<div class="month-picker-cell ${isCurrent?'is-selected':''}" onclick="pickMonth('${key}')">${escapeHtml(label.replace('.',''))}</div>`;
+  }).join('');
+  document.getElementById('monthPickerBody').innerHTML = `
+    <div class="month-picker-year">
+      <div class="month-picker-year-btn" onclick="changePickerYear(-1)">
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="none"><path d="M15 18l-6-6 6-6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </div>
+      <div class="month-picker-year-label">${pickerYear}</div>
+      <div class="month-picker-year-btn" onclick="changePickerYear(1)">
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="none"><path d="M9 18l6-6-6-6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </div>
+    </div>
+    <div class="month-picker-grid">${cells}</div>
+  `;
+}
+function pickMonth(key){
+  currentMonthKey = key;
+  renderGanhos(); renderDespesas(); renderStats();
+  closeSheet();
+}
+function updateMonthHint(){
+  const [y,m] = currentMonthKey.split('-').map(Number);
+  let py = y, pm = m - 1; if(pm === 0){ pm = 12; py = y - 1; }
+  const prevLabel = new Date(py, pm-1, 1).toLocaleDateString('pt-BR', { month:'long' });
+  const currLabel = new Date(y, m-1, 1).toLocaleDateString('pt-BR', { month:'long' });
+  document.getElementById('monthHintMes').textContent = `recebi em ${prevLabel} para usar em ${currLabel}`;
+}
+
+// Só Uber/Bolt são consideradas apps TVDE (sujeitas a IVA/comissão); tudo
+// o resto — Particular, Outros, e qualquer plataforma personalizada criada
+// pelo utilizador — entra no "balde" pessoal, sem esses descontos. Ver
+// docs para a lista completa de sítios que usam esta distinção.
+// Registos opcionais e plataformas extra — guardados em profile (sincronizados).
+const FEATURE_DEFAULTS = {
+  showTurno: () => true,
+  showKm: () => false,
+  customPlatformsEnabled: () => (profile.customPlatforms || []).length > 0,
+  ivaEnabled: () => (parseFloat(profile.ivaRate) || 0) > 0,
+  comissaoEnabled: () => (parseFloat(profile.comissaoRate) || 0) > 0,
+  dailySummaryEnabled: () => false
+};
+function featureOn(flag){
+  return profile[flag] === undefined ? FEATURE_DEFAULTS[flag]() : !!profile[flag];
+}
+function showTurno(){ return featureOn('showTurno'); }
+function showKm(){ return featureOn('showKm'); }
+function customPlatformsOn(){ return featureOn('customPlatformsEnabled'); }
+function ivaOn(){ return featureOn('ivaEnabled'); }
+function comissaoOn(){ return featureOn('comissaoEnabled'); }
+async function toggleFeature(flag){
+  profile[flag] = !featureOn(flag);
+  await persistProfile();
+  renderSettings();
+  const msgs = { showTurno: 'Turno', showKm: 'Km', customPlatformsEnabled: 'Outras plataformas', ivaEnabled: 'IVA', comissaoEnabled: 'Comissão', dailySummaryEnabled: 'Resumo de ontem' };
+  showToast(`${msgs[flag]} ${profile[flag] ? 'ativado' : 'desativado'}`);
+}
+async function toggleUidVisibility(){
+  localSettings.showUid = !localSettings.showUid;
+  await persistLocalSettings();
+  renderSettings();
+}
+function currentPhotoUrl(){ return profile.photo || (window.__fbUser && window.__fbUser.photoURL) || null; }
+// Lista de turnos. Sem lista guardada, usa os 4 padrões com os nomes e emojis
+// personalizados anteriores. Turnos removidos ficam com archived:true, para os
+// ganhos antigos continuarem com o nome certo nos relatórios.
+function getTurnos(){
+  if(profile.turnoList) return profile.turnoList;
+  const names = profile.turnoNames || {};
+  const emojis = profile.turnoEmojis || {};
+  return TURNOS.map(t => ({ key: t.key, label: names[t.key] || t.label, emoji: emojis[t.key] || t.emoji }));
+}
+function activeTurnos(){ return getTurnos().filter(t => !t.archived); }
+// Garante que os 4 turnos padrão existem na lista. Um turno removido fica
+// arquivado (não some), por isso um padrão em falta só pode ser um erro antigo.
+function repairTurnoList(){
+  if(!profile.turnoList) return false;
+  let changed = false;
+  TURNOS.forEach(t => {
+    if(!profile.turnoList.some(x => x.key === t.key)){
+      profile.turnoList.push({ key: t.key, label: t.label, emoji: t.emoji });
+      changed = true;
+    }
+  });
+  return changed;
+}
+// Volta aos 4 turnos padrão. Os turnos personalizados ficam arquivados, para
+// os ganhos antigos continuarem com o nome certo.
+async function restoreDefaultTurnos(){
+  if(!confirm('Repor os turnos padrão? Os turnos que criaste ficam arquivados, e os ganhos antigos mantêm o nome que tinham.')) return;
+  const custom = getTurnos().filter(t => !TURNOS.some(x => x.key === t.key)).map(t => ({ ...t, archived: true }));
+  profile.turnoList = TURNOS.map(t => ({ key: t.key, label: t.label, emoji: t.emoji })).concat(custom);
+  delete profile.turnoNames;
+  delete profile.turnoEmojis;
+  await saveTurnos('Turnos padrão repostos');
+}
+function firstGrapheme(v){
+  const parts = (typeof Intl !== 'undefined' && Intl.Segmenter) ? [...new Intl.Segmenter().segment(v)].map(x => x.segment) : [...v];
+  return parts[0] || '';
+}
+function ensureTurnoList(){
+  if(!profile.turnoList){ profile.turnoList = getTurnos().map(t => ({ ...t })); }
+  return profile.turnoList;
+}
+async function saveTurnos(msg){
+  await persistProfile();
+  renderSettings();
+  if(msg) showToast(msg);
+}
+// Atualiza o nome ou o emoji de um turno. Vazio no nome = volta ao original.
+async function updateTurnoField(key, field, value){
+  const list = ensureTurnoList();
+  const t = list.find(x => x.key === key);
+  if(!t) return;
+  if(field === 'emoji'){
+    const e = firstGrapheme((value || '').trim());
+    if(e) t.emoji = e;
+  } else {
+    const v = (value || '').trim().slice(0, 14);
+    if(v){ t.label = v; }
+    else {
+      const orig = TURNOS.find(x => x.key === key);
+      t.label = orig ? orig.label : t.label;
+    }
+  }
+  await saveTurnos('Turno atualizado');
+}
+async function addTurno(){
+  const name = (document.getElementById('newTurnoName')?.value || '').trim().slice(0, 14);
+  const emoji = firstGrapheme((document.getElementById('newTurnoEmoji')?.value || '').trim()) || '🕒';
+  if(!name){ showToast('Dá um nome ao turno'); return; }
+  ensureTurnoList().push({ key: 'turno_' + uid(), label: name, emoji });
+  await saveTurnos('Turno adicionado');
+}
+async function removeTurno(key){
+  if(!confirm('Remover este turno? Os ganhos já registados continuam com ele nos relatórios, mas deixa de aparecer nos novos ganhos.')) return;
+  const t = ensureTurnoList().find(x => x.key === key);
+  if(t) t.archived = true;
+  await saveTurnos('Turno removido');
+}
+async function restoreTurno(key){
+  const t = ensureTurnoList().find(x => x.key === key);
+  if(t) t.archived = false;
+  await saveTurnos('Turno reativado');
+}
+// ---------------- Modo básico (sem login) ----------------
+const BASIC_LIMITS = { ganhos: 5, despesas: 5, fixas: 5 };
+const BASIC_LABELS = { ganhos: 'ganhos', despesas: 'despesas variáveis', fixas: 'despesas fixas' };
+function basicMode(){ return !window.__fbUser; }
+function countRecords(){
+  let ganhos = 0, despesas = 0;
+  Object.keys(monthData).forEach(k => {
+    const m = monthData[k] || {};
+    ganhos += (m.earnings || []).length;
+    despesas += (m.variableExpenses || []).length;
+  });
+  return { ganhos, despesas, fixas: bills.length };
+}
+// Devolve true (e mostra o aviso) se adicionar `adding` registos ultrapassaria o limite.
+function basicLimitBlocked(kind, adding){
+  if(!basicMode()) return false;
+  const total = countRecords()[kind] + adding;
+  if(total <= BASIC_LIMITS[kind]) return false;
+  openSheet(`
+    <div class="sheet-handle"></div>
+    <div class="sheet-title">Limite do modo básico</div>
+    <div class="sheet-sub">No modo básico podes ter até ${BASIC_LIMITS[kind]} ${BASIC_LABELS[kind]}.</div>
+    <div style="font-size:13px;line-height:1.6;margin-bottom:14px;">Entra com a tua conta Google para registar sem limite e desbloquear as configurações.</div>
+    <button class="btn btn-primary" onclick="closeSheet(); handleGoogleSignIn();">Entrar com Google</button>
+    <button class="btn btn-ghost" onclick="closeSheet()">Fechar</button>
+  `);
+  return true;
+}
+function showWelcomeSheet(){
+  openSheet(`
+    <div class="sheet-handle"></div>
+    <div class="sheet-title">Bem-vindo ao Corrida+ 👋</div>
+    <div class="sheet-sub">Controla os teus ganhos, despesas e lucro.</div>
+    <div style="font-size:13px;line-height:1.6;margin-bottom:14px;">Entra com a tua conta Google para sincronizar os teus dados e desbloquear todas as opções.<br><br>Sem login, podes usar o modo básico: até 5 ganhos, 5 despesas variáveis e 5 despesas fixas, com as configurações bloqueadas.</div>
+    <button class="btn btn-primary" onclick="welcomeChoice(true)">Entrar com Google</button>
+    <button class="btn btn-ghost" onclick="welcomeChoice(false)">Continuar em modo básico</button>
+  `);
+}
+function showUpdateSheet(remoteVersion){
+  // Primeiro as boas-vindas; o alerta aparece na abertura seguinte.
+  if(!localSettings.welcomeDone) return;
+  const v = escapeHtml(remoteVersion);
+  openSheet(`
+    <div class="sheet-handle"></div>
+    <div class="sheet-title">🆕 Nova versão disponível</div>
+    <div class="sheet-sub">Versão ${v} (estás na ${APP_VERSION}).</div>
+    <div style="font-size:13px;line-height:1.6;margin-bottom:14px;">Sem login, a app pode demorar a atualizar neste aparelho. Entra com a tua conta Google para receberes as atualizações automaticamente.</div>
+    <button class="btn btn-primary" onclick="applyUpdateNow('${v}')">Atualizar agora</button>
+    <button class="btn btn-ghost" onclick="closeSheet(); handleGoogleSignIn();">Entrar com Google</button>
+    <button class="btn btn-ghost" onclick="closeSheet()">Mais tarde</button>
+  `);
+}
+async function applyUpdateNow(v){
+  try{ await window.storage.set('pendingUpdateNotice', v); }catch(e){}
+  location.replace(location.href.split('?')[0] + '?v=' + Date.now());
+}
+async function welcomeChoice(login){
+  localSettings.welcomeDone = true;
+  await persistLocalSettings();
+  closeSheet();
+  if(login) handleGoogleSignIn();
+}
+// Texto do log para o suporte: só as últimas 24 horas (ou tudo, se não houver nada recente).
+function buildSupportLogText(entries){
+  const linhas = entries.map(e => {
+    const iso = new Date(e.ts).toISOString();
+    return `[${iso}] [${String(e.type).toUpperCase()}] ${e.message}${e.extra ? ' — ' + e.extra : ''}`;
+  });
+  const cabecalho = `Corrida+ v${APP_VERSION} — log de sincronização\nDispositivo: ${navigator.userAgent}\nGerado em: ${new Date().toISOString()}\nEventos: ${entries.length}\n\n`;
+  return cabecalho + (linhas.length ? linhas.join('\n') : 'Sem eventos registados.');
+}
+function downloadTextFile(name, text){
+  const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = name;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+// Suporte: abre o email com o endereço e os dados da conta. O log das últimas
+// 24 horas vai como ficheiro. Se o aparelho permitir partilhar ficheiros, a folha
+// de partilha leva o ficheiro já anexado; senão, o ficheiro é transferido e o email
+// pede para o anexar (o email não consegue anexar ficheiros).
+async function openSupportEmail(){
+  const u = window.__fbUser;
+  const agora = Date.now();
+  const recentes = syncLog.filter(e => agora - e.ts <= 24 * 60 * 60 * 1000);
+  const logText = buildSupportLogText(recentes);
+  const agoraDate = new Date();
+  const stamp = isoDate(agoraDate) + '-' + String(agoraDate.getHours()).padStart(2, '0') + String(agoraDate.getMinutes()).padStart(2, '0');
+  const nomeFicheiro = `corridaplus-log-${stamp}.txt`;
+  const assunto = 'Suporte Corrida+ — ' + (u && u.email ? u.email : 'sem conta');
+  const cabecalhoEmail = [
+    'Olá,',
+    '',
+    'Preciso de ajuda com a Corrida+.',
+    '',
+    'Email da conta: ' + (u ? (u.email || '—') : 'sem conta Google ligada'),
+    'ID da conta: ' + (u ? u.uid : '—'),
+    'Versão da app: ' + APP_VERSION,
+    '',
+    'Mensagem:',
+    ''
+  ];
+  const file = new File([logText], nomeFicheiro, { type: 'text/plain' });
+  if(navigator.canShare && navigator.canShare({ files: [file] })){
+    const corpo = [...cabecalhoEmail, `Log das últimas 24 horas em anexo (${nomeFicheiro}).`, '', 'Para: rodrigo_almeida1410@proton.me'].join('\n');
+    try{
+      await navigator.share({ files: [file], title: assunto, text: corpo });
+      return;
+    }catch(e){
+      if(e && e.name === 'AbortError') return;
+    }
+  }
+  downloadTextFile(nomeFicheiro, logText);
+  const corpo = [...cabecalhoEmail, `Log das últimas 24 horas: anexe o ficheiro ${nomeFicheiro} que acabou de ser transferido.`].join('\n');
+  window.location.href = 'mailto:rodrigo_almeida1410@proton.me'
+    + '?subject=' + encodeURIComponent(assunto)
+    + '&body=' + encodeURIComponent(corpo);
+}
+function isTvdePlatform(platform){
+  if(platform === 'uber' || platform === 'bolt') return true;
+  const cp = findCustomPlatform(platform);
+  return !!(cp && cp.taxed);
+}
+function findCustomPlatform(platform){ return (profile.customPlatforms || []).find(cp => cp.key === platform); }
+
+function platformBadge(platform, size){
+  size = size || 22;
+  if(platform === 'uber'){ return `<div class="platform-badge uber" style="width:${size}px;height:${size}px;font-size:${size*0.55}px;">U</div>`; }
+  if(platform === 'bolt'){ return `<div class="platform-badge bolt" style="width:${size}px;height:${size}px;font-size:${size*0.6}px;">⚡</div>`; }
+  if(platform === 'particular'){ return `<div class="platform-badge" style="width:${size}px;height:${size}px;font-size:${size*0.55}px;background:#5A6B8A;color:#fff;">P</div>`; }
+  const custom = findCustomPlatform(platform);
+  if(custom){
+    const letter = custom.emoji || (custom.label||'?').trim().charAt(0).toUpperCase();
+    return `<div class="platform-badge" style="width:${size}px;height:${size}px;font-size:${size*0.5}px;background:#6B5A8A;color:#fff;">${letter}</div>`;
+  }
+  return `<div class="platform-badge" style="width:${size}px;height:${size}px;font-size:${size*0.55}px;background:#8A6B5A;color:#fff;">O</div>`;
+}
+function platformLabel(platform){
+  if(platform === 'uber') return 'Uber';
+  if(platform === 'bolt') return 'Bolt';
+  if(platform === 'particular') return 'Particular';
+  const custom = findCustomPlatform(platform);
+  if(custom) return custom.label;
+  return 'Outros';
+}
+function weekdayLabel(d){ return d.toLocaleDateString('pt-BR', { weekday:'short' }).replace('.',''); }
+function dayMonthLabel(d){ return d.toLocaleDateString('pt-BR', { day:'2-digit', month:'short' }).replace('.',''); }
+
+// --- GANHOS SCREEN ---
+function setGanhosView(v){
+  ganhosView = v;
+  document.querySelectorAll('#ganhosViewSeg .seg-opt').forEach(el => el.classList.toggle('active', el.dataset.v === v));
+  document.getElementById('ganhosMonthNav').style.display = (v === 'mes') ? 'flex' : 'none';
+  document.getElementById('ganhosDayWeekNav').style.display = (v === 'mes') ? 'none' : 'flex';
+  renderGanhos();
+}
+function changeGanhosDayWeek(delta){
+  ganhosRefDate = addDays(ganhosRefDate, ganhosView === 'semana' ? delta*7 : delta);
+  renderGanhos();
+}
+
+function renderEarningsList(items, emptyMsg){
+  if(items.length === 0) return `<div class="empty-note">${emptyMsg}</div>`;
+  return items.map(it => {
+    // Líquido só é diferente do bruto para apps TVDE (Uber/Bolt), que têm
+    // IVA/comissão descontados — plataformas pessoais (Particular, Outros,
+    // personalizadas) não têm desconto, então líquido === bruto e a linha
+    // extra seria redundante (omitida nesse caso).
+    return `
+    <div class="income-row-compact">
+      ${platformBadge(it.platform)}
+      <div style="flex:1">
+        <div class="income-name">${escapeHtml(platformLabel(it.platform))}</div>
+        <div class="income-sub">${formatDateStr(it.date)}${it.km && showKm() ? ' · ' + it.km + ' km' : ''}${it.hours ? ' · ' + it.hours + 'h' : ''}</div>
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:2px;">
+        <div class="bill-amount-edit"><input type="number" class="bill-amount-input" inputmode="decimal" value="${it.amount}" onchange="updateEarningAmount('${it.id}', this.value)" /></div>
+      </div>
+      <div class="bill-delete" onclick="removeEarning('${it.id}')">✕</div>
+    </div>`;
+  }).join('');
+}
+// Edita o valor de um ganho diretamente na lista (mesmo padrão das
+// despesas fixas: campo inline, sem precisar de abrir sheet). Procura em
+// todos os meses porque a lista de Ganhos pode incluir dias de um mês
+// vizinho (visão Semana pode atravessar a fronteira de mês).
+async function updateEarningAmount(id, value){
+  const amount = parseFloat(value) || 0;
+  if(amount <= 0){ showToast('Digite um valor válido'); renderGanhos(); return; }
+  let found = false;
+  Object.keys(monthData).forEach(k => {
+    const match = (monthData[k].earnings || []).find(e => e.id === id);
+    if(match){ match.amount = amount; found = true; }
+  });
+  if(!found){ showToast('Ganho não encontrado'); return; }
+  await persistMonthData();
+  renderGanhos();
+  showToast('Ganho atualizado');
+}
+function renderEarningsCardsAndSummary(items, fixedTotal, expenses){
+  const totalUber = sumByPlatform(items, 'uber');
+  const totalBolt = sumByPlatform(items, 'bolt');
+  const totalPart = sumByPlatform(items, 'particular');
+  const totalOut  = sumByPlatform(items, 'outros');
+  // Plataformas personalizadas: cada uma tem o seu próprio total, mas
+  // todas entram no mesmo balde "pessoal" para efeitos de IVA/líquido.
+  const customPlatforms = profile.customPlatforms || [];
+  const customTotals = customPlatforms.map(cp => ({ cp, total: sumByPlatform(items, cp.key) })).filter(c => c.total > 0);
+  const totalCustom = customTotals.filter(c => !isTvdePlatform(c.cp.key)).reduce((s,c)=>s+c.total,0);
+  const totalCustomTax = customTotals.filter(c => isTvdePlatform(c.cp.key)).reduce((s,c)=>s+c.total,0);
+  const totalCustomAll = totalCustom + totalCustomTax;
+  const apps      = totalUber + totalBolt + totalCustomTax;
+  const part      = totalPart + totalOut + totalCustom;
+  const comb      = (expenses && Array.isArray(expenses)) ? combustivelAmount(expenses) : 0;
+  const varOther  = (expenses && Array.isArray(expenses)) ? expenses.filter(e=>e.category!=='combustivel').reduce((s,e)=>s+(e.amount||0),0) : 0;
+  const iva       = ivaAmount(apps);
+  const ivaRateVal = ivaRate();
+  const com = comissaoAmount(apps);
+  const liquido   = (apps - iva - com) - comb + part;
+  const saldo     = liquido - fixedTotal - varOther;
+
+  let cardsHtml = `
+    <div class="stat-card"><div class="stat-card-label">${platformBadge('uber',16)} Uber</div><div class="stat-card-value" style="font-size:22px;">${fmt(totalUber)}</div></div>
+    <div class="stat-card"><div class="stat-card-label">${platformBadge('bolt',16)} Bolt</div><div class="stat-card-value" style="font-size:22px;">${fmt(totalBolt)}</div></div>`;
+  const partStyle = (totalPart > 0 && totalOut === 0) ? 'grid-column:1/-1;' : '';
+  const outStyle  = (totalOut  > 0 && totalPart === 0) ? 'grid-column:1/-1;' : '';
+  if(totalPart > 0) cardsHtml += `<div class="stat-card" style="${partStyle}"><div class="stat-card-label">🚘 Particular</div><div class="stat-card-value" style="font-size:22px;">${fmt(totalPart)}</div></div>`;
+  if(totalOut  > 0) cardsHtml += `<div class="stat-card" style="${outStyle}"><div class="stat-card-label">📦 Outros</div><div class="stat-card-value" style="font-size:22px;">${fmt(totalOut)}</div></div>`;
+  customTotals.forEach(({cp, total}) => {
+    cardsHtml += `<div class="stat-card"><div class="stat-card-label">${platformBadge(cp.key,16)} ${escapeHtml(cp.label)}</div><div class="stat-card-value" style="font-size:22px;">${fmt(total)}</div></div>`;
+  });
+  const totalGeral = totalUber + totalBolt + totalPart + totalOut + totalCustomAll;
+  cardsHtml += `<div class="stat-card" style="border-color:var(--vault);grid-column:1/-1;padding:18px 20px;">
+    <div class="stat-card-label" style="font-size:11px;margin-bottom:8px;">💰 Total bruto</div>
+    <div style="font-family:'JetBrains Mono',monospace;font-weight:700;font-size:32px;color:var(--ink);letter-spacing:-0.02em;margin-bottom:12px;">${fmt(totalGeral)}</div>
+    <div style="display:flex;gap:20px;flex-wrap:wrap;">
+      <div style="display:flex;flex-direction:column;gap:2px;">
+        <span style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;color:var(--text-muted);">TVDE</span>
+        <span style="font-family:'JetBrains Mono',monospace;font-weight:700;font-size:16px;color:var(--ink);">${fmt(apps)}</span>
+      </div>
+      ${part > 0 ? `<div style="display:flex;flex-direction:column;gap:2px;">
+        <span style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;color:var(--text-muted);">Pessoal</span>
+        <span style="font-family:'JetBrains Mono',monospace;font-weight:700;font-size:16px;color:var(--ink);">${fmt(part)}</span>
+      </div>` : ''}
+    </div>
+  </div>`;
+  document.getElementById('earningsPlatformCards').innerHTML = cardsHtml;
+  document.getElementById('earningsKmHint').textContent = '';
+
+  const comRateVal = comissaoRate();
+  let summaryHtml = `<div class="ms-row" style="opacity:0.85;"><div class="ms-label">Faturamento bruto (apps)</div><div class="ms-value">${fmt(apps)}</div></div>`;
+  if(ivaRateVal > 0) summaryHtml += `<div class="ms-row"><div class="ms-label">IVA (${ivaRateVal}%)</div><div class="ms-value">− ${fmt(iva)}</div></div>`;
+  if(comRateVal > 0) summaryHtml += `<div class="ms-row"><div class="ms-label">Comissão (${comRateVal}%)</div><div class="ms-value">− ${fmt(com)}</div></div>`;
+  if(part > 0) summaryHtml += `<div class="ms-row"><div class="ms-label">Pessoal (Particular/Outros)</div><div class="ms-value">+ ${fmt(part)}</div></div>`;
+  if(comb > 0) summaryHtml += `<div class="ms-row"><div class="ms-label">Combustível</div><div class="ms-value">− ${fmt(comb)}</div></div>`;
+  summaryHtml += `<div class="ms-row" style="border-top:1px solid rgba(255,255,255,0.12);padding-top:10px;margin-top:4px;"><div class="ms-label">Líquido</div><div class="ms-value">${fmt(liquido)}</div></div>`;
+  summaryHtml += `
+    <div class="ms-row"><div class="ms-label">Despesas fixas</div><div class="ms-value">− ${fmt(fixedTotal)}</div></div>
+    <div class="ms-row"><div class="ms-label">Outras despesas variáveis</div><div class="ms-value">− ${fmt(varOther)}</div></div>
+    <div class="ms-row ms-final ${saldo>=0?'positive':'negative'}">
+      <div class="ms-label ms-final-label">${saldo>=0?'💰 Lucro líquido':'⚠️ Faltou'}</div>
+      <div class="ms-value">${fmt(Math.abs(saldo))}</div>
+    </div>`;
+  const msEl = document.getElementById('monthSummary');
+  if(msEl) msEl.innerHTML = summaryHtml;
+}
+
+function renderGanhosDay(){
+  const dateIso = isoDate(ganhosRefDate);
+  const isToday = dateIso === isoDate(new Date());
+  document.getElementById('monthLabel').textContent = isToday ? 'Hoje' : `${weekdayLabel(ganhosRefDate)}, ${dayMonthLabel(ganhosRefDate)}`;
+  document.getElementById('monthHint').textContent = ganhosRefDate.toLocaleDateString('pt-BR', { day:'2-digit', month:'long', year:'numeric' });
+  const t = document.getElementById('incomeSectionTitle'); if(t) t.textContent = 'Ganhos do dia';
+  const btn = document.getElementById('noIncomeAddBtn'); if(btn) btn.textContent = '+ Adicionar ganho do dia';
+  const items = earningsInRange(dateIso, dateIso).sort((a,b)=>b.ts-a.ts);
+  toggleGanhosEmptyState(items.length > 0);
+  if(items.length === 0) return;
+  document.getElementById('incomeSection').innerHTML = renderEarningsList(items, 'Nenhum ganho neste dia.') +
+    `<div class="add-dashed-btn" style="border-style:solid;margin-top: 20px;" onclick="openAddIncomeSheet()">＋ Adicionar ganho do dia</div>`;
+  const fixedTotal = 0;
+  renderEarningsCardsAndSummary(items, fixedTotal, variableExpensesInRange(dateIso, dateIso));
+}
+function renderGanhosWeek(){
+  const start = startOfWeek(ganhosRefDate);
+  const endD  = addDays(start, 6);
+  const startIso = isoDate(start), endIso = isoDate(endD);
+  document.getElementById('monthLabel').textContent = `Semana de ${dayMonthLabel(start)} a ${dayMonthLabel(endD)}`;
+  document.getElementById('monthHint').textContent = '';
+  const t = document.getElementById('incomeSectionTitle'); if(t) t.textContent = 'Ganhos da semana';
+  const btn = document.getElementById('noIncomeAddBtn'); if(btn) btn.textContent = '+ Adicionar ganho da semana';
+  const items = earningsInRange(startIso, endIso).sort((a,b)=> b.date.localeCompare(a.date) || b.ts-a.ts);
+  toggleGanhosEmptyState(items.length > 0);
+  if(items.length === 0) return;
+
+  let dayRows = '';
+  for(let i=0;i<7;i++){
+    const d = addDays(start, i);
+    const dIso = isoDate(d);
+    const dayItems = items.filter(it => it.date === dIso);
+    if(dayItems.length === 0) continue;
+    dayRows += `<div class="section-sub" style="margin:14px 2px 6px;font-weight:700;">${weekdayLabel(d)}, ${dayMonthLabel(d)} · ${fmt(sumAmount(dayItems))}</div>`;
+    dayRows += renderEarningsList(dayItems, '');
+  }
+  document.getElementById('incomeSection').innerHTML = dayRows +
+    `<div class="add-dashed-btn" style="border-style:solid;margin-top: 20px;" onclick="openAddIncomeSheet()">＋ Adicionar ganho da semana</div>`;
+  renderEarningsCardsAndSummary(items, 0, variableExpensesInRange(startIso, endIso));
+}
+function toggleGanhosEmptyState(hasItems){
+  document.getElementById('noIncomeState').style.display = hasItems ? 'none' : 'block';
+  document.getElementById('mainMonthContent').style.display = hasItems ? 'block' : 'none';
+}
+function renderGanhosMonth(){
+  document.getElementById('monthLabelMes').textContent = monthLabelFor(currentMonthKey);
+  updateMonthHint();
+  const t = document.getElementById('incomeSectionTitle'); if(t) t.textContent = 'Ganhos do mês';
+  const btn = document.getElementById('noIncomeAddBtn'); if(btn) btn.textContent = '+ Adicionar ganho do mês';
+  const entry = ensureMonthEntry(currentMonthKey);
+  const items = [...entry.earnings].sort((a,b)=> (b.date||'').localeCompare(a.date||'') || b.ts-a.ts);
+  toggleGanhosEmptyState(items.length > 0);
+  if(items.length === 0) return;
+  document.getElementById('incomeSection').innerHTML = renderEarningsList(items, 'Nenhum ganho registrado.') +
+    `<div class="add-dashed-btn" style="border-style:solid;margin-top: 20px;" onclick="openAddIncomeSheet()">＋ Adicionar ganho do mês</div>`;
+  renderEarningsCardsAndSummary(items, totalFixedBills(entry), entry.variableExpenses);
+}
+function renderGanhos(){
+  if(ganhosView === 'dia') renderGanhosDay();
+  else if(ganhosView === 'semana') renderGanhosWeek();
+  else renderGanhosMonth();
+}
+
+function openAddIncomeSheet(){
+  let defaultDate, sheetSub;
+  if(ganhosView === 'dia'){
+    defaultDate = isoDate(ganhosRefDate);
+    sheetSub = 'Registe todos os ganhos do dia de uma vez.';
+  } else if(ganhosView === 'semana'){
+    const wStart = startOfWeek(ganhosRefDate);
+    const wEnd   = addDays(wStart, 6);
+    const todayIso = isoDate(new Date());
+    defaultDate = (todayIso >= isoDate(wStart) && todayIso <= isoDate(wEnd)) ? todayIso : isoDate(wStart);
+    sheetSub = 'Escolha o dia desta semana e registe os ganhos.';
+  } else {
+    const todayIso = isoDate(new Date());
+    const monthPrefix = currentMonthKey + '-';
+    defaultDate = todayIso.startsWith(monthPrefix) ? todayIso : `${currentMonthKey}-01`;
+    sheetSub = 'Escolha o dia deste mês e registe os ganhos.';
+  }
+  window._pendingTurno = '';
+  const customPlatforms = customPlatformsOn() ? (profile.customPlatforms || []).filter(cp => !cp.archived) : [];
+  const customFieldsHtml = customPlatforms.map(cp => `
+    <div class="field" style="margin-bottom:10px;">
+      <div class="section-sub" style="margin-bottom:8px;font-weight:700;">${escapeHtml(cp.emoji||'📍')} ${escapeHtml(cp.label)}</div>
+      <div class="field-money"><input type="number" id="incCustom_${cp.key}" placeholder="0,00" inputmode="decimal"></div>
+      <div class="section-sub" style="font-size:11px;margin-top:4px;">Sem desconto de IVA.</div>
+    </div>`).join('');
+  const kmHtml = showKm() ? `
+    <div class="field">
+      <label>Km rodados no dia (opcional)</label>
+      <input type="number" id="incKm" placeholder="0" inputmode="decimal" step="0.1" />
+      <div class="section-sub" style="font-size:11px;margin-top:6px;">Aparece nas Estatísticas (km totais e lucro por km).</div>
+    </div>` : '';
+  const turnoHtml = showTurno() ? `
+    <div class="field">
+      <label>Turno trabalhado (opcional)</label>
+      <div class="seg" id="incTurnoSeg" style="flex-wrap:wrap;height:auto;">
+        <div class="seg-opt active" data-t="" onclick="pickIncomeTurno('')" style="flex:1 1 calc(50% - 4px);margin:2px;">Não dizer</div>
+        ${activeTurnos().map(t => `<div class="seg-opt" data-t="${t.key}" onclick="pickIncomeTurno('${t.key}')" style="flex:1 1 calc(50% - 4px);margin:2px;">${t.emoji} ${t.label}</div>`).join('')}
+      </div>
+      <div class="section-sub" style="font-size:11px;margin-top:6px;">Se preencheres, as Estatísticas passam a mostrar qual turno rende mais para ti.</div>
+    </div>` : '';
+  openSheet(`
+    <div class="sheet-handle"></div>
+    <div class="sheet-header" style="display:flex;align-items:center;gap:12px;margin-bottom:4px;">
+      <button onclick="closeSheet()" style="background:none;border:none;padding:4px;cursor:pointer;color:var(--text-muted);line-height:1;">
+        <svg viewBox="0 0 24 24" width="22" height="22" fill="none"><path d="M15 18l-6-6 6-6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+      <div class="sheet-title" style="margin:0;">Novo ganho</div>
+    </div>
+    <div class="sheet-sub" style="margin-left:34px;">${sheetSub}</div>
+    <div class="field"><label>Dia do turno</label><input type="date" id="incDate" value="${defaultDate}" /></div>
+    ${kmHtml}
+    ${turnoHtml}
+    <div class="field" style="margin-bottom:10px;">
+      <div class="section-sub" style="margin-bottom:8px;font-weight:700;">Uber</div>
+      <div class="field-money"><input type="number" id="incUber" placeholder="0,00" inputmode="decimal"></div>
+      <div class="section-sub" style="font-size:11px;margin-top:4px;">IVA aplicado automaticamente. Combustível descontado nas Despesas.</div>
+    </div>
+    <div class="field" style="margin-bottom:10px;">
+      <div class="section-sub" style="margin-bottom:8px;font-weight:700;">Bolt</div>
+      <div class="field-money"><input type="number" id="incBolt" placeholder="0,00" inputmode="decimal"></div>
+      <div class="section-sub" style="font-size:11px;margin-top:4px;">IVA aplicado automaticamente. Combustível descontado nas Despesas.</div>
+    </div>
+    <div class="field" style="margin-bottom:10px;">
+      <div class="section-sub" style="margin-bottom:8px;font-weight:700;">🚘 Particular</div>
+      <div class="field-money"><input type="number" id="incParticular" placeholder="0,00" inputmode="decimal"></div>
+      <div class="section-sub" style="font-size:11px;margin-top:4px;">Sem desconto de IVA.</div>
+    </div>
+    <div class="field" style="margin-bottom:${customFieldsHtml?'10px':'16px'};">
+      <div class="section-sub" style="margin-bottom:8px;font-weight:700;">📦 Outros</div>
+      <div class="field-money"><input type="number" id="incOutros" placeholder="0,00" inputmode="decimal"></div>
+      <div class="section-sub" style="font-size:11px;margin-top:4px;">Sem desconto de IVA.</div>
+    </div>
+    ${customFieldsHtml}
+    <button class="btn btn-primary" onclick="confirmAddIncome()">Salvar ganhos</button>
+    <button class="btn btn-ghost" onclick="closeSheet()">Cancelar</button>
+  `);
+}
+function pickPlatform(p){
+  window._pendingPlatform = p;
+  document.querySelectorAll('#platformPick .platform-pick-opt').forEach(el => el.classList.toggle('active', el.dataset.p === p));
+}
+function pickIncomeTurno(t){
+  window._pendingTurno = t;
+  document.querySelectorAll('#incTurnoSeg .seg-opt').forEach(el => el.classList.toggle('active', el.dataset.t === t));
+}
+async function confirmAddIncome(){
+  const date = document.getElementById('incDate').value;
+  if(!date){ showToast('Selecione a data'); return; }
+  const turno = showTurno() ? (window._pendingTurno || '') : '';
+  const kmVal = showKm() ? (parseFloat((document.getElementById('incKm') || {}).value) || 0) : 0;
+  const uberAmt   = parseFloat(document.getElementById('incUber').value) || 0;
+  const boltAmt   = parseFloat(document.getElementById('incBolt').value) || 0;
+  const partAmt   = parseFloat(document.getElementById('incParticular').value) || 0;
+  const outrosAmt = parseFloat(document.getElementById('incOutros').value) || 0;
+  const customPlatforms = customPlatformsOn() ? (profile.customPlatforms || []).filter(cp => !cp.archived) : [];
+  const customAmts = customPlatforms.map(cp => ({
+    cp, amt: parseFloat((document.getElementById(`incCustom_${cp.key}`) || {}).value) || 0
+  }));
+  const anyCustom = customAmts.some(c => c.amt > 0);
+  if(uberAmt === 0 && boltAmt === 0 && partAmt === 0 && outrosAmt === 0 && !anyCustom){ showToast('Insira pelo menos um valor'); return; }
+  const nAdd = (uberAmt > 0 ? 1 : 0) + (boltAmt > 0 ? 1 : 0) + (partAmt > 0 ? 1 : 0) + (outrosAmt > 0 ? 1 : 0) + customAmts.filter(c => c.amt > 0).length;
+  if(basicLimitBlocked('ganhos', nAdd)) return;
+  const monthKeyOfDate = date.slice(0,7);
+  const entry = ensureMonthEntry(monthKeyOfDate);
+  let tsOffset = 0;
+  // Os km do dia ficam só no primeiro ganho gravado, para não serem contados em dobro.
+  let kmPending = kmVal;
+  function pushEarning(platform, amount, extra){
+    const km = kmPending; kmPending = 0;
+    entry.earnings.push({
+      id: uid(), date, platform, amount, km, hours: 0, ts: Date.now() + tsOffset,
+      ...(turno ? { turno } : {}), ...(extra || {})
+    });
+    tsOffset++;
+  }
+  if(uberAmt > 0)   pushEarning('uber', uberAmt);
+  if(boltAmt > 0)   pushEarning('bolt', boltAmt);
+  if(partAmt > 0)   pushEarning('particular', partAmt, { noIva: true });
+  if(outrosAmt > 0) pushEarning('outros', outrosAmt, { noIva: true });
+  customAmts.forEach(({cp, amt}) => { if(amt > 0) pushEarning(cp.key, amt, { noIva: true }); });
+  await persistMonthData(); closeSheet(); renderGanhos();
+}
+async function removeEarning(id){
+  if(!confirm('Remover este ganho?')) return;
+  Object.keys(monthData).forEach(k => { monthData[k].earnings = (monthData[k].earnings||[]).filter(e => e.id !== id); });
+  markDeleted(`earning:${id}`);
+  await persistMonthData(); renderGanhos();
+}
+
+// --- DESPESAS SCREEN ---
+function renderDespesas(){
+  document.getElementById('despesasMonthLabel').textContent = monthLabelFor(currentMonthKey);
+  document.getElementById('despesasMonthHint').textContent = '';
+  const entry = ensureMonthEntry(currentMonthKey);
+  renderBills(entry);
+  const items = [...entry.variableExpenses].sort((a,b)=>b.ts-a.ts);
+  const rows = items.map(exp => {
+    const cat = EXPENSE_CATEGORIES.find(c => c.key === exp.category) || EXPENSE_CATEGORIES[EXPENSE_CATEGORIES.length-1];
+    const dateDisplay = exp.date ? formatDateStr(exp.date) : formatDate(exp.ts);
+    const litersDisplay = exp.liters ? ` · ${exp.liters}L` : '';
+    return `
+      <div class="bill-row">
+        <div class="bill-info">
+          <div class="bill-name">${cat.emoji} ${cat.label}</div>
+          <div class="bill-sub">${exp.note ? escapeHtml(exp.note) + ' · ' : ''}${dateDisplay}${litersDisplay}</div>
+        </div>
+        <div class="bill-amount-wrap">
+          <div class="bill-amount-edit" style="pointer-events:none;">${fmt(exp.amount)}</div>
+          <div class="bill-delete" style="font-size:15px;" onclick="editVariableExpense('${exp.id}')" title="Editar despesa">✏️</div>
+          <div class="bill-delete" onclick="deleteVariableExpense('${exp.id}')" title="Apagar despesa">✕</div>
+        </div>
+      </div>`;
+  }).join('');
+  document.getElementById('variableExpensesContent').innerHTML =
+    (rows || '<div class="empty-note">Nenhuma despesa variável registrada este mês.</div>') +
+    `<div class="add-dashed-btn" style="border-style:solid;margin-top: 8px;margin-bottom:20px;" onclick="openNewExpenseSheet()">＋ Adicionar despesa variável</div>`;
+  renderMonthSummary(entry);
+}
+
+// Sheet único para criar OU editar uma despesa variável — quando chamado
+// sem argumento (ou null), abre em modo "nova"; quando recebe o objeto da
+// despesa existente, pré-preenche os campos e muda para modo "editar".
+function openExpenseSheet(existingExp){
+  const isEdit = !!existingExp;
+  const today = isoDate(new Date());
+  const cat = existingExp ? existingExp.category : EXPENSE_CATEGORIES[0].key;
+  const dateVal = existingExp ? (existingExp.date || today) : today;
+  const amountVal = existingExp ? existingExp.amount : '';
+  const litersVal = (existingExp && existingExp.liters) ? existingExp.liters : '';
+  const noteVal = (existingExp && existingExp.note) ? existingExp.note : '';
+  openSheet(`
+    <div class="sheet-handle"></div>
+    <div class="sheet-title">${isEdit ? 'Editar despesa' : 'Nova despesa'}</div>
+    <div class="sheet-sub">${isEdit ? 'Corrija os dados desta despesa.' : 'Registe uma despesa do dia a dia.'}</div>
+    <div class="field"><label>Categoria</label><select id="newExpenseCategory" onchange="onExpenseCategoryChange()">${EXPENSE_CATEGORIES.map(c=>`<option value="${c.key}" ${c.key===cat?'selected':''}>${c.emoji} ${c.label}</option>`).join('')}</select></div>
+    <div class="field"><label>Data</label><input type="date" id="newExpenseDate" value="${dateVal}" /></div>
+    <div class="field"><label>Valor (€)</label><div class="field-money"><input type="number" id="newExpenseAmount" placeholder="0,00" inputmode="decimal" value="${amountVal}" autofocus /></div></div>
+    <div class="field" id="fuelLitersField" style="display:${cat==='combustivel'?'block':'none'};"><label>Litros abastecidos (opcional)</label><input type="number" id="newExpenseLiters" placeholder="0.0" inputmode="decimal" step="0.1" value="${litersVal}" /></div>
+    <div class="field"><label>Nota (opcional)</label><input type="text" id="newExpenseNote" placeholder="ex: posto Shell, troca de óleo" maxlength="60" value="${escapeHtml(noteVal)}" /></div>
+    <button class="btn btn-primary" onclick="${isEdit ? `confirmEditExpense('${existingExp.id}')` : 'confirmNewExpense()'}">${isEdit ? 'Salvar alterações' : 'Salvar despesa'}</button>
+    ${isEdit ? `<button class="btn btn-danger-text" onclick="closeSheet(); deleteVariableExpense('${existingExp.id}')">Apagar despesa</button>` : ''}
+    <button class="btn btn-ghost" onclick="closeSheet()">Cancelar</button>
+  `);
+}
+function openNewExpenseSheet(){ openExpenseSheet(null); }
+// Localiza a despesa pelo id (pode estar em qualquer mês) e abre o sheet
+// já preenchido para edição.
+function editVariableExpense(id){
+  let found = null;
+  Object.keys(monthData).forEach(k => {
+    const match = (monthData[k].variableExpenses || []).find(e => e.id === id);
+    if(match) found = match;
+  });
+  if(!found){ showToast('Despesa não encontrada'); return; }
+  openExpenseSheet(found);
+}
+function onExpenseCategoryChange(){
+  const cat = document.getElementById('newExpenseCategory').value;
+  document.getElementById('fuelLitersField').style.display = cat === 'combustivel' ? 'block' : 'none';
+}
+async function confirmNewExpense(){
+  const category = document.getElementById('newExpenseCategory').value;
+  const amount    = parseFloat(document.getElementById('newExpenseAmount').value);
+  const note      = document.getElementById('newExpenseNote').value.trim();
+  const dateVal   = document.getElementById('newExpenseDate').value;
+  const liters    = category === 'combustivel' ? (parseFloat(document.getElementById('newExpenseLiters').value) || 0) : 0;
+  if(!amount || amount <= 0){ showToast('Digite um valor válido'); return; }
+  if(basicLimitBlocked('despesas', 1)) return;
+  const expMonthKey = dateVal ? dateVal.slice(0, 7) : currentMonthKey;
+  const entry = ensureMonthEntry(expMonthKey);
+  const expDate = dateVal || isoDate(new Date());
+  const ts = dateVal ? new Date(expDate + 'T12:00:00').getTime() : Date.now();
+  const exp = { id: uid(), category, amount, note, ts, date: expDate };
+  if(liters > 0) exp.liters = liters;
+  entry.variableExpenses.push(exp);
+  await persistMonthData(); closeSheet(); showToast('Despesa registrada'); renderDespesas();
+}
+// Edita uma despesa existente no lugar (mantém o mesmo id e timestamp
+// original). Se a data mudar para um mês diferente, a despesa é movida do
+// mês antigo para o novo automaticamente.
+async function confirmEditExpense(id){
+  const category = document.getElementById('newExpenseCategory').value;
+  const amount    = parseFloat(document.getElementById('newExpenseAmount').value);
+  const note      = document.getElementById('newExpenseNote').value.trim();
+  const dateVal   = document.getElementById('newExpenseDate').value;
+  const liters    = category === 'combustivel' ? (parseFloat(document.getElementById('newExpenseLiters').value) || 0) : 0;
+  if(!amount || amount <= 0){ showToast('Digite um valor válido'); return; }
+
+  let removed = null;
+  Object.keys(monthData).forEach(k => {
+    const list = monthData[k].variableExpenses || [];
+    const idx = list.findIndex(e => e.id === id);
+    if(idx !== -1){ removed = list.splice(idx, 1)[0]; }
+  });
+  if(!removed){ showToast('Despesa não encontrada'); closeSheet(); return; }
+
+  const expDate = dateVal || removed.date || isoDate(new Date());
+  const expMonthKey = expDate.slice(0, 7);
+  const entry = ensureMonthEntry(expMonthKey);
+  const updated = { ...removed, category, amount, note, date: expDate };
+  if(liters > 0) updated.liters = liters; else delete updated.liters;
+  entry.variableExpenses.push(updated);
+
+  await persistMonthData(); closeSheet(); showToast('Despesa atualizada'); renderDespesas();
+}
+async function deleteVariableExpense(id){
+  if(!confirm('Remover esta despesa?')) return;
+  Object.keys(monthData).forEach(k => {
+    if(monthData[k].variableExpenses){ monthData[k].variableExpenses = monthData[k].variableExpenses.filter(e => e.id !== id); }
+  });
+  markDeleted(`expense:${id}`);
+  await persistMonthData(); renderDespesas();
+}
+
+function renderBills(entry){
+  const visibleBills = bills.filter(b => (!b.createdMonthKey || b.createdMonthKey <= currentMonthKey) && !entry.hiddenBills[b.id]);
+  document.getElementById('billsCount').textContent = visibleBills.length + (visibleBills.length===1?' conta':' contas');
+  const box = document.getElementById('billsBox');
+  if(visibleBills.length === 0){
+    box.innerHTML = '<div class="empty-note">Nenhuma despesa fixa cadastrada.</div>';
+  } else {
+    box.innerHTML = visibleBills.map(b => {
+      const amount = billAmount(entry, b);
+      const freq = b.frequency || 'mensal';
+      const freqLabel = freq === 'diaria' ? 'diária' : freq === 'semanal' ? 'semanal' : 'mensal';
+      const split = b.weeklySplit || 'none';
+      // Seletor de "como aparecer nas semanas" — só para despesas mensais.
+      const weeklySplitRow = (freq === 'mensal') ? `
+        <div style="padding:0 0 10px;">
+          <select onchange="updateBillWeeklySplit('${b.id}', this.value)" style="width:100%;font-size:11px;padding:6px 8px;border-radius:var(--r-sm);border:1.5px solid var(--line);background:#fff;color:var(--text-muted);">
+            <option value="none" ${split==='none'?'selected':''}>Semanas: não aparece (só no mês)</option>
+            <option value="rateio" ${split==='rateio'?'selected':''}>Semanas: dividir pelas semanas do mês</option>
+            <option value="firstWeek" ${split==='firstWeek'?'selected':''}>Semanas: tudo na 1ª semana do mês</option>
+          </select>
+        </div>` : '';
+      return `
+      <div class="bill-row" style="flex-direction:column;align-items:stretch;">
+        <div style="display:flex;align-items:center;gap:12px;">
+          <div class="bill-info">
+            <div class="bill-name">${escapeHtml(b.name)} <span class="bill-tag">${freqLabel}</span></div>
+            <div class="bill-sub">Descontado automaticamente</div>
+          </div>
+          <div class="bill-amount-wrap">
+            <div class="bill-amount-edit"><input type="number" class="bill-amount-input" inputmode="decimal" value="${amount}" onchange="updateBillAmount('${b.id}', this.value)" /></div>
+            <div class="bill-delete" onclick="deleteBill('${b.id}')">✕</div>
+          </div>
+        </div>
+        ${weeklySplitRow}
+      </div>`;
+    }).join('');
+  }
+}
+
+async function payBill(billId){
+  const entry = ensureMonthEntry(currentMonthKey);
+  const bill  = bills.find(x => x.id === billId); if(!bill) return;
+  entry.billsPaid[billId] = { amount: billAmount(entry, bill), ts: Date.now() };
+  await persistMonthData(); showToast('Conta paga'); renderDespesas();
+}
+async function unpayBill(billId){
+  const entry = ensureMonthEntry(currentMonthKey);
+  delete entry.billsPaid[billId];
+  markDeleted(`billsPaidKey:${currentMonthKey}:${billId}`);
+  await persistMonthData(); renderDespesas();
+}
+async function updateBillAmount(billId, value){
+  const entry = ensureMonthEntry(currentMonthKey);
+  entry.billOverrides[billId] = parseFloat(value) || 0;
+  await persistMonthData(); renderDespesas();
+}
+// Muda como uma despesa fixa MENSAL aparece nas visões por semana: não
+// aparece (padrão), dividida entre as semanas do mês, ou tudo na 1ª
+// semana. Não afeta o total do mês, só como esse total é repartido nos
+// gráficos/cartões "por semana" (ver weekBucketFixedBills/weeklyFixedBills).
+async function updateBillWeeklySplit(billId, value){
+  const bill = bills.find(b => b.id === billId);
+  if(!bill) return;
+  bill.weeklySplit = value;
+  await persistBills();
+  renderDespesas();
+  renderStats();
+  renderLucro();
+}
+async function deleteBill(billId){
+  if(!confirm('Apagar esta despesa fixa?')) return;
+  bills = bills.filter(b => b.id !== billId);
+  Object.keys(monthData).forEach(k => {
+    delete monthData[k].billOverrides?.[billId];
+    delete monthData[k].billsPaid?.[billId];
+    delete monthData[k].hiddenBills?.[billId];
+  });
+  markDeleted(`bill:${billId}`);
+  await persistBills();
+  await persistMonthData();
+  renderDespesas();
+  renderSettings();
+}
+function openNewBillSheet(){
+  openSheet(`
+    <div class="sheet-handle"></div>
+    <div class="sheet-title">Nova despesa fixa</div>
+    <div class="sheet-sub">Despesas que se repetem. Serão descontadas automaticamente do seu lucro.</div>
+    <div class="field"><label>Nome da despesa</label><input type="text" id="newBillName" placeholder="ex: Financiamento, Seguro, Segurança Social" maxlength="30" /></div>
+    <div class="field">
+      <label>Frequência</label>
+      <div class="seg" id="newBillFreqSeg">
+        <div class="seg-opt active" data-f="diaria" onclick="pickBillFreq('diaria')">📅 Diária</div>
+        <div class="seg-opt" data-f="semanal" onclick="pickBillFreq('semanal')">🗓 Semanal</div>
+        <div class="seg-opt" data-f="mensal" onclick="pickBillFreq('mensal')">📆 Mensal</div>
+      </div>
+    </div>
+    <div class="field"><label id="newBillAmountLabel">Valor por dia (€)</label><div class="field-money"><input type="number" id="newBillAmount" placeholder="0,00" inputmode="decimal" /></div></div>
+    <div id="newBillFreqHint" class="section-sub" style="margin-top:-8px;margin-bottom:12px;font-size:11px;">Conta só nos dias que têm ganho ou despesa registrados.</div>
+    <div class="field" id="newBillWeeklySplitField" style="display:none;">
+      <label>Nas visões por semana, esta despesa deve...</label>
+      <div class="seg" id="newBillWeeklySplitSeg" style="flex-direction:column;height:auto;">
+        <div class="seg-opt active" data-s="none" onclick="pickBillWeeklySplit('none')" style="text-align:left;padding:10px 12px;">Não aparecer nas semanas (só no mês) — padrão</div>
+        <div class="seg-opt" data-s="rateio" onclick="pickBillWeeklySplit('rateio')" style="text-align:left;padding:10px 12px;">Dividir o valor entre as semanas do mês</div>
+        <div class="seg-opt" data-s="firstWeek" onclick="pickBillWeeklySplit('firstWeek')" style="text-align:left;padding:10px 12px;">Colocar o valor inteiro na 1ª semana do mês</div>
+      </div>
+    </div>
+    <button class="btn btn-primary" onclick="createBill()">Adicionar despesa fixa</button>
+    <button class="btn btn-ghost" onclick="closeSheet()">Cancelar</button>
+  `);
+  window._pendingBillFreq = 'diaria';
+  window._pendingBillWeeklySplit = 'none';
+}
+function pickBillFreq(f){
+  window._pendingBillFreq = f;
+  document.querySelectorAll('#newBillFreqSeg .seg-opt').forEach(el => el.classList.toggle('active', el.dataset.f === f));
+  const label = document.getElementById('newBillAmountLabel');
+  const hint  = document.getElementById('newBillFreqHint');
+  const splitField = document.getElementById('newBillWeeklySplitField');
+  if(f === 'diaria'){ label.textContent = 'Valor por dia (€)'; hint.textContent = 'Conta só nos dias que têm ganho ou despesa registrados.'; }
+  else if(f === 'semanal'){ label.textContent = 'Valor por semana (€)'; hint.textContent = 'Multiplicado pelas semanas do mês automaticamente.'; }
+  else { label.textContent = 'Valor por mês (€)'; hint.textContent = 'Valor fixo mensal.'; }
+  // O seletor de "como aparecer nas semanas" só faz sentido para despesas
+  // mensais — diária e semanal já têm um valor natural por semana.
+  if(splitField) splitField.style.display = (f === 'mensal') ? 'block' : 'none';
+}
+function pickBillWeeklySplit(s){
+  window._pendingBillWeeklySplit = s;
+  document.querySelectorAll('#newBillWeeklySplitSeg .seg-opt').forEach(el => el.classList.toggle('active', el.dataset.s === s));
+}
+async function createBill(){
+  const name   = document.getElementById('newBillName').value.trim();
+  const amount = parseFloat(document.getElementById('newBillAmount').value) || 0;
+  const frequency = window._pendingBillFreq || 'mensal';
+  const weeklySplit = frequency === 'mensal' ? (window._pendingBillWeeklySplit || 'none') : 'none';
+  if(!name){ showToast('Dê um nome à despesa'); return; }
+  if(basicLimitBlocked('fixas', 1)) return;
+  bills.push({ id: uid(), name, defaultAmount: amount, frequency, weeklySplit, createdMonthKey: currentMonthKey });
+  await persistBills(); closeSheet(); showToast('Adicionado com sucesso'); renderDespesas();
+}
+function importPreviousMonthBills(){
+  const prevKey   = previousMonthKey(currentMonthKey);
+  const prevEntry = monthData[prevKey];
+  if(!prevEntry){ showToast('Nenhum dado do mês anterior para importar.'); return; }
+  const entry = ensureMonthEntry(currentMonthKey);
+  entry.hiddenBills   = {...prevEntry.hiddenBills};
+  entry.billOverrides = {...prevEntry.billOverrides};
+  persistMonthData(); renderDespesas();
+  showToast('Despesas fixas do mês anterior importadas.');
+}
+
+function totalEarnings(entry){ return entry.earnings.reduce((s,e)=>s+(e.amount||0),0); }
+function totalEarningsByPlatform(entry, platform){ return entry.earnings.filter(e=>e.platform===platform).reduce((s,e)=>s+(e.amount||0),0); }
+function totalKm(entry){ return entry.earnings.reduce((s,e)=>s+(e.km||0),0); }
+function totalVariableExpenses(entry){ return entry.variableExpenses.reduce((s,e)=>s+(e.amount||0),0); }
+
+// ---------------------------------------------------------------
+// DESPESAS FIXAS — regras por frequência
+// - mensal : valor cheio, uma vez no mês (só aparece nas visões Mês/Ano).
+// - semanal: valor cheio por semana (× nº de semanas no mês; × 1 numa semana).
+// - diária : é a despesa DAQUELE dia. Só conta nos dias que têm registro
+//            (pelo menos um ganho ou uma despesa lançados nessa data) —
+//            nunca é multiplicada por todos os dias do mês/semana.
+// ---------------------------------------------------------------
+function relevantBillsFor(entry, mKey){
+  return bills.filter(b => (!b.createdMonthKey || b.createdMonthKey <= mKey) && !entry.hiddenBills[b.id]);
+}
+// Conjunto de datas ISO com despesa variável registrada — a despesa fixa
+// diária só faz sentido contar num dia se houve DESPESA nesse dia (ex:
+// combustível). Trabalhar/ganhar nesse dia sem lançar nenhuma despesa não
+// conta: trabalhar 5 dias mas só lançar combustível em 4 deles é despesa
+// diária de 4 dias, não 5.
+function expenseRecordDays(entry){
+  const set = new Set();
+  entry.variableExpenses.forEach(e => { set.add(e.date || isoDateFromTs(e.ts)); });
+  return set;
+}
+// Soma dos valores das bills diárias que se aplicam a UM dia deste mês.
+function dailyBillsPerDay(entry, mKey){
+  return relevantBillsFor(entry, mKey).reduce((s, b) => {
+    return (b.frequency === 'diaria') ? s + billAmount(entry, b) : s;
+  }, 0);
+}
+
+// monthKeyOverride é opcional — sem ele, usa currentMonthKey.
+function totalFixedBills(entry, monthKeyOverride){
+  const mKey = monthKeyOverride || currentMonthKey;
+  const daysWithRecord = expenseRecordDays(entry).size;
+  return relevantBillsFor(entry, mKey).reduce((s, b) => {
+    const amount = billAmount(entry, b);
+    const freq = b.frequency || 'mensal';
+    if(freq === 'diaria') return s + amount * daysWithRecord;
+    if(freq === 'semanal'){
+      const [y, m] = mKey.split('-').map(Number);
+      const daysInMonth = new Date(y, m, 0).getDate();
+      return s + amount * Math.ceil(daysInMonth / 7);
+    }
+    return s + amount;
+  }, 0);
+}
+
+// Despesas fixas diárias/semanais de UMA das "semanas do mês" (blocos por
+// dia do mês: 1–7, 8–14…, o último pode ser parcial). Diária: só os dias do
+// bloco com registro; semanal: × 1; mensal: fora. Soma dos blocos + mensais
+// = totalFixedBills(), então os números batem.
+function weekBucketFixedBills(monthKey, weekIdx){
+  const entry = ensureMonthEntry(monthKey);
+  const from = weekIdx * 7 + 1, to = weekIdx * 7 + 7;
+  let daysWithRecord = 0;
+  expenseRecordDays(entry).forEach(iso => {
+    const day = parseInt(iso.split('-')[2], 10);
+    if(day >= from && day <= to) daysWithRecord++;
+  });
+  return relevantBillsFor(entry, monthKey).reduce((s, b) => {
+    const amount = billAmount(entry, b);
+    const freq = b.frequency || 'mensal';
+    if(freq === 'semanal') return s + amount;
+    if(freq === 'diaria') return s + amount * daysWithRecord;
+    // mensal: só entra se a própria despesa pedir explicitamente (ver
+    // campo weeklySplit, configurável na criação/edição da despesa fixa).
+    if(freq === 'mensal'){
+      const split = b.weeklySplit || 'none';
+      if(split === 'rateio'){
+        const [y, m] = monthKey.split('-').map(Number);
+        const daysInMonth = new Date(y, m, 0).getDate();
+        return s + amount / Math.ceil(daysInMonth / 7);
+      }
+      if(split === 'firstWeek' && weekIdx === 0) return s + amount;
+    }
+    return s;
+  }, 0);
+}
+
+// Semana real (segunda a domingo): olha cada um dos 7 dias, no mês a que
+// esse dia pertence. Bill diária conta nos dias com registro; semanal conta
+// uma vez (mês em que a semana começa); mensal só entra se weeklySplit
+// pedir (rateio ou 1ª semana) — ver weekBucketFixedBills acima para a
+// mesma regra aplicada aos blocos de dia-do-mês usados dentro da visão Mês.
+function weeklyFixedBills(weekStart){
+  let total = 0;
+  for(let i = 0; i < 7; i++){
+    const d = addDays(weekStart, i);
+    const mKey = monthKeyFor(d);
+    const entry = ensureMonthEntry(mKey);
+    if(expenseRecordDays(entry).has(isoDate(d))) total += dailyBillsPerDay(entry, mKey);
+  }
+  const startKey = monthKeyFor(weekStart);
+  const startEntry = ensureMonthEntry(startKey);
+  relevantBillsFor(startEntry, startKey).forEach(b => {
+    if(b.frequency === 'semanal'){ total += billAmount(startEntry, b); return; }
+    if(b.frequency === 'mensal'){
+      const split = b.weeklySplit || 'none';
+      const amount = billAmount(startEntry, b);
+      if(split === 'rateio'){ total += amount / weeksInMonth(startKey); return; }
+      // "1ª semana do mês" = a semana cujo início cai nos primeiros 7 dias
+      // do mês (mesmo critério usado nos blocos de weekBucketFixedBills).
+      if(split === 'firstWeek' && weekStart.getDate() <= 7){ total += amount; return; }
+    }
+  });
+  return total;
+}
+
+function renderMonthSummary(entry){
+  const apps      = entry.earnings.filter(e=>isTvdePlatform(e.platform)).reduce((s,e)=>s+(e.amount||0),0);
+  const part      = entry.earnings.filter(e=>!isTvdePlatform(e.platform)).reduce((s,e)=>s+(e.amount||0),0);
+  const ganhos    = apps + part;
+  const comb      = entry.variableExpenses.filter(e=>e.category==='combustivel').reduce((s,e)=>s+(e.amount||0),0);
+  const iva       = ivaAmount(apps);
+  const fixas     = totalFixedBills(entry);
+  const varOther  = entry.variableExpenses.filter(e=>e.category!=='combustivel').reduce((s,e)=>s+(e.amount||0),0);
+  const com      = comissaoAmount(apps);
+  const comRateVal = comissaoRate();
+  const liquido  = (apps - iva - com) - comb + part;
+  const lucro    = liquido - fixas - varOther;
+  const ivaRateVal = ivaRate();
+  let html = `
+    <div class="ms-row" style="opacity:0.85;"><div class="ms-label">Faturamento bruto (apps)</div><div class="ms-value">${fmt(apps)}</div></div>`;
+  if(ivaRateVal > 0){ html += `<div class="ms-row"><div class="ms-label">IVA (${ivaRateVal}%)</div><div class="ms-value">− ${fmt(iva)}</div></div>`; }
+  if(comRateVal > 0){ html += `<div class="ms-row"><div class="ms-label">Comissão (${comRateVal}%)</div><div class="ms-value">− ${fmt(com)}</div></div>`; }
+  if(part > 0){ html += `<div class="ms-row"><div class="ms-label">Pessoal (Particular/Outros)</div><div class="ms-value">+ ${fmt(part)}</div></div>`; }
+  if(comb > 0){ html += `<div class="ms-row"><div class="ms-label">Combustível</div><div class="ms-value">− ${fmt(comb)}</div></div>`; }
+  html += `<div class="ms-row" style="border-top:1px solid rgba(255,255,255,0.12);padding-top:10px;margin-top:4px;"><div class="ms-label">Líquido</div><div class="ms-value">${fmt(liquido)}</div></div>`;
+  html += `
+    <div class="ms-row"><div class="ms-label">Despesas fixas</div><div class="ms-value">− ${fmt(fixas)}</div></div>
+    <div class="ms-row"><div class="ms-label">Outras despesas variáveis</div><div class="ms-value">− ${fmt(varOther)}</div></div>
+    <div class="ms-row ms-final ${lucro>=0?'positive':'negative'}">
+      <div class="ms-label ms-final-label">${lucro>=0?'💰 Lucro líquido':'⚠️ Faltou'}</div>
+      <div class="ms-value">${fmt(Math.abs(lucro))}</div>
+    </div>`;
+  const a = document.getElementById('monthSummary');
+  const b = document.getElementById('monthSummaryDespesas');
+  if(a) a.innerHTML = html;
+  if(b) b.innerHTML = html;
+}
+
+// --- ENCRIPTAÇÃO (AES-GCM 256, opcional, Modo Dev) — ver docs para detalhe ---
+async function deriveKeyFromPassword(password, saltBytes){
+  const enc = new TextEncoder();
+  const keyMaterial = await crypto.subtle.importKey('raw', enc.encode(password), { name: 'PBKDF2' }, false, ['deriveKey']);
+  return crypto.subtle.deriveKey(
+    { name: 'PBKDF2', salt: saltBytes, iterations: 100000, hash: 'SHA-256' },
+    keyMaterial, { name: 'AES-GCM', length: 256 }, false, ['encrypt', 'decrypt']
+  );
+}
+function bufToBase64(buf){ return btoa(String.fromCharCode(...new Uint8Array(buf))); }
+function base64ToBuf(b64){
+  const bin = atob(b64);
+  const bytes = new Uint8Array(bin.length);
+  for(let i=0;i<bin.length;i++) bytes[i] = bin.charCodeAt(i);
+  return bytes;
+}
+async function encryptPayload(obj, password){
+  const enc = new TextEncoder();
+  const salt = crypto.getRandomValues(new Uint8Array(16));
+  const iv   = crypto.getRandomValues(new Uint8Array(12));
+  const key  = await deriveKeyFromPassword(password, salt);
+  const plaintext = enc.encode(JSON.stringify(obj));
+  const ciphertext = await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, key, plaintext);
+  return { encrypted: true, salt: bufToBase64(salt), iv: bufToBase64(iv), data: bufToBase64(ciphertext) };
+}
+async function decryptPayload(envelope, password){
+  const dec = new TextDecoder();
+  const salt = base64ToBuf(envelope.salt);
+  const iv   = base64ToBuf(envelope.iv);
+  const key  = await deriveKeyFromPassword(password, salt);
+  const ciphertext = base64ToBuf(envelope.data);
+  const plaintext = await crypto.subtle.decrypt({ name: 'AES-GCM', iv }, key, ciphertext);
+  return JSON.parse(dec.decode(plaintext));
+}
+
+function toggleEncryption(){
+  encryptionEnabled = !encryptionEnabled;
+  if(encryptionEnabled && !encryptionPassword){
+    const pwd = prompt('Defina uma senha para encriptar os dados sincronizados:\n(Guarde-a bem — sem ela, não há como decifrar os dados na planilha.)');
+    if(!pwd){ encryptionEnabled = false; renderSettings(); return; }
+    encryptionPassword = pwd;
+  }
+  window.storage.set('encryptionEnabled', encryptionEnabled).catch(()=>{});
+  window.storage.set('encryptionPassword', encryptionPassword).catch(()=>{});
+  renderSettings();
+  showToast(encryptionEnabled ? '🔒 Encriptação ativada' : '🔓 Encriptação desativada');
+  pushToCloud();
+}
+function changeEncryptionPassword(){
+  const pwd = prompt('Nova senha de encriptação:\n(Isto vai re-encriptar os dados na próxima sincronização.)');
+  if(!pwd) return;
+  encryptionPassword = pwd;
+  window.storage.set('encryptionPassword', encryptionPassword).catch(()=>{});
+  showToast('🔑 Senha atualizada');
+  pushToCloud();
+}
+
+// --- DESBLOQUEIO BIOMÉTRICO (WebAuthn) ---
+function webAuthnSupported(){
+  return typeof window !== 'undefined' && window.PublicKeyCredential && typeof navigator.credentials?.create === 'function';
+}
+async function toggleBiometricUnlock(){
+  if(!webAuthnSupported()){
+    const note = document.getElementById('biometricUnsupportedNote');
+    if(note) note.style.display = 'block';
+    showToast('❌ Biometria não suportada neste dispositivo/navegador');
+    return;
+  }
+  if(!encryptionPassword){ showToast('Defina primeiro uma senha de encriptação'); return; }
+
+  if(biometricUnlockEnabled){
+    biometricUnlockEnabled = false;
+    try{ await window.storage.set('biometricUnlockEnabled', false); }catch(e){}
+    try{ await window.storage.delete('biometricCredentialId'); }catch(e){}
+    renderSettings();
+    showToast('Desbloqueio biométrico desativado');
+    return;
+  }
+
+  try{
+    const challenge = crypto.getRandomValues(new Uint8Array(32));
+    const userId = crypto.getRandomValues(new Uint8Array(16));
+    const credential = await navigator.credentials.create({
+      publicKey: {
+        challenge,
+        rp: { name: 'Corrida+' },
+        user: { id: userId, name: 'corridaplus-user', displayName: 'Corrida+' },
+        pubKeyCredParams: [{ alg: -7, type: 'public-key' }],
+        authenticatorSelection: { authenticatorAttachment: 'platform', userVerification: 'required' },
+        timeout: 60000
+      }
+    });
+    if(!credential){ throw new Error('Credencial não criada'); }
+    const credId = bufToBase64(credential.rawId);
+    await window.storage.set('biometricCredentialId', credId);
+    biometricUnlockEnabled = true;
+    await window.storage.set('biometricUnlockEnabled', true);
+    renderSettings();
+    showToast('✅ Desbloqueio biométrico ativado');
+  }catch(e){
+    console.warn('Falha ao registar biometria:', e);
+    showToast('❌ Não foi possível ativar a biometria (cancelado ou não suportado)');
+  }
+}
+async function toggleRequireUnlockEachSync(){
+  requireUnlockEachSync = !requireUnlockEachSync;
+  try{ await window.storage.set('requireUnlockEachSync', requireUnlockEachSync); }catch(e){}
+  renderSettings();
+  showToast(requireUnlockEachSync ? '🔒 Vai pedir confirmação a cada sincronização' : '🔓 Decifra automaticamente em segundo plano');
+}
+
+// =================================================================
+// EASTER EGGS — ambos DESATIVADOS POR PADRÃO. Configurações e regras
+// completas em docs. Resumo:
+//  - Brincadeira "hackeamento": só roda se profile.easterEggDisabled
+//    for explicitamente false (ativada no Modo Dev) E o nome do perfil
+//    bater com EASTER_EGG_TARGET_NAME.
+//  - Mensagem de aniversário: só roda se profile.birthdayDate estiver
+//    explicitamente configurada (vazio = nunca dispara).
+// =================================================================
+const EASTER_EGG_TARGET_NAME = 'ARTHUR SANTOS';
+let devForceBirthday = false;
+let devForceDailySummary = false;
+
+// Desativada por padrão: só dispara com profile.easterEggDisabled === false
+// (ativação explícita, feita pelo interruptor no Modo Dev).
+function shouldTriggerEasterEgg(){
+  if(devForceEasterEgg) return true;
+  if(profile.easterEggDisabled !== false) return false; // padrão = desativada
+  const name = (profile.name || '').trim().toUpperCase();
+  if(name !== EASTER_EGG_TARGET_NAME) return false;
+  const rate = typeof profile.easterEggRate === 'number' ? profile.easterEggRate : 0.03;
+  return Math.random() < rate;
+}
+
+function getBirthdayMonthDay(){
+  const raw = (profile.birthdayDate || '').trim();
+  const match = raw.match(/^(\d{1,2})-(\d{1,2})$/);
+  if(match){
+    const dd = parseInt(match[1], 10);
+    const mm = parseInt(match[2], 10);
+    if(mm >= 1 && mm <= 12 && dd >= 1 && dd <= 31) return { month: mm, day: dd };
+  }
+  return null;
+}
+
+// Desativada por padrão: só dispara se profile.birthdayDate tiver sido
+// explicitamente configurada nas definições. Sem data configurada, nunca
+// aparece automaticamente (mesmo com nome preenchido no perfil).
+function shouldTriggerBirthday(){
+  if(devForceBirthday) return true;
+  if(!profile.name || !profile.name.trim()) return false;
+  if(!profile.birthdayDate || !profile.birthdayDate.trim()) return false; // sem data = desativada
+  const md = getBirthdayMonthDay();
+  if(!md) return false;
+  const today = new Date();
+  return today.getMonth() + 1 === md.month && today.getDate() === md.day;
+}
+
+async function maybeRunEasterEgg(){
+  if(shouldTriggerBirthday()){
+    devForceBirthday = false;
+    await runBirthdayScreen();
+    return;
+  }
+  if(!shouldTriggerEasterEgg()) return;
+  devForceEasterEgg = false;
+  await runHackScreen();
+}
+
+function runBirthdayScreen(){
+  return new Promise((resolve) => {
+    const screen = document.getElementById('birthdayScreen');
+    if(!screen){ resolve(); return; }
+    const nameEl = document.getElementById('birthdayNameDisplay');
+    if(nameEl) nameEl.textContent = (profile.name || '').trim() || 'Feliz Aniversário!';
+    screen.style.display = 'flex';
+    const confettiColors = ['#D9A949', '#2C4F3D', '#C97259', '#F6EFE2', '#1F3A2E'];
+    const confettiHtml = Array.from({length: 40}, (_, i) => {
+      const left = Math.random() * 100;
+      const delay = Math.random() * 1.2;
+      const duration = 2.4 + Math.random() * 1.6;
+      const color = confettiColors[i % confettiColors.length];
+      const size = 6 + Math.random() * 6;
+      return `<div style="position:absolute;top:-20px;left:${left}%;width:${size}px;height:${size}px;background:${color};border-radius:2px;animation:confettiFall ${duration}s ease-in ${delay}s forwards;opacity:0.9;"></div>`;
+    }).join('');
+    const confettiLayer = document.getElementById('birthdayConfetti');
+    if(confettiLayer) confettiLayer.innerHTML = confettiHtml;
+    setTimeout(()=>{ screen.style.display = 'none'; resolve(); }, 5000);
+  });
+}
+function closeBirthdayScreen(){
+  const screen = document.getElementById('birthdayScreen');
+  if(screen) screen.style.display = 'none';
+}
+function toggleForceBirthday(){
+  devForceBirthday = !devForceBirthday;
+  renderSettings();
+  showToast(devForceBirthday ? '🎂 Vai forçar a mensagem de aniversário na próxima abertura' : 'Forçar aniversário desativado');
+}
+async function setBirthdayDate(value){
+  const raw = (value || '').trim();
+  if(raw === ''){
+    // Campo limpo → desativa a mensagem de aniversário de novo.
+    delete profile.birthdayDate;
+    await persistProfile();
+    showToast('🎂 Aniversário desativado');
+    return;
+  }
+  const match = raw.match(/^(\d{1,2})-(\d{1,2})$/);
+  if(!match){
+    showToast('❌ Formato inválido — use DD-MM (ex: 19-10)');
+    const input = document.getElementById('birthdayDateInput');
+    if(input) input.value = profile.birthdayDate || '';
+    return;
+  }
+  const dd = parseInt(match[1], 10);
+  const mm = parseInt(match[2], 10);
+  if(mm < 1 || mm > 12 || dd < 1 || dd > 31){ showToast('❌ Data inválida'); return; }
+  profile.birthdayDate = `${String(dd).padStart(2,'0')}-${String(mm).padStart(2,'0')}`;
+  await persistProfile();
+  showToast(`🎂 Aniversário definido para ${profile.birthdayDate} (sincronizado)`);
+}
+
+function runHackScreen(){
+  return new Promise((resolve) => {
+    const screen = document.getElementById('hackScreen');
+    const linesEl = document.getElementById('hackLines');
+    if(!screen || !linesEl){ resolve(); return; }
+    const DUCK = ['  __', '<(o )___', ' ( ._> /', '  `---\'', ''];
+    const DUCK_COUNT = 3;
+    const DUCK_ART = DUCK.map((line) => Array.from({length: DUCK_COUNT}, () => line.padEnd(9, ' ')).join('')).join('\n').trimEnd();
+    const ITEMS_B64 = 'PiBhIGFjZWRlciBhbyBzaXN0ZW1h4oCmCj4gYSBsb2NhbGl6YXIgZGlzcG9zaXRpdm/igKYgT0sKPiBhIGV4dHJhaXIgY29udGFjdG9z4oCmIDI0NyBlbmNvbnRyYWRvcwo+IGEgZXh0cmFpciBmb3Rvc+KApiAxLjIwNCBlbmNvbnRyYWRhcwo+IGEgdHJhbnNmZXJpciBkYWRvc+KApgo+IOKWiOKWiOKWiOKWiOKWiOKWiOKWiOKWiOKWiOKWiOKWiOKWiOKWiOKWiOKWiOKWiOKWiOKWiOKWiCAxMDAlCj4gYWNlc3NvIHJvb3QgY29uY2VkaWRvCl9fQVJUX18KPiBhbGVydGE6IGludmFzw6NvIGRlIHBhdG9zIGRldGVjdGFkYQo+IAo+IGNhbG1hIGzDoSDwn5iEIG5hZGEgZGlzdG8gw6kgcmVhbAo+IMOpIHPDsyB1bWEgYnJpbmNhZGVpcmEgZG8gQ29ycmlkYSsgdl9fVkVSU0lPTl9f';
+    const decodedText = decodeURIComponent(escape(atob(ITEMS_B64)));
+    const items = decodedText.split('\n').map(line => line === '__ART__' ? { art: true, text: DUCK_ART } : line.replace('__VERSION__', APP_VERSION));
+
+    screen.style.display = 'flex';
+    linesEl.textContent = '';
+    let idx = 0;
+    let charIdx = 0;
+    function typeChar(){
+      if(idx >= items.length){
+        setTimeout(()=>{ screen.style.display = 'none'; resolve(); }, 2000);
+        return;
+      }
+      const item = items[idx];
+      if(typeof item === 'object' && item.art){
+        if(idx > 0) linesEl.textContent += '\n';
+        linesEl.textContent += item.text;
+        idx++; charIdx = 0;
+        setTimeout(typeChar, 500);
+        return;
+      }
+      const currentLine = item;
+      if(charIdx === 0 && idx > 0) linesEl.textContent += '\n';
+      if(charIdx < currentLine.length){
+        linesEl.textContent += currentLine[charIdx];
+        charIdx++;
+        const charDelay = currentLine.includes('█') ? 6 : 9;
+        setTimeout(typeChar, charDelay);
+      } else {
+        idx++; charIdx = 0;
+        const pauseAfterLine = currentLine.trim() === '' ? 150
+          : currentLine.includes('%') ? 250
+          : currentLine.includes('concedido') ? 350
+          : 120;
+        setTimeout(typeChar, pauseAfterLine);
+      }
+    }
+    typeChar();
+  });
+}
+function toggleForceEasterEgg(){
+  devForceEasterEgg = !devForceEasterEgg;
+  renderSettings();
+  showToast(devForceEasterEgg ? '👻 Vai forçar a brincadeira na próxima abertura' : 'Forçar desativado');
+}
+// Interruptor principal: alterna entre ativado/desativado explicitamente
+// (nunca deixa profile.easterEggDisabled como undefined depois do primeiro
+// toque, para a lógica de "padrão desativado" em shouldTriggerEasterEgg
+// continuar previsível).
+async function toggleEasterEggDisabled(){
+  const isCurrentlyEnabled = profile.easterEggDisabled === false;
+  profile.easterEggDisabled = isCurrentlyEnabled ? true : false;
+  await persistProfile();
+  renderSettings();
+  showToast(profile.easterEggDisabled ? '🚫 Brincadeira desativada (sincronizado)' : '👻 Brincadeira ativada (sincronizado)');
+}
+async function setEasterEggRate(value){
+  const pct = parseFloat(value);
+  profile.easterEggRate = isNaN(pct) ? 0.03 : Math.min(1, Math.max(0, pct / 100));
+  await persistProfile();
+  showToast(`Taxa definida em ${(profile.easterEggRate*100).toFixed(1)}%`);
+}
+
+// --- LOG DE SINCRONIZAÇÃO ---
+function renderSyncLog(){
+  const box = document.getElementById('syncLogContainer');
+  if(!box) return;
+  if(!syncLog.length){
+    box.innerHTML = `<div style="padding:16px;text-align:center;font-size:12px;color:var(--text-muted);">Ainda sem eventos registados.</div>`;
+    return;
+  }
+  const iconFor = { success: '✅', error: '❌', timeout: '⏱️', info: 'ℹ️' };
+  const colorFor = { success: 'var(--vault-light)', error: 'var(--terracotta)', timeout: '#C97259', info: 'var(--text-muted)' };
+  box.innerHTML = syncLog.map(entry => {
+    const d = new Date(entry.ts);
+    const time = d.toLocaleString('pt-BR', { day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit', second:'2-digit' });
+    return `<div style="padding:9px 10px;border-bottom:1px solid var(--line);font-size:12px;">
+      <div style="display:flex;justify-content:space-between;gap:8px;">
+        <span style="color:${colorFor[entry.type]||'var(--ink)'};font-weight:700;">${iconFor[entry.type]||'•'} ${escapeHtml(entry.message)}</span>
+        <span style="color:var(--text-faint);white-space:nowrap;font-family:'JetBrains Mono',monospace;font-size:11px;">${time}</span>
+      </div>
+      ${entry.extra ? `<div style="color:var(--text-muted);font-family:'JetBrains Mono',monospace;font-size:11px;margin-top:2px;">${escapeHtml(entry.extra)}</div>` : ''}
+    </div>`;
+  }).join('');
+}
+function buildSyncLogText(){
+  const lines = syncLog.map(e => {
+    const iso = new Date(e.ts).toISOString();
+    return `[${iso}] [${e.type.toUpperCase()}] ${e.message}${e.extra ? ' — ' + e.extra : ''}`;
+  });
+  const header = `Corrida+ v${APP_VERSION} — log de sincronização\nDispositivo: ${navigator.userAgent}\nGerado em: ${new Date().toISOString()}\n\n`;
+  return header + lines.join('\n');
+}
+async function exportSyncLog(){
+  if(!syncLog.length){ showToast('Nada para exportar ainda'); return; }
+  const text = buildSyncLogText();
+  if(navigator.share){
+    try{ await navigator.share({ title: 'Corrida+ — log de sincronização', text }); return; }
+    catch(e){ if(e.name === 'AbortError') return; }
+  }
+  const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `corridaplus-sync-log-${new Date().toISOString().slice(0,10)}.txt`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  showToast('📤 Log exportado');
+}
+async function clearSyncLog(){
+  if(!confirm('Limpar todo o log de sincronização?')) return;
+  syncLog = [];
+  try{ await window.storage.set('syncLog', JSON.stringify(syncLog)); }catch(e){}
+  renderSyncLog();
+  showToast('Log limpo');
+}
+async function verifyBiometricAndGetPassword(){
+  if(!biometricUnlockEnabled || !webAuthnSupported()) return encryptionPassword;
+  try{
+    const stored = await window.storage.get('biometricCredentialId');
+    const credId = stored?.value;
+    if(!credId) return encryptionPassword;
+    const challenge = crypto.getRandomValues(new Uint8Array(32));
+    await navigator.credentials.get({
+      publicKey: { challenge, allowCredentials: [{ id: base64ToBuf(credId), type: 'public-key' }], userVerification: 'required', timeout: 60000 }
+    });
+    return encryptionPassword;
+  }catch(e){
+    showToast('❌ Verificação biométrica falhou ou foi cancelada');
+    throw e;
+  }
+}
+
+// --- DADOS OCULTOS / LIMPEZA (Modo Dev) ---
+function tapVersion(){
+  clearTimeout(devTapTimer);
+  devTapCount++;
+  if(devTapCount >= 5){
+    devTapCount = 0;
+    toggleDevMode();
+    return;
+  }
+  devTapTimer = setTimeout(()=>{ devTapCount = 0; }, 1500);
+}
+async function checkForUpdates(){
+  const btn = document.getElementById('checkUpdateBtn');
+  const res = document.getElementById('updateResult');
+  if(btn) btn.disabled = true;
+  if(res) res.textContent = '';
+  showToast('🔄 Buscando versão mais recente…');
+  try{
+    const url  = location.href.split('?')[0] + '?v=' + Date.now();
+    const resp = await fetch(url, { cache: 'no-store' });
+    const html = await resp.text();
+    const match = html.match(/const APP_VERSION\s*=\s*'([^']+)'/);
+    const remoteVersion = match ? match[1] : null;
+    if(!remoteVersion){
+      showToast('Não foi possível ler a versão remota.');
+      if(res) res.textContent = 'Não foi possível ler a versão remota.';
+      return;
+    }
+    if(remoteVersion === APP_VERSION){
+      showToast(`✅ Você já está na versão mais recente (${APP_VERSION}).`);
+      if(res) res.innerHTML = `✅ Está na versão mais recente (<strong>${APP_VERSION}</strong>)`;
+      return;
+    }
+    if(res) res.innerHTML = `🆕 Nova versão disponível: <strong>${remoteVersion}</strong> (atual: ${APP_VERSION})`;
+    const msg = `Nova versão disponível!\n\nAtual:  v${APP_VERSION}\nNova:   v${remoteVersion}\n\nAtualizar agora?`;
+    if(confirm(msg)){ location.replace(location.href.split('?')[0] + '?v=' + Date.now()); }
+  } catch(err){
+    showToast('Erro ao verificar atualização: ' + err.message);
+    if(res) res.textContent = 'Erro ao verificar atualização.';
+  } finally {
+    if(btn) btn.disabled = false;
+  }
+}
+
+// Liga/desliga se ESTE dispositivo grava no formato novo (schema v1) a
+// partir de agora — não força nenhuma conversão imediata, só muda o
+// formato dos PRÓXIMOS envios. Ver migrateNowToNormalizedSchema() para
+// converter e enviar já.
+async function toggleNormalizedSchema(){
+  useNormalizedSchema = !useNormalizedSchema;
+  try{ await window.storage.set('useNormalizedSchema', useNormalizedSchema); }catch(e){}
+  renderSettings();
+  showToast(useNormalizedSchema ? '🗂️ A gravar no formato novo a partir de agora' : '🗂️ A gravar no formato antigo a partir de agora');
+}
+// Ativa o formato novo e força um envio imediato, convertendo os dados
+// atuais e gravando-os já na planilha nesse formato.
+async function migrateNowToNormalizedSchema(){
+  if(!syncUrl){ showToast('Configure a sincronização primeiro'); return; }
+  if(!confirm('Converter os dados atuais para o novo formato e enviar já para a planilha?')) return;
+  useNormalizedSchema = true;
+  try{ await window.storage.set('useNormalizedSchema', true); }catch(e){}
+  renderSettings();
+  showToast('🔄 A converter e enviar…');
+  await pushToCloud();
+  showToast('✅ Convertido e enviado no formato novo');
+}
+// ---------------------------------------------------------------
+// ATUALIZAÇÃO AUTOMÁTICA E SILENCIOSA (na abertura do app)
+// Não pergunta nada ao utilizador. Fluxo em duas partes, porque a
+// atualização em si exige recarregar a página:
+//
+// 1) checkForUpdatesOnStartup() — roda no fim de loadAll(). Busca a
+//    própria página (bypass de cache) e lê APP_VERSION via regex, igual ao
+//    botão manual do Modo Dev. Se encontrar uma versão diferente, guarda
+//    essa versão em `pendingUpdateNotice` (device-local) e recarrega a
+//    página imediatamente (location.replace) — sem confirm(), sem sheet.
+// 2) consumePendingUpdateNotice() — chamada no INÍCIO da abertura
+//    seguinte (já com a página recarregada, portanto já na versão nova).
+//    Se houver um `pendingUpdateNotice` pendente, a marca é consumida e
+//    apagada aqui, e a função devolve true/false para quem chamou decidir
+//    como avisar. loadAll() usa o resultado para mostrar a confirmação na
+//    PRÓPRIA tela de carregamento (splash) antes dela desaparecer — um
+//    toast separado nesse momento ficava tapado pela splash (z-index mais
+//    alto que o do toast), então na prática nunca era visto.
+//
+// Isto evita perguntar "quer atualizar?" — a atualização já aconteceu
+// sozinha; o utilizador só fica a saber depois, de forma discreta.
+// ---------------------------------------------------------------
+async function checkForUpdatesOnStartup(){
+  try{
+    const url  = location.href.split('?')[0] + '?v=' + Date.now();
+    const resp = await fetch(url, { cache: 'no-store' });
+    if(!resp.ok) return;
+    const html = await resp.text();
+    const match = html.match(/const APP_VERSION\s*=\s*'([^']+)'/);
+    const remoteVersion = match ? match[1] : null;
+    if(!remoteVersion || remoteVersion === APP_VERSION) return;
+    // Sem sessão: a app não recarrega sozinha. Mostra o alerta, com a opção de entrar.
+    if(basicMode()){ showUpdateSheet(remoteVersion); return; }
+
+    try{ await window.storage.set('pendingUpdateNotice', remoteVersion); }catch(e){}
+    location.replace(location.href.split('?')[0] + '?v=' + Date.now());
+  }catch(e){
+    // Falha silenciosa — sem rede ou página inacessível não deve incomodar
+    // o utilizador logo na abertura do app; tenta de novo na próxima.
+  }
+}
+
+// Consome a marca de auto-update pendente (guardada por
+// checkForUpdatesOnStartup antes do reload) e devolve true só se a versão
+// atual já bater com a que foi marcada — ou seja, se o reload realmente
+// aplicou a atualização esperada. Não mostra nenhuma UI diretamente; quem
+// chama decide onde exibir o aviso (ver loadAll, que o mostra na splash).
+async function consumePendingUpdateNotice(){
+  let pendingVersion = '';
+  try{ const p = await window.storage.get('pendingUpdateNotice'); pendingVersion = p.value || ''; }catch(e){ return false; }
+  if(!pendingVersion) return false;
+  try{ await window.storage.delete('pendingUpdateNotice'); }catch(e){}
+  // Se a versão não bater (ex: o reload não chegou a pegar a versão nova
+  // por algum motivo), devolve false silenciosamente — a próxima
+  // verificação de startup tenta de novo naturalmente.
+  return pendingVersion === APP_VERSION;
+}
+
+async function toggleDevMode(){
+  devMode = !devMode;
+  if(!devMode) showHiddenData = false;
+  localSettings.devMode = devMode;
+  await persistLocalSettings();
+  applyTabVisibility();
+  if(devMode){ goDev(); } else { goSettings(); }
+  showToast(devMode ? '🛠️ Modo Dev ativado' : 'Modo Dev desativado');
+}
+function toggleHiddenMode() { showHiddenData = !showHiddenData; renderSettings(); }
+function renderHiddenDataList() {
+  let html = '<div class="loans-box" style="padding:10px 14px; max-height: 400px; overflow-y: auto;">';
+  let allE = [];
+  let allExp = [];
+  Object.keys(monthData).forEach(mKey => {
+    (monthData[mKey].earnings || []).forEach(e => allE.push({...e, _month: mKey}));
+    (monthData[mKey].variableExpenses || []).forEach(ex => allExp.push({...ex, _month: mKey}));
+  });
+  allE.sort((a,b) => b.ts - a.ts);
+  allExp.sort((a,b) => b.ts - a.ts);
+
+  html += '<div style="font-weight:700; margin-bottom:8px; font-size: 13px;">Despesas Fixas Ocultadas (Mês Atual)</div>';
+  const entry = ensureMonthEntry(currentMonthKey);
+  const hiddenBillsList = bills.filter(b => entry.hiddenBills[b.id]);
+  if(hiddenBillsList.length === 0) html += '<div class="bill-sub" style="margin-bottom:14px;">Nenhuma.</div>';
+  hiddenBillsList.forEach(b => {
+    html += `<div class="bill-row" style="padding:8px 0;">
+      <div class="bill-info"><div class="bill-name">${escapeHtml(b.name)}</div><div class="bill-sub">Oculta neste mês</div></div>
+      <button class="btn-ghost" style="font-size:12px; border:none; padding:8px;" onclick="restoreHiddenBill('${b.id}')">Restaurar</button>
+    </div>`;
+  });
+
+  html += '<div style="font-weight:700; margin-top:16px; margin-bottom:8px; font-size: 13px;">Todos os Ganhos (Global)</div>';
+  if(allE.length === 0) html += '<div class="bill-sub">Nenhum ganho.</div>';
+  allE.forEach(e => {
+    html += `<div class="bill-row" style="padding:8px 0;">
+      <div class="bill-info"><div class="bill-name">${escapeHtml(platformLabel(e.platform))}</div><div class="bill-sub">${formatDateStr(e.date)}</div></div>
+      <div class="bill-amount-wrap"><div class="bill-amount-edit">${fmt(e.amount)}</div><div class="bill-delete" onclick="removeEarningFromSettings('${e.id}')">✕</div></div>
+    </div>`;
+  });
+
+  html += '<div style="font-weight:700; margin-top:16px; margin-bottom:8px; font-size: 13px;">Todas as Despesas Variáveis (Global)</div>';
+  if(allExp.length === 0) html += '<div class="bill-sub" style="margin-bottom:14px;">Nenhuma despesa.</div>';
+  allExp.forEach(e => {
+    const cat = EXPENSE_CATEGORIES.find(c => c.key === e.category) || {label: e.category};
+    const dStr = e.date || formatDateStr(new Date(e.ts).toISOString().slice(0,10));
+    html += `<div class="bill-row" style="padding:8px 0;">
+      <div class="bill-info"><div class="bill-name">${escapeHtml(cat.label)}</div><div class="bill-sub">${dStr}</div></div>
+      <div class="bill-amount-wrap"><div class="bill-amount-edit">${fmt(e.amount)}</div><div class="bill-delete" onclick="removeExpenseFromSettings('${e.id}')">✕</div></div>
+    </div>`;
+  });
+
+  html += '</div>';
+  return html;
+}
+async function removeEarningFromSettings(id) { await removeEarning(id); renderSettings(); }
+async function removeExpenseFromSettings(id) { await deleteVariableExpense(id); renderSettings(); }
+async function restoreHiddenBill(billId) {
+  const entry = ensureMonthEntry(currentMonthKey);
+  delete entry.hiddenBills[billId];
+  markDeleted(`hiddenBillsKey:${currentMonthKey}:${billId}`);
+  await persistMonthData();
+  showToast('Despesa fixa restaurada');
+  renderSettings();
+}
+
+let toastTimer = null;
+function showToast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(()=> t.classList.remove('show'), 2200);
+}
+
+// --- INIT ---
+window.addEventListener('resize', () => positionTabPill());
+if(window.matchMedia){
+  window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
+    if((localSettings.darkMode || 'system') === 'system') applyDarkModeClass();
+  });
+}
+
+// O script do Firebase (type="module", mais acima) é sempre adiado — pode
+// terminar de inicializar antes OU depois deste script clássico chegar
+// até aqui. Cobre os dois casos: se já estiver pronto, arranca já; senão,
+// espera pelo evento que esse módulo dispara ao terminar.
+if(window.__fbReady){ loadAll(); }
+else { window.addEventListener('firebase-ready', loadAll, { once:true }); }
+</script>
+</body>
+</html>
