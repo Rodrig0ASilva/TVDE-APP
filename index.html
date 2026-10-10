@@ -212,7 +212,7 @@ body {
 .switch-row-sub { font-size: 11px; color: var(--text-muted); margin-top: 2px; line-height: 1.4; }
 .switch { position: relative; width: 46px; height: 27px; min-width: 46px; border-radius: var(--r-full); background: rgba(42,36,32,0.18); cursor: pointer; transition: background 0.18s ease; }
 .switch::after { content: ''; position: absolute; top: 2.5px; left: 2.5px; width: 22px; height: 22px; border-radius: 50%; background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,0.25); transition: transform 0.18s ease; }
-.switch.on { background: var(--vault-light); }
+.switch.on { background: var(--switch-on, var(--vault-light)); }
 .switch.on::after { transform: translateX(19px); }
 .photo-row { display: flex; align-items: center; gap: 14px; margin-bottom: 18px; }
 .photo-avatar { width: 56px; height: 56px; min-width: 56px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: var(--text-lg); color: #fff; background: var(--vault-light); background-size: contain; background-position: center; background-repeat: no-repeat; overflow: hidden; position: relative; }
@@ -586,9 +586,9 @@ body.glass .month-nav-btn {
 }
 body.glass.dark .month-nav-btn { background: rgba(40,40,52,0.45); border-color: rgba(255,255,255,0.14); }
 /* Interruptores */
-body.glass .switch { background: rgba(42,36,32,0.16); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
-body.glass .switch.on { background: var(--vault-light); }
-body.glass.dark .switch { background: rgba(255,255,255,0.18); }
+body.glass .switch:not(.on) { background: rgba(42,36,32,0.16); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
+body.glass .switch.on { background: var(--switch-on, var(--vault-light)); }
+body.glass.dark .switch:not(.on) { background: rgba(255,255,255,0.18); }
 </style>
 </head>
 <body>
@@ -1272,7 +1272,7 @@ body.glass.dark .switch { background: rgba(255,255,255,0.18); }
 // Esquema de versão: de volta ao pré-1.0 (0.x.x) — a v1.0.0 fica
 // reservada para o lançamento com assinatura paga completa. A numeração
 // 4.x.x usada temporariamente para a integração Firebase foi abandonada.
-const APP_VERSION = '0.4.42';
+const APP_VERSION = '0.4.43';
 // Mostra o número da versão na tela de carregamento imediatamente (sem
 // esperar por loadAll/qualquer coisa assíncrona) — sempre visível,
 // independente da mensagem dinâmica ("A carregar…", "A sincronizar…",
@@ -2419,6 +2419,7 @@ function applyThemeColor(key){
   root.style.setProperty('--vault',       theme.vault);
   root.style.setProperty('--vault-2',     theme.vault2);
   root.style.setProperty('--vault-light', theme.vaultLight);
+  root.style.setProperty('--switch-on', theme.vaultLight);
   root.style.setProperty('--vault-text-dark', theme.textDark);
   root.style.setProperty('--brass',       theme.brass);
   root.style.setProperty('--brass-light', theme.brassLight);
