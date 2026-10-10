@@ -593,8 +593,8 @@ body.glass.dark .switch:not(.on) { background: rgba(255,255,255,0.18); }
 /* Gota da aba selecionada (só com o efeito transparente) */
 body.glass .tabbar-inner { position: relative; touch-action: none; }
 body.glass .tab { position: relative; z-index: 1; }
-#tabPill { display: none; }
-body.glass #tabPill {
+.glass-pill { display: none; }
+body.glass .glass-pill {
   display: block; position: absolute; z-index: 0; pointer-events: none;
   border-radius: 14px; opacity: 0;
   background: rgba(255,255,255,0.5);
@@ -602,13 +602,25 @@ body.glass #tabPill {
   border: 1px solid rgba(255,255,255,0.7);
   box-shadow: inset 0 1px 0 rgba(255,255,255,0.8), 0 4px 14px rgba(20,16,12,0.14);
   transition: left 0.38s cubic-bezier(.34,1.56,.64,1), top 0.38s cubic-bezier(.34,1.56,.64,1),
-              width 0.38s cubic-bezier(.34,1.56,.64,1), height 0.38s cubic-bezier(.34,1.56,.64,1), opacity 0.2s ease;
+              width 0.38s cubic-bezier(.34,1.56,.64,1), height 0.38s cubic-bezier(.34,1.56,.64,1), transform 0.42s cubic-bezier(.34,1.56,.64,1), opacity 0.2s ease;
 }
-body.glass #tabPill.on { opacity: 1; }
-body.glass.dark #tabPill { background: rgba(255,255,255,0.14); border-color: rgba(255,255,255,0.2); }
+body.glass .glass-pill.on { opacity: 1; }
+body.glass.dark .glass-pill { background: rgba(255,255,255,0.14); border-color: rgba(255,255,255,0.2); }
 body.glass .tab.active, body.glass.dark .tab.active {
   background: transparent; border-color: transparent; box-shadow: none;
   backdrop-filter: none; -webkit-backdrop-filter: none;
+}
+/* Gota de vidro em todos os seletores (com o efeito transparente) */
+body.glass .seg { position: relative; touch-action: none; }
+body.glass .seg-opt { position: relative; z-index: 1; }
+body.glass .seg > .glass-pill {
+  background: var(--vault); border-color: rgba(255,255,255,0.25);
+  box-shadow: 0 3px 10px rgba(20,16,12,0.22);
+  backdrop-filter: none; -webkit-backdrop-filter: none;
+}
+body.glass.dark .seg > .glass-pill { background: var(--vault); }
+body.glass .seg-opt.active, body.glass.dark .seg-opt.active {
+  background: transparent; box-shadow: none; color: #fff;
 }
 </style>
 </head>
@@ -1293,7 +1305,7 @@ body.glass .tab.active, body.glass.dark .tab.active {
 // Esquema de versão: de volta ao pré-1.0 (0.x.x) — a v1.0.0 fica
 // reservada para o lançamento com assinatura paga completa. A numeração
 // 4.x.x usada temporariamente para a integração Firebase foi abandonada.
-const APP_VERSION = '0.46';
+const APP_VERSION = '0.47';
 // Mostra o número da versão na tela de carregamento imediatamente (sem
 // esperar por loadAll/qualquer coisa assíncrona) — sempre visível,
 // independente da mensagem dinâmica ("A carregar…", "A sincronizar…",
@@ -2412,99 +2424,153 @@ function activateTab(id){
   TABS.forEach(t => document.getElementById(t).classList.toggle('active', t === id));
   positionTabPill(id);
 }
-// Gota da aba selecionada (só com o efeito transparente).
-function positionTabPill(id, animate){
-  if(!document.body.classList.contains('glass')) return;
-  const bar = document.querySelector('.tabbar-inner');
-  if(!bar) return;
-  let p = document.getElementById('tabPill');
-  if(!p){ p = document.createElement('div'); p.id = 'tabPill'; bar.prepend(p); }
-  const target = document.getElementById(id || currentTabId());
-  if(!target || target.classList.contains('hidden-tab')){ p.classList.remove('on'); return; }
-  p.style.transition = animate === false ? 'none' : '';
-  p.style.left = target.offsetLeft + 'px';
-  p.style.top = target.offsetTop + 'px';
-  p.style.width = target.offsetWidth + 'px';
-  p.style.height = target.offsetHeight + 'px';
-  p.classList.add('on');
-}
+// ---------- Gota de vidro (só com o efeito transparente) ----------
+// Serve a barra de abas e todos os seletores (.seg): desliza até à opção ativa,
+// estica-se na direção do movimento, achata-se contra as paredes e recupera
+// a forma normal com mola ao chegar.
+function isGlass(){ return document.body.classList.contains('glass'); }
 function currentTabId(){ return TABS.find(id => document.getElementById(id) && document.getElementById(id).classList.contains('active')); }
 function visibleTabIds(){ return TABS.filter(id => { const el = document.getElementById(id); return el && !el.classList.contains('hidden-tab'); }); }
 const TAB_NAV = { tabGanhos: () => goGanhos(), tabDespesas: () => goDespesas(), tabLucro: () => goLucro(), tabStats: () => goStats(), tabSettings: () => goSettings(), tabDev: () => goDev() };
-
-// Arrastar sobre a barra: a gota segue o dedo e a aba muda ao soltar, na mais próxima.
-let suppressTabClick = false;
-function setupTabDrag(){
-  const bar = document.querySelector('.tabbar-inner');
-  if(!bar) return;
-  let drag = null;
-  const vertical = () => getComputedStyle(bar).flexDirection === 'column';
-  const nearestIndex = (ids, pt) => {
-    let best = 0, bestD = Infinity;
-    ids.forEach((id, i) => {
-      const r = document.getElementById(id).getBoundingClientRect();
-      const c = vertical() ? r.top + r.height / 2 : r.left + r.width / 2;
-      const p = vertical() ? pt.y : pt.x;
-      const d = Math.abs(p - c);
-      if(d < bestD){ bestD = d; best = i; }
-    });
-    return best;
-  };
-  const moveGota = (ids, pt) => {
-    const p = document.getElementById('tabPill');
-    const first = document.getElementById(ids[0]), last = document.getElementById(ids[ids.length - 1]);
-    const br = bar.getBoundingClientRect();
-    if(!p) return;
-    p.style.transition = 'none';
+function glassPill(c){
+  let p = c.querySelector(':scope > .glass-pill');
+  if(!p){ p = document.createElement('div'); p.className = 'glass-pill'; c.prepend(p); }
+  return p;
+}
+function glassOptionsOf(c){
+  return c.classList.contains('tabbar-inner')
+    ? visibleTabIds().map(id => document.getElementById(id)).filter(Boolean)
+    : Array.from(c.querySelectorAll(':scope > .seg-opt'));
+}
+function glassIsHorizontal(c){ return getComputedStyle(c).flexDirection !== 'column'; }
+function glassPlace(c, opt, animate){
+  if(!isGlass() || !c) return;
+  const p = glassPill(c);
+  if(!opt || opt.classList.contains('hidden-tab') || opt.offsetParent === null){ p.classList.remove('on'); return; }
+  const anim = animate !== false;
+  p.style.transition = anim ? '' : 'none';
+  p.style.left = opt.offsetLeft + 'px';
+  p.style.top = opt.offsetTop + 'px';
+  p.style.width = opt.offsetWidth + 'px';
+  p.style.height = opt.offsetHeight + 'px';
+  if(anim){
+    // chega achatada no sentido do movimento e recupera a forma normal com mola
+    p.style.transform = glassIsHorizontal(c) ? 'scale(1.14, 0.9)' : 'scale(0.9, 1.14)';
+    void p.offsetWidth;
+    p.style.transform = '';
+  } else {
+    p.style.transform = '';
+  }
+  p.classList.add('on');
+}
+function positionTabPill(id, animate){
+  glassPlace(document.querySelector('.tabbar-inner'), document.getElementById(id || currentTabId()), animate);
+}
+function glassRefreshAll(animate){
+  if(!isGlass()) return;
+  document.querySelectorAll('.seg, .tabbar-inner').forEach(c => {
+    const act = glassOptionsOf(c).find(o => o.classList.contains('active'));
+    glassPlace(c, act, animate);
+  });
+}
+// Arrasto: a gota segue o dedo, estica-se com a velocidade e achata-se contra as paredes.
+let glassDrag = null;
+let glassClickBlock = false;
+function glassDragTo(c, d, pt){
+  const p = glassPill(c);
+  const horiz = glassIsHorizontal(c);
+  const first = d.opts[0], last = d.opts[d.opts.length - 1];
+  const size = horiz ? first.offsetWidth : first.offsetHeight;
+  const startOf = o => horiz ? o.offsetLeft : o.offsetTop;
+  const lo = startOf(first), hi = startOf(last);
+  const br = c.getBoundingClientRect();
+  const axisPt = horiz ? pt.x - br.left : pt.y - br.top;
+  const pos = axisPt - size / 2;
+  const clamped = Math.max(lo, Math.min(hi, pos));
+  const over = Math.max(0, lo - pos, pos - hi);
+  const squash = Math.min(0.2, over / 160);
+  const stretch = Math.min(0.16, Math.abs(d.v) * 0.0011);
+  const along = 1 + stretch - squash;
+  const cross = 1 - stretch * 0.45 + squash * 0.45;
+  p.style.transition = 'none';
+  if(horiz){
+    p.style.left = clamped + 'px';
+    p.style.top = first.offsetTop + 'px';
     p.style.width = first.offsetWidth + 'px';
     p.style.height = first.offsetHeight + 'px';
-    if(vertical()){
-      const h = first.offsetHeight;
-      p.style.top = Math.max(first.offsetTop, Math.min(last.offsetTop, pt.y - br.top - h / 2)) + 'px';
-    } else {
-      const w = first.offsetWidth;
-      p.style.left = Math.max(first.offsetLeft, Math.min(last.offsetLeft, pt.x - br.left - w / 2)) + 'px';
-    }
-  };
-  bar.addEventListener('pointerdown', e => {
-    if(!document.body.classList.contains('glass')) return;
-    const ids = visibleTabIds();
-    if(ids.length < 2) return;
-    drag = { x: e.clientX, y: e.clientY, lastX: e.clientX, lastY: e.clientY, moved: false, pointerId: e.pointerId, ids };
-  });
-  bar.addEventListener('pointermove', e => {
-    if(!drag) return;
-    if(!drag.moved){
-      if(Math.hypot(e.clientX - drag.x, e.clientY - drag.y) < 6) return;
-      drag.moved = true;
-      try{ bar.setPointerCapture(drag.pointerId); }catch(_){}
-    }
-    drag.lastX = e.clientX;
-    drag.lastY = e.clientY;
-    moveGota(drag.ids, { x: drag.lastX, y: drag.lastY });
-  });
-  // Soltar: muda para a aba mais próxima da última posição do dedo
-  bar.addEventListener('pointerup', e => {
-    if(!drag) return;
-    const d = drag;
-    drag = null;
-    if(!d.moved) return;
-    try{ bar.releasePointerCapture(d.pointerId); }catch(_){}
-    suppressTabClick = true;
-    const id = d.ids[nearestIndex(d.ids, { x: e.clientX, y: e.clientY })];
-    if(id !== currentTabId()) TAB_NAV[id](); else positionTabPill(id);
-  });
-  // Cancelado pelo navegador: não navega; a gota volta à aba atual
-  bar.addEventListener('pointercancel', () => {
-    if(!drag) return;
-    const moved = drag.moved;
-    drag = null;
-    if(moved) positionTabPill(currentTabId(), true);
-  });
-  bar.addEventListener('click', e => {
-    if(suppressTabClick){ suppressTabClick = false; e.stopPropagation(); e.preventDefault(); }
-  }, true);
+    p.style.transform = `scale(${along}, ${cross})`;
+  } else {
+    p.style.top = clamped + 'px';
+    p.style.left = first.offsetLeft + 'px';
+    p.style.width = first.offsetWidth + 'px';
+    p.style.height = first.offsetHeight + 'px';
+    p.style.transform = `scale(${cross}, ${along})`;
+  }
+  p.classList.add('on');
 }
+function glassRelease(c, d, pt){
+  const horiz = glassIsHorizontal(c);
+  let best = 0, bestD = Infinity;
+  d.opts.forEach((o, i) => {
+    const r = o.getBoundingClientRect();
+    const oc = horiz ? r.left + r.width / 2 : r.top + r.height / 2;
+    const pc = horiz ? pt.x : pt.y;
+    const dist = Math.abs(pc - oc);
+    if(dist < bestD){ bestD = dist; best = i; }
+  });
+  const target = d.opts[best];
+  const active = d.opts.find(o => o.classList.contains('active'));
+  if(target !== active){ target.click(); }
+  else { glassPlace(c, active, true); }
+}
+document.addEventListener('pointerdown', e => {
+  glassClickBlock = false;
+  const c = e.target.closest ? e.target.closest('.seg, .tabbar-inner') : null;
+  if(!c || !isGlass()) return;
+  const opts = glassOptionsOf(c);
+  if(opts.length < 2) return;
+  glassDrag = { c, opts, x: e.clientX, y: e.clientY, lx: e.clientX, ly: e.clientY, lt: performance.now(), v: 0, moved: false, id: e.pointerId };
+}, true);
+document.addEventListener('pointermove', e => {
+  const d = glassDrag;
+  if(!d) return;
+  if(!d.moved){
+    if(Math.hypot(e.clientX - d.x, e.clientY - d.y) < 6) return;
+    d.moved = true;
+    try{ d.c.setPointerCapture(d.id); }catch(_){}
+  }
+  const now = performance.now();
+  const dt = Math.max(1, now - d.lt);
+  const delta = glassIsHorizontal(d.c) ? e.clientX - d.lx : e.clientY - d.ly;
+  d.v = 0.6 * d.v + 0.4 * (delta / dt);
+  d.lx = e.clientX; d.ly = e.clientY; d.lt = now;
+  glassDragTo(d.c, d, { x: e.clientX, y: e.clientY });
+}, { passive: true });
+function glassEnd(e, cancelled){
+  const d = glassDrag;
+  glassDrag = null;
+  if(!d || !d.moved) return;
+  try{ d.c.releasePointerCapture(d.id); }catch(_){}
+  glassClickBlock = true;
+  if(cancelled){
+    glassPlace(d.c, d.opts.find(o => o.classList.contains('active')), true);
+    return;
+  }
+  glassRelease(d.c, d, { x: e.clientX, y: e.clientY });
+}
+document.addEventListener('pointerup', e => glassEnd(e, false));
+document.addEventListener('pointercancel', e => glassEnd(e, true));
+document.addEventListener('click', e => {
+  if(glassClickBlock && e.isTrusted){ glassClickBlock = false; e.stopPropagation(); e.preventDefault(); }
+}, true);
+// Reposiciona a gota quando a opção ativa muda (qualquer seletor), ou quando surge um seletor novo
+const glassObserver = new MutationObserver(muts => {
+  if(!isGlass()) return;
+  const classChanged = muts.some(m => m.type === 'attributes' && m.target.matches && m.target.matches('.seg-opt, .tab'));
+  const childChanged = muts.some(m => m.type === 'childList' && !(m.target.classList && m.target.classList.contains('glass-pill')));
+  if(classChanged || childChanged) glassRefreshAll(classChanged);
+});
+glassObserver.observe(document.body, { subtree: true, childList: true, attributes: true, attributeFilter: ['class'] });
 
 // Deslizar na horizontal sobre o conteúdo: aba seguinte ou anterior.
 function setupSwipeNav(){
@@ -2684,7 +2750,7 @@ function renderBgImageRow(){
 }
 function applyLiquidGlass(){
   document.body.classList.toggle('glass', localSettings.liquidGlass === true);
-  positionTabPill();
+  glassRefreshAll(false);
 }
 async function toggleLiquidGlass(){
   localSettings.liquidGlass = !(localSettings.liquidGlass === true);
@@ -6014,7 +6080,6 @@ function showToast(msg){
 
 // --- INIT ---
 window.addEventListener('resize', () => positionTabPill());
-setupTabDrag();
 setupSwipeNav();
 if(window.matchMedia){
   window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
