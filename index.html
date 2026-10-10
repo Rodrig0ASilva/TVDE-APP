@@ -837,14 +837,32 @@ body.dark button[onclick="lockSyncUrl()"] { background: var(--vault); color: #ff
     </div>
 
     <div class="section-head" style="margin-top:20px;"><div class="section-title">Exportação de dados</div></div>
-    <div class="section-sub" style="margin-bottom:10px;">Exporta uma planilha Excel (.xlsx) para a declaração de IRS, ou um arquivo de configurações (.json) com dados e configurações para guardar ou importar noutro aparelho.</div>
+    <div class="section-sub" style="margin-bottom:10px;">Exporta uma planilha Excel (.xlsx) para a declaração de IRS, ou uma cópia completa dos dados e das configurações (.json).</div>
     <button onclick="openExportChoice()" id="exportExcelBtn" style="width:100%;padding:13px;border-radius:var(--r-md);border:1.5px solid var(--line);background:transparent;color:var(--ink);font-weight:700;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;">
       <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M9 13h1m4 0h1M9 17h1m4 0h1" stroke-linecap="round"/></svg>
       Exportar dados
     </button>
 
 
-    <div id="devPanel" style="display:none;margin-top:4px;border:1.5px dashed var(--terracotta);border-radius:var(--r-xl);padding:16px 18px 20px;">
+    <div style="margin-top:28px;padding-top:18px;border-top:2px dashed var(--terracotta);">
+      <div style="font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:0.06em;color:var(--terracotta);margin-bottom:10px;">Zona de perigo</div>
+      <button class="delete-all-btn" onclick="confirmResetAll()" style="margin-top:0;background:var(--terracotta);color:#fff;border-radius:var(--r-md);padding:16px;font-size:15px;font-weight:800;box-shadow:0 4px 14px rgba(168,83,63,0.3);">🗑️ Apagar dados ou configurações</button>
+      <div style="font-size:11px;color:var(--text-muted);text-align:center;margin-top:8px;line-height:1.5;">Ação permanente. Pede um código de confirmação antes de apagar.</div>
+    </div>
+
+    <div style="height:24px;"></div>
+  </div>
+
+  <div class="screen" id="screen-dev">
+    <div class="topbar">
+      <div class="screen-title-group">
+        <div class="screen-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.7 6.3a4 4 0 0 0-5.4 5.4L3 18l3 3 6.3-6.3a4 4 0 0 0 5.4-5.4l-2.5 2.5-2.5-.5-.5-2.5z"/></svg>
+        </div>
+        <div class="screen-title">Modo Dev</div>
+      </div>
+    </div>
+    <div id="devPanel" style="display:block;margin-top:0;border:1.5px dashed var(--terracotta);border-radius:var(--r-xl);padding:16px 18px 20px;">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
         <div style="font-size:13px;font-weight:700;color:var(--terracotta);">🛠️ Modo Dev</div>
         <div class="switch on" onclick="toggleDevMode()"></div>
@@ -981,12 +999,6 @@ body.dark button[onclick="lockSyncUrl()"] { background: var(--vault); color: #ff
       </a>
     </div>
 
-    <div style="margin-top:28px;padding-top:18px;border-top:2px dashed var(--terracotta);">
-      <div style="font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:0.06em;color:var(--terracotta);margin-bottom:10px;">Zona de perigo</div>
-      <button class="delete-all-btn" onclick="confirmResetAll()" style="margin-top:0;background:var(--terracotta);color:#fff;border-radius:var(--r-md);padding:16px;font-size:15px;font-weight:800;box-shadow:0 4px 14px rgba(168,83,63,0.3);">🗑️ Apagar dados ou configurações</button>
-      <div style="font-size:11px;color:var(--text-muted);text-align:center;margin-top:8px;line-height:1.5;">Ação permanente. Pede um código de confirmação antes de apagar.</div>
-    </div>
-
     <div style="height:24px;"></div>
   </div>
 
@@ -1110,6 +1122,10 @@ body.dark button[onclick="lockSyncUrl()"] { background: var(--vault); color: #ff
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="M7 14l4-4 4 3 5-6" stroke-linecap="round" stroke-linejoin="round"/></svg>
       Estatísticas
     </div>
+    <div class="tab hidden-tab" id="tabDev" onclick="goDev()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.7 6.3a4 4 0 0 0-5.4 5.4L3 18l3 3 6.3-6.3a4 4 0 0 0 5.4-5.4l-2.5 2.5-2.5-.5-.5-2.5z"/></svg>
+      Dev
+    </div>
     <div class="tab" id="tabSettings" onclick="goSettings()">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1-1.6 1.7 1.7 0 0 0-1.9.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.9 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.6-1 1.7 1.7 0 0 0-.3-1.9l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.9.3h.1a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.6 1.7 1.7 0 0 0 1.9-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.9v.1a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.6 1z"/></svg>
       Você
@@ -1130,7 +1146,7 @@ body.dark button[onclick="lockSyncUrl()"] { background: var(--vault); color: #ff
 // Esquema de versão: de volta ao pré-1.0 (0.x.x) — a v1.0.0 fica
 // reservada para o lançamento com assinatura paga completa. A numeração
 // 4.x.x usada temporariamente para a integração Firebase foi abandonada.
-const APP_VERSION = '0.4.23';
+const APP_VERSION = '0.4.24';
 // Mostra o número da versão na tela de carregamento imediatamente (sem
 // esperar por loadAll/qualquer coisa assíncrona) — sempre visível,
 // independente da mensagem dinâmica ("A carregar…", "A sincronizar…",
@@ -1755,6 +1771,7 @@ async function loadAll(){
   window.__fbUser = await (window.fbAuthReadyPromise || Promise.resolve(null));
 
   await loadLocalOnlySettings();
+  devMode = localSettings.devMode === true;
   await loadDeletedIdsFromStorage();
   await loadFromLocalStorage();
 
@@ -2195,7 +2212,7 @@ function setSyncStatus(state){
 }
 
 // --- NAVIGATION ---
-const TABS = ['tabGanhos','tabDespesas','tabLucro','tabStats','tabSettings'];
+const TABS = ['tabGanhos','tabDespesas','tabLucro','tabStats','tabSettings','tabDev'];
 function activateTab(id){ TABS.forEach(t => document.getElementById(t).classList.toggle('active', t === id)); }
 function showScreen(id){
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
@@ -2204,10 +2221,14 @@ function showScreen(id){
 }
 function goGanhos(){ showScreen('screen-ganhos'); activateTab('tabGanhos'); renderGanhos(); }
 function goSettings(){ showScreen('screen-settings'); activateTab('tabSettings'); renderSettings(); }
+function goDev(){ if(!devMode) return; showScreen('screen-dev'); activateTab('tabDev'); renderSettings(); }
 function goStats(){ showScreen('screen-stats'); activateTab('tabStats'); renderStats(); }
 function goDespesas(){ showScreen('screen-despesas'); activateTab('tabDespesas'); renderDespesas(); }
 function goLucro(){ showScreen('screen-lucro'); activateTab('tabLucro'); renderLucro(); }
-function applyTabVisibility(){}
+function applyTabVisibility(){
+  const t = document.getElementById('tabDev');
+  if(t) t.classList.toggle('hidden-tab', !devMode);
+}
 
 // --- APPEARANCE (device-only, never synced) ---
 const THEME_COLORS = [
@@ -2959,7 +2980,7 @@ async function performReset(scope){
   if(eraseSettings){
     const keepIdentity = scope === 'settings';
     profile = { name: keepIdentity ? (profile.name || '') : '', photo: keepIdentity ? (profile.photo || null) : null };
-    localSettings = { darkMode: 'system', themeColor: 'green' };
+    localSettings = { darkMode: 'system', themeColor: 'green', devMode: localSettings.devMode === true };
     encryptionEnabled = false;
     encryptionPassword = '';
     biometricUnlockEnabled = false;
@@ -2997,7 +3018,7 @@ function openExportChoice(){
     </button>
     <button class="btn" onclick="closeSheet(); exportSettingsJson()" style="text-align:left;background:#fff;border:1.5px solid var(--line);color:var(--ink);">
       <div style="font-weight:800;">🗂️ Arquivo de configurações (.json)</div>
-      <div style="font-size:11px;font-weight:500;color:var(--text-muted);margin-top:3px;">Cópia completa de dados e configurações. Pode ser importada em Modo Dev → Importar dados.</div>
+      <div style="font-size:11px;font-weight:500;color:var(--text-muted);margin-top:3px;">Cópia completa de dados e configurações, para guardar ou transferir para outro aparelho.</div>
     </button>
     <button class="btn btn-ghost" onclick="closeSheet()">Cancelar</button>
   `);
@@ -5139,10 +5160,7 @@ function tapVersion(){
   devTapCount++;
   if(devTapCount >= 5){
     devTapCount = 0;
-    devMode = !devMode;
-    showHiddenData = false;
-    renderSettings();
-    showToast(devMode ? '🛠️ Modo Dev ativado' : 'Modo Dev desativado');
+    toggleDevMode();
     return;
   }
   devTapTimer = setTimeout(()=>{ devTapCount = 0; }, 1500);
@@ -5258,10 +5276,14 @@ async function consumePendingUpdateNotice(){
   return pendingVersion === APP_VERSION;
 }
 
-function toggleDevMode(){
+async function toggleDevMode(){
   devMode = !devMode;
   if(!devMode) showHiddenData = false;
-  renderSettings();
+  localSettings.devMode = devMode;
+  await persistLocalSettings();
+  applyTabVisibility();
+  if(devMode){ goDev(); } else { goSettings(); }
+  showToast(devMode ? '🛠️ Modo Dev ativado' : 'Modo Dev desativado');
 }
 function toggleHiddenMode() { showHiddenData = !showHiddenData; renderSettings(); }
 function renderHiddenDataList() {
