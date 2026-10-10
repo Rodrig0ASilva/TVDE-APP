@@ -1163,7 +1163,7 @@ body.basic-mode #statsViewSeg .seg-opt:not([data-v="mes"]) { display:none; }
 // Esquema de versão: de volta ao pré-1.0 (0.x.x) — a v1.0.0 fica
 // reservada para o lançamento com assinatura paga completa. A numeração
 // 4.x.x usada temporariamente para a integração Firebase foi abandonada.
-const APP_VERSION = '0.4.30';
+const APP_VERSION = '0.4.31';
 // Mostra o número da versão na tela de carregamento imediatamente (sem
 // esperar por loadAll/qualquer coisa assíncrona) — sempre visível,
 // independente da mensagem dinâmica ("A carregar…", "A sincronizar…",
@@ -1817,11 +1817,11 @@ async function loadAll(){
     }
     initialCloudSync(uid);
   } else if(syncUrl){
-    // Reserva: só chega aqui se por algum motivo não houver utilizador
-    // Firebase (não deveria acontecer, já que loadAll() exige sessão).
-    setSplash('A sincronizar…');
+    // Sem sessão Google, com URL de sincronização guardado. Corre em segundo plano:
+    // esperar aqui deixava a tela de carregamento presa enquanto a ligação falhava
+    // ou demorava (até 15 s por tentativa).
     setSyncStatus('saving');
-    await _doCloudSync();
+    _doCloudSync().catch(e => console.warn('Falha na sincronização com a planilha:', e));
   } else {
     setSyncStatus('nolink');
   }
