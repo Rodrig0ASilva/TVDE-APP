@@ -531,8 +531,17 @@ body.glass.dark .tabbar-inner {
   border-color: rgba(255,255,255,0.14);
   box-shadow: inset 0 1px 0 rgba(255,255,255,0.12), 0 10px 30px rgba(0,0,0,0.45);
 }
-body.glass .tab.active { background: rgba(255,255,255,0.45); }
-body.glass.dark .tab.active { background: rgba(255,255,255,0.12); }
+body.glass .tab { transition: background-color 0.25s ease, color 0.25s ease; }
+body.glass .tab.active {
+  background: rgba(255,255,255,0.45);
+  backdrop-filter: blur(12px) saturate(180%);
+  -webkit-backdrop-filter: blur(12px) saturate(180%);
+  border: 1px solid rgba(255,255,255,0.6);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.7), 0 2px 10px rgba(20,16,12,0.12);
+}
+body.glass .screen { animation: glassFade 0.28s ease; }
+@keyframes glassFade { from { opacity: 0; } to { opacity: 1; } }
+body.glass.dark .tab.active { background: rgba(255,255,255,0.12); border-color: rgba(255,255,255,0.18); }
 body.glass .stat-card, body.glass .chart-box, body.glass .profile-card, body.glass .income-row-compact {
   background: rgba(255,255,255,0.5);
   backdrop-filter: blur(18px) saturate(160%);
@@ -552,6 +561,34 @@ body.glass .sheet {
 }
 body.glass.dark .sheet { background: rgba(26,26,33,0.82); box-shadow: inset 0 1px 0 rgba(255,255,255,0.1), 0 -8px 40px rgba(0,0,0,0.5); }
 body.glass .overlay { background: rgba(20,16,12,0.25); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); }
+/* Seletores de vista (Dia · Semana · Mês · Ano) */
+body.glass .seg {
+  background: rgba(255,255,255,0.32);
+  backdrop-filter: blur(16px) saturate(170%);
+  -webkit-backdrop-filter: blur(16px) saturate(170%);
+  border-color: rgba(255,255,255,0.6);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.6), 0 4px 14px rgba(20,16,12,0.08);
+}
+body.glass .seg-opt.active {
+  background: rgba(255,255,255,0.6);
+  color: var(--vault);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.8), 0 2px 8px rgba(20,16,12,0.12);
+}
+body.glass.dark .seg { background: rgba(40,40,52,0.4); border-color: rgba(255,255,255,0.12); }
+body.glass.dark .seg-opt.active { background: rgba(255,255,255,0.14); color: var(--vault-text, #fff); }
+/* Setas laterais de mês/dia/semana/ano */
+body.glass .month-nav-btn {
+  background: rgba(255,255,255,0.45);
+  backdrop-filter: blur(14px) saturate(170%);
+  -webkit-backdrop-filter: blur(14px) saturate(170%);
+  border-color: rgba(255,255,255,0.65);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.7), 0 4px 12px rgba(20,16,12,0.1);
+}
+body.glass.dark .month-nav-btn { background: rgba(40,40,52,0.45); border-color: rgba(255,255,255,0.14); }
+/* Interruptores */
+body.glass .switch { background: rgba(42,36,32,0.16); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
+body.glass .switch.on { background: var(--vault-light); }
+body.glass.dark .switch { background: rgba(255,255,255,0.18); }
 </style>
 </head>
 <body>
@@ -790,6 +827,13 @@ body.glass .overlay { background: rgba(20,16,12,0.25); backdrop-filter: blur(4px
     <div class="field" style="margin-top:8px;">
       <label>Cor do tema</label>
       <div class="theme-color-grid" id="themeColorGrid"></div>
+    </div>
+    <div class="switch-row" style="margin-top:8px;">
+      <div class="switch-row-text">
+        <div class="switch-row-title">Efeito transparente (liquid glass)</div>
+        <div class="switch-row-sub">Barra, botões, folhas e cartões translúcidos sobre um fundo colorido. Só neste aparelho.</div>
+      </div>
+      <div class="switch" id="swGlass" onclick="toggleLiquidGlass()"></div>
     </div>
 
     <div class="section-head" style="margin-top:20px;"><div class="section-title">Configurações</div></div>
@@ -1063,15 +1107,6 @@ body.glass .overlay { background: rgba(20,16,12,0.25); backdrop-filter: blur(4px
       </div>
       <button onclick="toggleForceBirthday()" id="forceBirthdayBtn" style="width:100%;padding:13px;border-radius:var(--r-md);border:1.5px solid var(--line);background:transparent;color:var(--ink);font-weight:700;font-size:14px;cursor:pointer;">🎉 Forçar na próxima abertura</button>
 
-      <div class="section-head" style="margin-top:20px;"><div class="section-title">🪟 Visual</div></div>
-      <div class="switch-row">
-        <div class="switch-row-text">
-          <div class="switch-row-title">Liquid glass (iPhone)</div>
-          <div class="switch-row-sub">Barra, folhas e cartões translúcidos sobre um fundo colorido. Só neste aparelho. Aproximação web do estilo, não o material nativo da Apple.</div>
-        </div>
-        <div class="switch" id="swGlass" onclick="toggleLiquidGlass()"></div>
-      </div>
-
       <div class="section-head" style="margin-top:20px;"><div class="section-title">📊 Resumo de ontem</div></div>
       <div class="section-sub" style="margin-bottom:10px;">Mostra o resumo do dia anterior na próxima abertura, mesmo que o interruptor esteja desligado ou o resumo já tenha sido mostrado hoje. Usa km e turno se estiverem ativos.</div>
       <button onclick="toggleForceDailySummary()" id="forceDailySummaryBtn" style="width:100%;padding:13px;border-radius:var(--r-md);border:1.5px solid var(--line);background:transparent;color:var(--ink);font-weight:700;font-size:14px;cursor:pointer;">📊 Forçar resumo na próxima abertura</button>
@@ -1234,7 +1269,7 @@ body.glass .overlay { background: rgba(20,16,12,0.25); backdrop-filter: blur(4px
 // Esquema de versão: de volta ao pré-1.0 (0.x.x) — a v1.0.0 fica
 // reservada para o lançamento com assinatura paga completa. A numeração
 // 4.x.x usada temporariamente para a integração Firebase foi abandonada.
-const APP_VERSION = '0.4.39';
+const APP_VERSION = '0.4.40';
 // Mostra o número da versão na tela de carregamento imediatamente (sem
 // esperar por loadAll/qualquer coisa assíncrona) — sempre visível,
 // independente da mensagem dinâmica ("A carregar…", "A sincronizar…",
