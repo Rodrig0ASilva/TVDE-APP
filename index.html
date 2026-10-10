@@ -685,7 +685,9 @@ body.glass.dark .month-nav-btn { background: rgba(40,40,52, min(0.97, calc(0.45 
 /* Balões sem cor (interruptor "Balões tintados" desligado) */
 /* Só a área das telas rola. A página não rola, por isso a barra de endereço
    do navegador (Android e iOS) não faz a barra de abas saltar. */
-html, body { height: 100%; overflow: hidden; }
+html, body { height: 100%; overflow: hidden; overscroll-behavior: none; }
+/* Barra de abas: sem menu nem seleção ao manter o dedo premido (evita o recarregamento do navegador) */
+.tabbar, .tabbar * { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; -webkit-tap-highlight-color: transparent; }
 body { height: 100dvh; }
 #app { height: 100dvh; overflow-y: auto; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; }
 /* Raios aninhados concêntricos: raio interno = raio externo − espaçamento */
@@ -1460,7 +1462,7 @@ body.dark .brand-name, body.dark .screen-title, body.dark .tabbar-inner::before 
 // Esquema de versão: de volta ao pré-1.0 (0.x.x) — a v1.0.0 fica
 // reservada para o lançamento com assinatura paga completa. A numeração
 // 4.x.x usada temporariamente para a integração Firebase foi abandonada.
-const APP_VERSION = '0.86';
+const APP_VERSION = '0.89';
 // Mostra o número da versão na tela de carregamento imediatamente (sem
 // esperar por loadAll/qualquer coisa assíncrona) — sempre visível,
 // independente da mensagem dinâmica ("A carregar…", "A sincronizar…",
@@ -2105,6 +2107,56 @@ function renderReadOnlyBanner(){
   el.innerHTML = `<div><strong>⛔ Assinatura expirada${endStr ? ' em ' + endStr : ''}.</strong> Estás em modo só leitura: podes ver os teus dados, mas não registar, editar nem apagar.</div>
     <button onclick="goSettings()" style="margin-top:8px;padding:8px 14px;border-radius:var(--r-full);border:none;background:var(--terracotta);color:#fff;font-weight:700;font-size:12px;cursor:pointer;">Renovar assinatura</button>`;
 }
+// Manter o dedo em "Você" (cerca de 0,7 s) procura uma atualização e aplica-a, sem perguntar.
+let tabHoldTimer = null;
+let tabHoldFired = false;
+let tabLastTapEnd = 0;
+(function setupTabHoldUpdate(){
+  const tab = document.getElementById('tabSettings');
+  if(!tab) return;
+  // Gesto: um toque em "Você" e, logo a seguir (menos de 1,5 s), manter o dedo ~0,7 s.
+  tab.addEventListener('pointerdown', () => {
+    tabHoldFired = false;
+    clearTimeout(tabHoldTimer);
+    if(tabLastTapEnd && Date.now() - tabLastTapEnd < 1500){
+      tabHoldTimer = setTimeout(() => { tabHoldFired = true; tabLastTapEnd = 0; checkUpdateNow(); }, 700);
+    }
+  });
+  tab.addEventListener('pointerup', () => {
+    clearTimeout(tabHoldTimer);
+    tabLastTapEnd = tabHoldFired ? 0 : Date.now();
+  });
+  ['pointerleave','pointercancel'].forEach(ev => tab.addEventListener(ev, () => clearTimeout(tabHoldTimer)));
+  // Depois de um toque longo, o clique que se segue não deve abrir Você.
+  document.addEventListener('click', e => {
+    if(tabHoldFired && e.target && e.target.closest && e.target.closest('#tabSettings')){
+      tabHoldFired = false;
+      e.stopPropagation(); e.preventDefault();
+    }
+  }, true);
+})();
+async function checkUpdateNow(){
+  showToast('🔄 A procurar atualização…');
+  try{
+    const url  = location.href.split('?')[0] + '?v=' + Date.now();
+    const resp = await fetch(url, { cache: 'no-store' });
+    if(!resp.ok) throw new Error('http');
+    const html = await resp.text();
+    const match = html.match(/const APP_VERSION\s*=\s*'([^']+)'/);
+    const remoteVersion = match ? match[1] : null;
+    if(!remoteVersion){ showToast('Não foi possível verificar a versão'); return; }
+    if(remoteVersion === APP_VERSION){ showToast(`✅ Já estás na versão mais recente (v${APP_VERSION})`); return; }
+    try{ await window.storage.set('pendingUpdateNotice', remoteVersion); }catch(e){}
+    showToast(`⬇️ A atualizar para v${remoteVersion}…`);
+    setTimeout(() => location.replace(location.href.split('?')[0] + '?v=' + Date.now()), 800);
+  }catch(e){
+    showToast('Sem ligação para procurar atualização');
+  }
+}
+// Toque longo na barra de abas não abre o menu do navegador nem recarrega a app.
+document.addEventListener('contextmenu', e => {
+  if(e.target && e.target.closest && e.target.closest('.tabbar')) e.preventDefault();
+});
 // Reavalia a data de validade de tempos em tempos, mesmo sem nenhuma alteração no Firestore.
 setInterval(() => { try{ renderSubscriptionCard(); renderReadOnlyBanner(); }catch(e){} }, 60 * 1000);
 
