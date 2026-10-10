@@ -1217,6 +1217,13 @@ body.dark .brand-name, body.dark .screen-title, body.dark .tabbar-inner::before 
       <div id="hiddenDataContainer"></div>
 
       <div class="section-head" style="margin-top:20px;"><div class="section-title">🔄 Atualização</div></div>
+      <div class="switch-row" style="margin-bottom:8px;">
+        <div class="switch-row-text">
+          <div class="switch-row-title">Atualizar ao manter "Você"</div>
+          <div class="switch-row-sub">Toque em Você e, menos de 1,5 s depois, mantém o dedo cerca de 0,7 s para procurar e aplicar uma atualização. Só neste aparelho.</div>
+        </div>
+        <div class="switch" id="holdUpdateSwitch" onclick="toggleHoldUpdate()"></div>
+      </div>
       <div class="section-sub" style="margin-bottom:10px;">Versão atual: <strong id="devVersionLabel"></strong></div>
       <button onclick="checkForUpdates()" id="checkUpdateBtn" style="width:100%;padding:13px;border-radius:var(--r-md);border:1.5px solid var(--line);background:transparent;color:var(--ink);font-weight:700;font-size:14px;cursor:pointer;">🔍 Procurar atualização</button>
       <div id="updateResult" style="margin-top:10px;font-size:13px;text-align:center;color:var(--text-muted);"></div>
@@ -1462,7 +1469,7 @@ body.dark .brand-name, body.dark .screen-title, body.dark .tabbar-inner::before 
 // Esquema de versão: de volta ao pré-1.0 (0.x.x) — a v1.0.0 fica
 // reservada para o lançamento com assinatura paga completa. A numeração
 // 4.x.x usada temporariamente para a integração Firebase foi abandonada.
-const APP_VERSION = '0.90';
+const APP_VERSION = '0.91';
 // Mostra o número da versão na tela de carregamento imediatamente (sem
 // esperar por loadAll/qualquer coisa assíncrona) — sempre visível,
 // independente da mensagem dinâmica ("A carregar…", "A sincronizar…",
@@ -2108,6 +2115,13 @@ function renderReadOnlyBanner(){
     <button onclick="goSettings()" style="margin-top:8px;padding:8px 14px;border-radius:var(--r-full);border:none;background:var(--terracotta);color:#fff;font-weight:700;font-size:12px;cursor:pointer;">Renovar assinatura</button>`;
 }
 // Manter o dedo em "Você" (cerca de 0,7 s) procura uma atualização e aplica-a, sem perguntar.
+// Pode ser desligado no Modo Dev (localSettings.holdUpdateEnabled, só neste aparelho).
+async function toggleHoldUpdate(){
+  localSettings.holdUpdateEnabled = !(localSettings.holdUpdateEnabled !== false);
+  await persistLocalSettings();
+  renderSettings();
+  showToast(localSettings.holdUpdateEnabled !== false ? 'Atualização ao manter Você ativada' : 'Atualização ao manter Você desativada');
+}
 let tabHoldTimer = null;
 let tabHoldFired = false;
 let tabLastTapEnd = 0;
@@ -2118,7 +2132,7 @@ let tabLastTapEnd = 0;
   tab.addEventListener('pointerdown', () => {
     tabHoldFired = false;
     clearTimeout(tabHoldTimer);
-    if(tabLastTapEnd && Date.now() - tabLastTapEnd < 1500){
+    if(localSettings.holdUpdateEnabled !== false && tabLastTapEnd && Date.now() - tabLastTapEnd < 1500){
       tabHoldTimer = setTimeout(() => { tabHoldFired = true; tabLastTapEnd = 0; checkUpdateNow(); }, 700);
     }
   });
@@ -3404,6 +3418,8 @@ function renderSettings(){
     if(vLabel) vLabel.textContent = APP_VERSION;
     const sw = document.getElementById('hiddenModeSwitch');
     if(sw) sw.className = 'switch' + (showHiddenData ? ' on' : '');
+    const hu = document.getElementById('holdUpdateSwitch');
+    if(hu) hu.className = 'switch' + (localSettings.holdUpdateEnabled !== false ? ' on' : '');
     const container = document.getElementById('hiddenDataContainer');
     if(container) container.innerHTML = showHiddenData ? renderHiddenDataList() : '';
     const schemaSw = document.getElementById('normalizedSchemaSwitch');
