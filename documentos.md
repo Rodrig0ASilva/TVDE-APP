@@ -300,7 +300,37 @@ disputando o mesmo espaço e o mesmo instante.
 
 > **Numeração:** a partir da versão 0.46, a numeração passa a ser 0.46, 0.47, 0.48, … As entradas anteriores mantêm a numeração 0.4.x.
 
-## 10. Alterações desta versão (até v0.51)
+## 10. Alterações desta versão (até v0.53)
+- **Versão 0.53 — imagem de fundo sem esbranquiçar no modo claro**: o véu no modo claro
+  era creme a 55%, o que lavava a imagem. Agora é um véu escuro leve (22%), que mantém
+  as cores da imagem e continua legível. O modo escuro não muda (véu escuro a 62%).
+
+- **Versão 0.52 — imagem de fundo com fade**: a camada da imagem (`#customBg`) deixou
+  de estar oculta com `display:none`, o que impedia qualquer transição. Agora:
+  - Ao ativar ou desativar o efeito transparente, a imagem entra de novo com fade.
+  - Ao trocar de imagem ou remover, a atual sai (fade), a nova entra.
+  - Ao mudar o modo claro/escuro, a imagem troca o véu com a mesma transição.
+
+- **Versão 0.51 — seletor de cor do tema com animação**: escolher uma cor já não
+  redesenha a grade. Só a seleção muda nos círculos existentes, com mola e um pequeno
+  encolhimento ao tocar.
+- **Versão 0.50 — mudanças suaves**: trocar a cor do tema, o modo claro/escuro ou o
+  efeito transparente faz as cores passar gradualmente (cerca de meio segundo). A
+  camada de vidro aparece ou desaparece com opacidade. A imagem de fundo personalizada
+  continua a mudar de uma vez.
+- **Versão 0.49 — animações também no modo normal**: a gota com deslize, deformação e
+  mola funciona nos dois modos. No modo normal é sólida, com a cor do tema, e sem
+  desfoque. O deslize sobre o conteúdo também muda de aba.
+- **Versão 0.48 — deformação da gota também na vertical**: ao deslizar, estica até 20%
+  no sentido do movimento e comprime até 18% na altura. Ao chegar, começa a 116% na
+  largura e 82% na altura, e recupera com mola.
+- **Versão 0.47 — gota de vidro em todos os seletores (efeito transparente)**: a gota da
+  barra de abas passa a existir em todos os seletores `.seg` (Dia · Semana · Mês · Ano,
+  tema, frequência de despesas fixas, turnos). A opção ativa fica verde, com a cor do
+  tema. Ao escolher, a gota chega achatada e recupera com mola. Ao arrastar, segue o
+  dedo, estica com a velocidade e achata contra as paredes.
+
+
 
 - **Logo da tela de carregamento**: corrigido para ser byte-idêntico ao
   ícone real do app (favicon/manifest/apple-touch-icon) — antes usava uma
