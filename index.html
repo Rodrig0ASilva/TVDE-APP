@@ -446,6 +446,10 @@ body.dark .platform-pick-opt.active { border-color: var(--vault-text, var(--vaul
 body.dark .field input, body.dark .field select, body.dark .field textarea, body.dark .bill-amount-input { background: #1C1C23; color: var(--ink); border-color: rgba(255,255,255,0.14); }
 body.dark .field input::placeholder, body.dark .field textarea::placeholder { color: rgba(230,225,215,0.32); }
 body.dark .field select option { background: #1C1C23; color: var(--ink); }
+/* Rótulos: uma cor única por modo (claro: destaque escuro do tema; escuro: destaque claro). */
+:root { --label-color: var(--vault-2); }
+body.dark { --label-color: var(--vault-text, var(--vault-light)); }
+.field label, label.cfg-label { color: var(--label-color) !important; }
 /* Rótulos no modo escuro: cor clara do tema (a cor escura de destaque ficava ilegível sobre o fundo). */
 body.dark .field label, body.dark label { color: var(--vault-text, var(--vault-light)) !important; }
 body.dark .field-money::before { color: rgba(230,225,215,0.45); }
@@ -788,6 +792,15 @@ body.dark .tab-ov { color: var(--vault-text, var(--vault-light)); }
 .tabbar, .tabbar * { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; -webkit-tap-highlight-color: transparent; }
 body { height: 100dvh; }
 #app { height: 100dvh; overflow-y: auto; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; }
+/* Contraste no efeito transparente: cartões mais opacos e com contorno, para separar a figura do fundo. */
+body.glass .stat-card, body.glass .chart-box, body.glass .profile-card, body.glass .income-row-compact, body.glass .loans-box {
+  background: rgba(255,255,255, min(0.97, calc(0.78 * var(--gl-k))));
+  border-color: rgba(255,255,255,0.75);
+}
+body.glass.dark .stat-card, body.glass.dark .chart-box, body.glass.dark .profile-card, body.glass.dark .income-row-compact, body.glass.dark .loans-box {
+  background: rgba(30,30,40, min(0.97, calc(0.8 * var(--gl-k))));
+  border-color: rgba(255,255,255,0.2);
+}
 /* Blocos de Configurações: cada opção fica separada; IVA e comissão ficam juntos (mesmo tema). */
 .cfg-group { padding: 16px 0; border-bottom: 1px solid var(--line); }
 .cfg-group:last-of-type { border-bottom: none; }
@@ -1106,12 +1119,12 @@ body.dark .brand-name, body.dark .screen-title, body.dark .tabbar-inner::before 
     <div class="section-head" style="margin-top:6px;"><div class="section-title">Conta</div></div>
     <div id="profileCardsList"></div>
 
-    <button onclick="openAparencia()" style="display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%;margin:20px 0 4px;padding:14px;border-radius:var(--r-md);border:1.5px solid var(--line);background:transparent;color:var(--ink);font-weight:700;font-size:14px;cursor:pointer;text-align:left;">
+    <button onclick="openAparencia()" style="display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%;margin:24px 0 8px;padding:14px;border-radius:var(--r-md);border:1.5px solid var(--line);background:transparent;color:var(--ink);font-weight:700;font-size:14px;cursor:pointer;text-align:left;">
       <span>🎨 Aparência<span style="display:block;font-size:11px;font-weight:500;color:var(--text-muted);margin-top:3px;">Modo escuro, cor do tema, efeito transparente e imagem de fundo</span></span>
       <span style="font-size:20px;color:var(--text-muted);">›</span>
     </button>
     <div style="height:1px;background:var(--line);margin:26px 0 0;"></div>
-    <div class="section-head" style="margin-top:22px;"><div class="section-title">Configurações</div></div>
+    <div class="section-head" style="margin-top:28px;"><div class="section-title">Configurações</div></div>
     <div class="section-sub" style="margin-bottom:6px;">Liga só o que usas. Cada opção aparece nos ecrãs e nos cálculos apenas quando estiver ativa.</div>
     <div class="cfg-group">
       <div class="cfg-head">Impostos</div>
@@ -1619,7 +1632,7 @@ body.dark .brand-name, body.dark .screen-title, body.dark .tabbar-inner::before 
 // Esquema de versão: de volta ao pré-1.0 (0.x.x) — a v1.0.0 fica
 // reservada para o lançamento com assinatura paga completa. A numeração
 // 4.x.x usada temporariamente para a integração Firebase foi abandonada.
-const APP_VERSION = '0.121';
+const APP_VERSION = '0.122';
 // Mostra o número da versão na tela de carregamento imediatamente (sem
 // esperar por loadAll/qualquer coisa assíncrona) — sempre visível,
 // independente da mensagem dinâmica ("A carregar…", "A sincronizar…",
