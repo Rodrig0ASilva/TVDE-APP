@@ -686,6 +686,23 @@ body.glass.dark .month-nav-btn { background: rgba(40,40,52, min(0.97, calc(0.45 
 /* Só a área das telas rola. A página não rola, por isso a barra de endereço
    do navegador (Android e iOS) não faz a barra de abas saltar. */
 html, body { height: 100%; overflow: hidden; overscroll-behavior: none; }
+/* Cor de destaque das abas: só aparece dentro da gota (camada .tab-ov recortada pela gota). */
+.tabbar-inner .tab.active { color: rgba(42,36,32,0.4); background: transparent; }
+.tabbar-inner .tab.active svg { transform: none; }
+body.dark .tabbar-inner .tab.active { color: rgba(230,225,215,0.55); }
+.tab-ov {
+  position: absolute; inset: 0; z-index: 2; pointer-events: none;
+  display: flex; flex-direction: inherit; justify-content: inherit; align-items: inherit; gap: inherit; padding: inherit;
+  color: var(--vault);
+  clip-path: inset(0 100% 0 0 round 12px);
+  transition: clip-path 0.38s cubic-bezier(.34,1.56,.64,1);
+}
+body.dark .tab-ov { color: var(--vault-text, var(--vault-light)); }
+.tab-ov .tab { color: inherit; background: none; }
+.tab-ov .tab svg { transition: none; }
+@media (min-width: 860px) {
+  .tab-ov::before { content: ''; display: block; padding: 8px 12px 16px; font-size: var(--text-xl); }
+}
 /* Barra de abas: sem menu nem seleção ao manter o dedo premido (evita o recarregamento do navegador) */
 .tabbar, .tabbar * { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; -webkit-tap-highlight-color: transparent; }
 body { height: 100dvh; }
@@ -1469,7 +1486,7 @@ body.dark .brand-name, body.dark .screen-title, body.dark .tabbar-inner::before 
 // Esquema de versão: de volta ao pré-1.0 (0.x.x) — a v1.0.0 fica
 // reservada para o lançamento com assinatura paga completa. A numeração
 // 4.x.x usada temporariamente para a integração Firebase foi abandonada.
-const APP_VERSION = '0.91';
+const APP_VERSION = '0.92';
 // Mostra o número da versão na tela de carregamento imediatamente (sem
 // esperar por loadAll/qualquer coisa assíncrona) — sempre visível,
 // independente da mensagem dinâmica ("A carregar…", "A sincronizar…",
@@ -2714,7 +2731,7 @@ function glassIsHorizontal(c){ return getComputedStyle(c).flexDirection !== 'col
 function glassPlace(c, opt, animate){
   if(!isGlass() || !c) return;
   const p = glassPill(c);
-  if(!opt || opt.classList.contains('hidden-tab') || opt.offsetParent === null){ p.classList.remove('on'); return; }
+  if(!opt || opt.classList.contains('hidden-tab') || opt.offsetParent === null){ p.classList.remove('on'); syncTabOverlayClip(false); return; }
   const anim = animate !== false;
   p.style.transition = anim ? '' : 'none';
   p.style.left = opt.offsetLeft + 'px';
@@ -2730,6 +2747,44 @@ function glassPlace(c, opt, animate){
     p.style.transform = '';
   }
   p.classList.add('on');
+  if(c.classList.contains('tabbar-inner')) syncTabOverlayClip(anim);
+}
+// Camada com a cor de destaque, recortada pela gota: só o que está por cima da gota fica colorido.
+function buildTabOverlay(){
+  const bar = document.querySelector('.tabbar-inner');
+  if(!bar || bar.querySelector('.tab-ov')) return;
+  const ov = document.createElement('div');
+  ov.className = 'tab-ov';
+  ov.setAttribute('aria-hidden', 'true');
+  bar.appendChild(ov);
+  rebuildTabOverlay();
+  positionTabPill(undefined, false);
+}
+function rebuildTabOverlay(){
+  const bar = document.querySelector('.tabbar-inner');
+  const ov = bar && bar.querySelector('.tab-ov');
+  if(!ov) return;
+  ov.innerHTML = '';
+  bar.querySelectorAll(':scope > .tab').forEach(tab => {
+    const c = tab.cloneNode(true);
+    c.removeAttribute('id');
+    c.removeAttribute('onclick');
+    c.classList.remove('active');
+    c.classList.add('tab-ov-item');
+    ov.appendChild(c);
+  });
+}
+function syncTabOverlayClip(animate){
+  const bar = document.querySelector('.tabbar-inner');
+  const ov = bar && bar.querySelector('.tab-ov');
+  const p = bar && bar.querySelector(':scope > .glass-pill');
+  if(!ov || !p) return;
+  ov.style.transition = animate ? '' : 'none';
+  if(!p.classList.contains('on')){ ov.style.clipPath = 'inset(0 100% 0 0 round 12px)'; return; }
+  const W = bar.offsetWidth, H = bar.offsetHeight;
+  const l = parseFloat(p.style.left) || 0, tp = parseFloat(p.style.top) || 0;
+  const w = parseFloat(p.style.width) || 0, h = parseFloat(p.style.height) || 0;
+  ov.style.clipPath = `inset(${tp}px ${Math.max(0, W - (l + w))}px ${Math.max(0, H - (tp + h))}px ${l}px round 12px)`;
 }
 function positionTabPill(id, animate){
   glassPlace(document.querySelector('.tabbar-inner'), document.getElementById(id || currentTabId()), animate);
@@ -2761,6 +2816,7 @@ function glassDragTo(c, d, pt){
   const along = 1 + stretch - squash;
   const cross = 1 - stretch * 0.9 + squash * 0.35;
   p.style.transition = 'none';
+  if(c.classList.contains('tabbar-inner')) syncTabOverlayClip(false);
   if(horiz){
     p.style.left = clamped + 'px';
     p.style.top = first.offsetTop + 'px';
@@ -2883,6 +2939,7 @@ function goLucro(){ showScreen('screen-lucro'); activateTab('tabLucro'); renderL
 function applyTabVisibility(){
   const t = document.getElementById('tabDev');
   if(t) t.classList.toggle('hidden-tab', !devMode);
+  rebuildTabOverlay();
 }
 
 // --- APPEARANCE (device-only, never synced) ---
@@ -6612,6 +6669,7 @@ function showToast(msg){
 
 // --- INIT ---
 window.addEventListener('resize', () => positionTabPill());
+buildTabOverlay();
 if(window.matchMedia){
   window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
     if((localSettings.darkMode || 'system') === 'system') applyDarkModeClass();
