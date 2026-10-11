@@ -1498,7 +1498,7 @@ body.dark .brand-name, body.dark .screen-title, body.dark .tabbar-inner::before 
 // Esquema de versão: de volta ao pré-1.0 (0.x.x) — a v1.0.0 fica
 // reservada para o lançamento com assinatura paga completa. A numeração
 // 4.x.x usada temporariamente para a integração Firebase foi abandonada.
-const APP_VERSION = '0.103';
+const APP_VERSION = '0.104';
 // Mostra o número da versão na tela de carregamento imediatamente (sem
 // esperar por loadAll/qualquer coisa assíncrona) — sempre visível,
 // independente da mensagem dinâmica ("A carregar…", "A sincronizar…",
@@ -5961,13 +5961,12 @@ function renderBills(entry){
       const freqLabel = freq === 'diaria' ? 'diária' : freq === 'semanal' ? 'semanal' : 'mensal';
       const split = b.weeklySplit || 'none';
       // Seletor de "como aparecer nas semanas" — só para despesas mensais.
-      const weeklySplitRow = (freq === 'mensal') ? `
-        <div style="padding:0 0 10px;">
-          <select onchange="updateBillWeeklySplit('${b.id}', this.value)" style="width:100%;font-size:11px;padding:6px 8px;border-radius:var(--r-sm);border:1.5px solid var(--line);background:#fff;color:var(--text-muted);">
-            <option value="none" ${split==='none'?'selected':''}>Semanas: não aparece (só no mês)</option>
-            <option value="rateio" ${split==='rateio'?'selected':''}>Semanas: dividir pelas semanas do mês</option>
-            <option value="firstWeek" ${split==='firstWeek'?'selected':''}>Semanas: tudo na 1ª semana do mês</option>
-          </select>
+      const SPLIT_LABELS = { rateio: 'dividido pelas semanas do mês', firstWeek: 'tudo na 1ª semana do mês' };
+      // Só aparece quando a despesa mensal tem uma opção definida (padrão = nada aparece).
+      const weeklySplitRow = (freq === 'mensal' && split !== 'none') ? `
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;padding:0 0 10px;font-size:12px;color:var(--text-muted);">
+          <span>Nas semanas: ${SPLIT_LABELS[split]}</span>
+          <button onclick="openBillSplitSheet('${b.id}')" style="font-size:11px;font-weight:700;padding:5px 12px;border-radius:var(--r-full);border:1.5px solid var(--line);background:transparent;color:var(--vault-text, var(--vault-2));cursor:pointer;white-space:nowrap;">alterar</button>
         </div>` : '';
       return `
       <div class="bill-row" style="flex-direction:column;align-items:stretch;">
@@ -6011,6 +6010,31 @@ async function updateBillAmount(billId, value){
 // aparece (padrão), dividida entre as semanas do mês, ou tudo na 1ª
 // semana. Não afeta o total do mês, só como esse total é repartido nos
 // gráficos/cartões "por semana" (ver weekBucketFixedBills/weeklyFixedBills).
+// Folha para escolher como uma despesa mensal aparece nas semanas (legível em claro e escuro).
+function openBillSplitSheet(billId){
+  if(readOnlyGuard()) return;
+  const bill = bills.find(x => x.id === billId);
+  if(!bill) return;
+  const cur = bill.weeklySplit || 'none';
+  const opt = (v, titulo, sub) => `
+    <button class="btn ${cur === v ? 'btn-primary' : ''}" onclick="pickBillSplit('${billId}','${v}')" style="text-align:left;${cur === v ? '' : 'background:var(--cream-2);color:var(--ink);border:1.5px solid var(--line);'}margin-bottom:10px;padding:14px;">
+      <div style="font-weight:800;">${titulo}</div>
+      <div style="font-size:11px;font-weight:500;opacity:0.85;margin-top:3px;">${sub}</div>
+    </button>`;
+  openSheet(`
+    <div class="sheet-handle"></div>
+    <div class="sheet-title">Nas semanas</div>
+    <div class="sheet-sub">Como "${escapeHtml(bill.name)}" aparece nas visões por semana.</div>
+    ${opt('none', 'Não aparecer nas semanas', 'Conta só no total do mês')}
+    ${opt('rateio', 'Dividir pelas semanas do mês', 'O valor é repartido igualmente pelas semanas')}
+    ${opt('firstWeek', 'Tudo na 1ª semana do mês', 'O valor inteiro entra na primeira semana')}
+    <button class="btn btn-ghost" onclick="closeSheet()">Cancelar</button>
+  `);
+}
+async function pickBillSplit(billId, value){
+  closeSheet();
+  await updateBillWeeklySplit(billId, value);
+}
 async function updateBillWeeklySplit(billId, value){
   if(readOnlyGuard()) return;
   const bill = bills.find(b => b.id === billId);
