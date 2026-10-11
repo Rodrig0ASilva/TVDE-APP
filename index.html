@@ -446,10 +446,16 @@ body.dark .platform-pick-opt.active { border-color: var(--vault-text, var(--vaul
 body.dark .field input, body.dark .field select, body.dark .field textarea, body.dark .bill-amount-input { background: #1C1C23; color: var(--ink); border-color: rgba(255,255,255,0.14); }
 body.dark .field input::placeholder, body.dark .field textarea::placeholder { color: rgba(230,225,215,0.32); }
 body.dark .field select option { background: #1C1C23; color: var(--ink); }
+/* Títulos dos ecrãs no modo escuro: cor clara do tema (contraste mínimo de 4,5:1). */
+body.dark .screen-title, body.dark .brand-name { color: var(--vault-text, var(--vault-light)) !important; }
 /* Rótulos: uma cor única por modo (claro: destaque escuro do tema; escuro: destaque claro). */
 :root { --label-color: var(--vault-2); }
 body.dark { --label-color: var(--vault-text, var(--vault-light)); }
 .field label, label.cfg-label { color: var(--label-color) !important; }
+/* Botões que são etiquetas (ex.: Escolher imagem) mantêm o texto branco sobre a cor do tema. */
+body label.btn-file.btn-file, body.dark label.btn-file.btn-file { color: #fff !important; }
+/* Botão Remover (imagem de fundo): vermelho claro no modo escuro, para ter contraste. */
+body.dark #bgContent button[onclick="removeBgImage()"] { color: var(--terracotta-light) !important; }
 /* Rótulos no modo escuro: cor clara do tema (a cor escura de destaque ficava ilegível sobre o fundo). */
 body.dark .field label, body.dark label { color: var(--vault-text, var(--vault-light)) !important; }
 body.dark .field-money::before { color: rgba(230,225,215,0.45); }
@@ -1081,6 +1087,7 @@ body.dark .brand-name, body.dark .screen-title, body.dark .tabbar-inner::before 
       </div>
     </div>
 
+    <div id="despesasHero"></div>
     <div class="section-head centered" style="gap:10px;">
       <div>
         <div class="section-title">Despesas fixas</div>
@@ -1119,6 +1126,7 @@ body.dark .brand-name, body.dark .screen-title, body.dark .tabbar-inner::before 
     <div class="section-head" style="margin-top:6px;"><div class="section-title">Conta</div></div>
     <div id="profileCardsList"></div>
 
+    <div class="section-head" style="margin-top:24px;"><div class="section-title">Preferências</div></div>
     <button onclick="openAparencia()" style="display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%;margin:24px 0 8px;padding:14px;border-radius:var(--r-md);border:1.5px solid var(--line);background:transparent;color:var(--ink);font-weight:700;font-size:14px;cursor:pointer;text-align:left;">
       <span>🎨 Aparência<span style="display:block;font-size:11px;font-weight:500;color:var(--text-muted);margin-top:3px;">Modo escuro, cor do tema, efeito transparente e imagem de fundo</span></span>
       <span style="font-size:20px;color:var(--text-muted);">›</span>
@@ -1632,7 +1640,7 @@ body.dark .brand-name, body.dark .screen-title, body.dark .tabbar-inner::before 
 // Esquema de versão: de volta ao pré-1.0 (0.x.x) — a v1.0.0 fica
 // reservada para o lançamento com assinatura paga completa. A numeração
 // 4.x.x usada temporariamente para a integração Firebase foi abandonada.
-const APP_VERSION = '0.122';
+const APP_VERSION = '0.126';
 // Mostra o número da versão na tela de carregamento imediatamente (sem
 // esperar por loadAll/qualquer coisa assíncrona) — sempre visível,
 // independente da mensagem dinâmica ("A carregar…", "A sincronizar…",
@@ -3477,7 +3485,7 @@ function renderBgImageRow(){
   box.innerHTML = on ? `<div class="field" style="margin-top:10px;">
       <div id="bgPreview" style="height:72px;border-radius:var(--r-md);border:1.5px solid var(--line);background:var(--cream-2);background-size:cover;background-position:center;margin-bottom:10px;"></div>
       <div style="display:flex;gap:8px;">
-        <label style="flex:1;display:block;margin:0;text-align:center;padding:12px;border-radius:var(--r-md);background:var(--vault);color:#fff;font-weight:700;font-size:13px;text-transform:none;letter-spacing:0;cursor:pointer;">Escolher imagem<input type="file" accept="image/*" style="display:none;" onchange="handleBgImage(this)" /></label>
+        <label class="btn-file" style="flex:1;display:block;margin:0;text-align:center;padding:12px;border-radius:var(--r-md);background:var(--vault);color:#fff;font-weight:700;font-size:13px;text-transform:none;letter-spacing:0;cursor:pointer;">Escolher imagem<input type="file" accept="image/*" style="display:none;" onchange="handleBgImage(this)" /></label>
         ${tem ? `<button onclick="removeBgImage()" style="padding:12px 16px;border-radius:var(--r-md);border:1.5px solid var(--line);background:transparent;color:var(--terracotta);font-weight:700;font-size:13px;cursor:pointer;">Remover</button>` : ''}
       </div>
       ${tem ? `<div class="chart-box" style="margin-top:12px;">${sl('bgVeil', 'bgVeilRange', 'Véu sobre a imagem', 'Normal', 'Opaco')}${sl('bgBlur', 'bgBlurRange', 'Desfoque com granulação', 'Nítido', 'Desfocado')}</div>` : ''}
@@ -4546,6 +4554,14 @@ function deltaHTML(cur, prev){
   const up = pct >= 0;
   return `<span style="color:${up ? 'var(--vault-light)' : 'var(--terracotta)'};font-weight:700;">${up ? '▲' : '▼'} ${Math.abs(pct).toLocaleString('pt-BR', { maximumFractionDigits: 0 })}%</span>`;
 }
+// Número principal de cada ecrã (destaque único). Usa o mesmo estilo do cartão de lucro da aba Lucro.
+function heroValorHTML(rotulo, valor, sub, cor){
+  return `<div style="background:${cor || 'var(--vault-light)'};border-radius:var(--r-xl);padding:20px 20px 16px;color:#fff;margin-bottom:16px;box-shadow:var(--shadow-md);">
+    <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;opacity:0.8;margin-bottom:6px;">${escapeHtml(rotulo)}</div>
+    <div style="font-family:'JetBrains Mono',monospace;font-weight:700;font-size:30px;letter-spacing:-0.02em;">${fmt(valor)}</div>
+    ${sub ? `<div style="font-size:12px;opacity:0.8;margin-top:4px;">${escapeHtml(sub)}</div>` : ''}
+  </div>`;
+}
 function monthAnalysisHTML(earnings, expenses, mKey, isMes){
   const porDia = {};
   earnings.forEach(e => { if(e.date) porDia[e.date] = (porDia[e.date] || 0) + (e.amount || 0); });
@@ -4879,7 +4895,7 @@ function renderStatsMonth(){
   if(tvdeCardsArr.length % 2 === 1){
     tvdeCardsArr[tvdeCardsArr.length-1] = tvdeCardsArr[tvdeCardsArr.length-1].replace('class="stat-card"', 'class="stat-card" style="grid-column:1/-1;"');
   }
-  let html = '';
+  let html = heroValorHTML(`Lucro de ${monthNameYear}`, lucroMes, 'depois de taxas, despesas fixas e variáveis', lucroMes < 0 ? 'var(--terracotta)' : null);
   if(profile.goalsEnabled){
     // Sem meta mensal definida, a meta mínima passa a ser as despesas fixas
     // do mês — cobrir os custos fixos é o objetivo mais básico possível.
@@ -4924,7 +4940,6 @@ function renderStatsMonth(){
   resumoCardsArr.push(`<div class="stat-card"><div class="stat-card-label">💧 Líquido total</div><div class="stat-card-value">${fmt(liquido)}</div></div>`);
   resumoCardsArr.push(`<div class="stat-card"><div class="stat-card-label">Despesas fixas</div><div class="stat-card-value negative">− ${fmt(fixasMes)}</div></div>`);
   if(varOtherMes>0) resumoCardsArr.push(`<div class="stat-card"><div class="stat-card-label">Outras despesas</div><div class="stat-card-value negative">− ${fmt(varOtherMes)}</div></div>`);
-  resumoCardsArr.push(`<div class="stat-card" style="border-color:var(--vault);"><div class="stat-card-label">💰 Lucro do mês</div><div class="stat-card-value ${lucroMes<0?'negative':''}">${fmt(lucroMes)}</div></div>`);
   if(resumoCardsArr.length % 2 === 1){
     const lastIdx = resumoCardsArr.length-1;
     resumoCardsArr[lastIdx] = resumoCardsArr[lastIdx].includes('style="border-color:var(--vault);"')
@@ -5822,20 +5837,8 @@ function renderEarningsCardsAndSummary(items, fixedTotal, expenses){
     cardsHtml += `<div class="stat-card"><div class="stat-card-label">${platformBadge(cp.key, 16)} ${escapeHtml(cp.label)}</div><div class="stat-card-value" style="font-size:22px;">${fmt(total)}</div></div>`;
   });
   const totalGeral = totalUber + totalBolt + totalPart + totalOut + totalCustomAll;
-  cardsHtml += `<div class="stat-card" style="border-color:var(--vault);grid-column:1/-1;padding:18px 20px;">
-    <div class="stat-card-label" style="font-size:11px;margin-bottom:8px;">💰 Total bruto</div>
-    <div style="font-family:'JetBrains Mono',monospace;font-weight:700;font-size:32px;color:var(--ink);letter-spacing:-0.02em;margin-bottom:12px;">${fmt(totalGeral)}</div>
-    <div style="display:flex;gap:20px;flex-wrap:wrap;">
-      <div style="display:flex;flex-direction:column;gap:2px;">
-        <span style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;color:var(--text-muted);">TVDE</span>
-        <span style="font-family:'JetBrains Mono',monospace;font-weight:700;font-size:16px;color:var(--ink);">${fmt(apps)}</span>
-      </div>
-      ${part > 0 ? `<div style="display:flex;flex-direction:column;gap:2px;">
-        <span style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;color:var(--text-muted);">Pessoal</span>
-        <span style="font-family:'JetBrains Mono',monospace;font-weight:700;font-size:16px;color:var(--ink);">${fmt(part)}</span>
-      </div>` : ''}
-    </div>
-  </div>`;
+  const subTotal = `TVDE ${fmt(apps)}${part > 0 ? ' · Pessoal ' + fmt(part) : ''}`;
+  cardsHtml += `<div style="grid-column:1/-1;">${heroValorHTML('Total bruto', totalGeral, subTotal)}</div>`;
   document.getElementById('earningsPlatformCards').innerHTML = cardsHtml;
   document.getElementById('earningsKmHint').textContent = '';
 
@@ -6058,6 +6061,9 @@ function renderDespesas(){
   document.getElementById('despesasMonthHint').textContent = '';
   const entry = ensureMonthEntry(currentMonthKey);
   renderBills(entry);
+  const totalDespMes = totalFixedBills(entry) + totalVariableExpenses(entry);
+  const heroDesp = document.getElementById('despesasHero');
+  if(heroDesp) heroDesp.innerHTML = heroValorHTML('Total de despesas do mês', totalDespMes, 'fixas + variáveis', 'var(--terracotta)');
   const items = [...entry.variableExpenses].sort((a,b)=>b.ts-a.ts);
   const rows = items.map(exp => {
     const cat = EXPENSE_CATEGORIES.find(c => c.key === exp.category) || EXPENSE_CATEGORIES[EXPENSE_CATEGORIES.length-1];
