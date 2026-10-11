@@ -706,12 +706,19 @@ body.dark .tab-ov { color: var(--vault-text, var(--vault-light)); }
 .tab-ov .tab { color: inherit !important; background: none; }
 .tab-layer .tab svg { transition: none; }
 @media (min-width: 860px) {
-  .tab-layer::before { content: ''; display: block; padding: 8px 12px 16px; font-size: var(--text-xl); }
+  .tab-layer::before { content: 'Corrida+'; visibility: hidden; display: block; padding: 8px 12px 16px; font-size: var(--text-xl); font-family: 'Fraunces', serif; font-weight: 600; }
 }
 /* Barra de abas: sem menu nem seleção ao manter o dedo premido (evita o recarregamento do navegador) */
 .tabbar, .tabbar * { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; -webkit-tap-highlight-color: transparent; }
 body { height: 100dvh; }
 #app { height: 100dvh; overflow-y: auto; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; }
+/* Barra de rolagem discreta (computador): fina, sem fundo branco, com a cor do tema */
+#app { scrollbar-width: thin; scrollbar-color: rgba(42,36,32,0.22) transparent; }
+#app::-webkit-scrollbar { width: 8px; background: transparent; }
+#app::-webkit-scrollbar-track { background: transparent; }
+#app::-webkit-scrollbar-thumb { background: rgba(42,36,32,0.22); border-radius: 8px; border: 2px solid transparent; background-clip: padding-box; }
+body.dark #app { scrollbar-color: rgba(255,255,255,0.22) transparent; }
+body.dark #app::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.22); background-clip: padding-box; }
 /* Raios aninhados concêntricos: raio interno = raio externo − espaçamento */
 /* Seletores (Dia·Semana·Mês·Ano, tema, etc.): contentor 12px, padding 3px -> interno 9px */
 .seg { border-radius: var(--r-md); }
@@ -1491,7 +1498,7 @@ body.dark .brand-name, body.dark .screen-title, body.dark .tabbar-inner::before 
 // Esquema de versão: de volta ao pré-1.0 (0.x.x) — a v1.0.0 fica
 // reservada para o lançamento com assinatura paga completa. A numeração
 // 4.x.x usada temporariamente para a integração Firebase foi abandonada.
-const APP_VERSION = '0.101';
+const APP_VERSION = '0.103';
 // Mostra o número da versão na tela de carregamento imediatamente (sem
 // esperar por loadAll/qualquer coisa assíncrona) — sempre visível,
 // independente da mensagem dinâmica ("A carregar…", "A sincronizar…",
