@@ -1644,7 +1644,7 @@ body.dark .brand-name, body.dark .screen-title, body.dark .tabbar-inner::before 
 // Esquema de versão: de volta ao pré-1.0 (0.x.x) — a v1.0.0 fica
 // reservada para o lançamento com assinatura paga completa. A numeração
 // 4.x.x usada temporariamente para a integração Firebase foi abandonada.
-const APP_VERSION = '0.128';
+const APP_VERSION = '0.130';
 // Mostra o número da versão na tela de carregamento imediatamente (sem
 // esperar por loadAll/qualquer coisa assíncrona) — sempre visível,
 // independente da mensagem dinâmica ("A carregar…", "A sincronizar…",
@@ -2228,7 +2228,7 @@ function renderSubscriptionCard(){
   }
   if(!window.__fbSubscription){
     statusEl.textContent = '🔓 Sem assinatura ativa';
-    if(detailEl) detailEl.textContent = 'A cobrança ainda não está configurada nesta conta — por agora o acesso é livre.';
+    if(detailEl) detailEl.textContent = 'Sem assinatura ativa: a conta tem os mesmos limites do modo básico. Ativa a assinatura para desbloquear tudo.';
     return;
   }
 
@@ -2269,14 +2269,17 @@ function subscriptionEndDate(){
   const d = (typeof raw.toDate === 'function') ? raw.toDate() : new Date(raw);
   return isNaN(d) ? null : d;
 }
+// Modo só leitura: conta com login sem assinatura ativa (nunca pagou) ou com data de fim já passada.
+// Enquanto a assinatura ainda está a ser verificada (undefined), não bloqueia.
 function accessExpired(){
   if(!window.__fbUser) return false;
+  if(window.__fbSubscription === undefined || window.__fbSubscription === null) return false;
   const end = subscriptionEndDate();
   return !!end && end.getTime() <= Date.now();
 }
 function readOnlyGuard(){
   if(!accessExpired()) return false;
-  showToast('Modo só leitura: renova a assinatura para registar ou editar');
+  showToast('Modo só leitura: sem assinatura ativa não é possível registar ou editar');
   return true;
 }
 function renderReadOnlyBanner(){
@@ -2291,7 +2294,9 @@ function renderReadOnlyBanner(){
   }
   const end = subscriptionEndDate();
   const endStr = end ? end.toLocaleDateString('pt-BR', { day:'2-digit', month:'long', year:'numeric' }) : '';
-  el.innerHTML = `<div><strong>⛔ Assinatura expirada${endStr ? ' em ' + endStr : ''}.</strong> Estás em modo só leitura: podes ver os teus dados, mas não registar, editar nem apagar.</div>
+  const semAssinatura = window.__fbSubscription === null;
+  const titulo = semAssinatura ? '⛔ Sem assinatura ativa.' : `⛔ Assinatura expirada${endStr ? ' em ' + endStr : ''}.`;
+  el.innerHTML = `<div><strong>${titulo}</strong> Estás em modo só leitura: podes ver os teus dados, mas não registar, editar nem apagar.</div>
     <button onclick="goSettings()" style="margin-top:8px;padding:8px 14px;border-radius:var(--r-full);border:none;background:var(--terracotta);color:#fff;font-weight:700;font-size:12px;cursor:pointer;">Renovar assinatura</button>`;
 }
 // Manter o dedo em "Você" (cerca de 0,7 s) procura uma atualização e aplica-a, sem perguntar.
@@ -2470,8 +2475,8 @@ async function safeSet(key, value){
 }
 
 function scheduleCloudPush(){
-  if(window.__fbUser){ scheduleFirestorePush(); return; }
   if(basicMode()){ setSyncStatus('nolink'); return; }
+  if(window.__fbUser){ scheduleFirestorePush(); return; }
   if(!syncUrl){ setSyncStatus('nolink'); return; }
   setSyncStatus('saving');
   clearTimeout(syncPushTimer);
@@ -2703,7 +2708,7 @@ async function initialCloudSync(uid){
 // nuvem; overwrite=true substitui a nuvem (usado quando o utilizador escolhe
 // "manter os deste aparelho" ou ao apagar tudo).
 async function pushToFirestore(overwrite){
-  if(!window.__fbUser) return;
+  if(!window.__fbUser || basicMode()) return;
   const uid = window.__fbUser.uid;
   try{
     if(!overwrite){
@@ -3685,7 +3690,12 @@ function renderSettings(){
   if(customBody) customBody.style.display = customPlatformsOn() ? 'block' : 'none';
   document.body.classList.toggle('basic-mode', basicMode());
   const bb = document.getElementById('basicBanner');
-  if(bb) bb.style.display = basicMode() ? 'block' : 'none';
+  if(bb){
+    bb.style.display = basicMode() ? 'block' : 'none';
+    if(window.__fbUser && window.__fbSubscription === null){
+      bb.innerHTML = '🔒 <strong>Modo básico.</strong> Sem assinatura ativa: limite de 5 ganhos, 5 despesas variáveis e 5 despesas fixas, e as configurações ficam bloqueadas. Ativa a assinatura para desbloquear tudo.';
+    }
+  }
   const swCom = document.getElementById('swComissao');
   if(swCom) swCom.className = 'switch' + (comissaoOn() ? ' on' : '');
   const comFieldsRow = document.getElementById('comissaoFieldsRow');
@@ -4077,7 +4087,7 @@ let syncUrlSaveTimer = null;
 // Só com sessão. Envia o estado atual; não lê nem funde nada. Não corre
 // enquanto houver uma decisão pendente sobre os dados.
 async function backupToSheetIfDue(){
-  if(!window.__fbUser || !syncUrl || window._syncPendingDecision) return;
+  if(!window.__fbUser || basicMode() || !syncUrl || window._syncPendingDecision) return;
   const last = Number(localSettings.lastSheetBackup) || 0;
   if(Date.now() - last < 24 * 60 * 60 * 1000) return;
   const payload = normalizeToSchemaV1(currentState());
@@ -5609,7 +5619,8 @@ async function restoreTurno(key){
 // ---------------- Modo básico (sem login) ----------------
 const BASIC_LIMITS = { ganhos: 5, despesas: 5, fixas: 5 };
 const BASIC_LABELS = { ganhos: 'ganhos', despesas: 'despesas variáveis', fixas: 'despesas fixas' };
-function basicMode(){ return !window.__fbUser; }
+// Modo básico: sem login, ou com login mas sem assinatura (nunca pagou). Mesmos limites e bloqueios.
+function basicMode(){ return !window.__fbUser || window.__fbSubscription === null; }
 function countRecords(){
   let ganhos = 0, despesas = 0;
   Object.keys(monthData).forEach(k => {
