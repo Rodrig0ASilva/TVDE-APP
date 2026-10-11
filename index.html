@@ -471,6 +471,7 @@ body.dark button[onclick="lockSyncUrl()"] { background: var(--vault); color: #ff
   .totals { grid-template-columns: repeat(2, minmax(0, 260px)); }
 }
 @media (min-width: 860px) and (max-width: 1199px) { .tabbar { width: 280px; } }
+:root { --icon-tile: var(--vault-2); --icon-accent: var(--brass-light); --icon-tile-fill: var(--icon-tile); --icon-tile-stroke: transparent; }
 #splashScreen { background: var(--vault); }
 #splashScreen .splash-title { color: #F6EFE2; }
 #splashScreen .splash-msg { color: rgba(246,239,226,0.55); }
@@ -712,6 +713,14 @@ body.dark .tab-ov { color: var(--vault-text, var(--vault-light)); }
 .tabbar, .tabbar * { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; -webkit-tap-highlight-color: transparent; }
 body { height: 100dvh; }
 #app { height: 100dvh; overflow-y: auto; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; }
+/* Barra de rolagem discreta (computador): fina, sem fundo branco, com a cor do tema.
+   Aplica-se à área principal, às folhas (sheet) e ao registo de sincronização. */
+.sheet, #syncLogContainer { scrollbar-width: thin; scrollbar-color: rgba(42,36,32,0.22) transparent; }
+.sheet::-webkit-scrollbar, #syncLogContainer::-webkit-scrollbar { width: 8px; background: transparent; }
+.sheet::-webkit-scrollbar-track, #syncLogContainer::-webkit-scrollbar-track { background: transparent; }
+.sheet::-webkit-scrollbar-thumb, #syncLogContainer::-webkit-scrollbar-thumb { background: rgba(42,36,32,0.22); border-radius: 8px; border: 2px solid transparent; background-clip: padding-box; }
+body.dark .sheet, body.dark #syncLogContainer { scrollbar-color: rgba(255,255,255,0.22) transparent; }
+body.dark .sheet::-webkit-scrollbar-thumb, body.dark #syncLogContainer::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.22); background-clip: padding-box; }
 /* Barra de rolagem discreta (computador): fina, sem fundo branco, com a cor do tema */
 #app { scrollbar-width: thin; scrollbar-color: rgba(42,36,32,0.22) transparent; }
 #app::-webkit-scrollbar { width: 8px; background: transparent; }
@@ -803,14 +812,14 @@ body.dark .brand-name, body.dark .screen-title, body.dark .tabbar-inner::before 
   transition:opacity 0.5s ease;
 ">
   <svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" style="width:72px;height:72px;margin-bottom:20px;">
-    <rect width="64" height="64" rx="14" fill="#1F3A2E"/>
+    <rect width="64" height="64" rx="14" style="fill:var(--icon-tile-fill);stroke:var(--icon-tile-stroke);stroke-width:1.5"/>
     <g transform="translate(8,18)">
-      <path d="M6 16 L10 6 Q12 3 16 3 L32 3 Q36 3 38 6 L42 16" fill="none" stroke="#D9A949" stroke-width="3" stroke-linecap="round"/>
-      <rect x="2" y="15" width="44" height="14" rx="5" fill="#D9A949"/>
-      <circle cx="12" cy="31" r="6" fill="#1F3A2E" stroke="#D9A949" stroke-width="2.5"/>
-      <circle cx="36" cy="31" r="6" fill="#1F3A2E" stroke="#D9A949" stroke-width="2.5"/>
-      <rect x="2" y="20" width="11" height="6" rx="2" fill="#1F3A2E" opacity="0.5"/>
-      <rect x="35" y="20" width="11" height="6" rx="2" fill="#1F3A2E" opacity="0.5"/>
+      <path d="M6 16 L10 6 Q12 3 16 3 L32 3 Q36 3 38 6 L42 16" fill="none" stroke-width="3" stroke-linecap="round" style="stroke:var(--icon-accent)"/>
+      <rect x="2" y="15" width="44" height="14" rx="5" style="fill:var(--icon-accent)"/>
+      <circle cx="12" cy="31" r="6" stroke-width="2.5" style="fill:var(--icon-tile-fill);stroke:var(--icon-accent)"/>
+      <circle cx="36" cy="31" r="6" stroke-width="2.5" style="fill:var(--icon-tile-fill);stroke:var(--icon-accent)"/>
+      <rect x="2" y="20" width="11" height="6" rx="2" opacity="0.5" style="fill:var(--icon-tile-fill)"/>
+      <rect x="35" y="20" width="11" height="6" rx="2" opacity="0.5" style="fill:var(--icon-tile-fill)"/>
     </g>
   </svg>
   <div class="splash-title" style="font-family:'Fraunces',serif;font-weight:600;font-size:28px;letter-spacing:-0.01em;">Corrida+</div>
@@ -828,14 +837,14 @@ body.dark .brand-name, body.dark .screen-title, body.dark .tabbar-inner::before 
   text-align:center;
 ">
   <svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" style="width:72px;height:72px;margin-bottom:20px;">
-    <rect width="64" height="64" rx="14" fill="#1F3A2E"/>
+    <rect width="64" height="64" rx="14" style="fill:var(--icon-tile-fill);stroke:var(--icon-tile-stroke);stroke-width:1.5"/>
     <g transform="translate(8,18)">
-      <path d="M6 16 L10 6 Q12 3 16 3 L32 3 Q36 3 38 6 L42 16" fill="none" stroke="#D9A949" stroke-width="3" stroke-linecap="round"/>
-      <rect x="2" y="15" width="44" height="14" rx="5" fill="#D9A949"/>
-      <circle cx="12" cy="31" r="6" fill="#1F3A2E" stroke="#D9A949" stroke-width="2.5"/>
-      <circle cx="36" cy="31" r="6" fill="#1F3A2E" stroke="#D9A949" stroke-width="2.5"/>
-      <rect x="2" y="20" width="11" height="6" rx="2" fill="#1F3A2E" opacity="0.5"/>
-      <rect x="35" y="20" width="11" height="6" rx="2" fill="#1F3A2E" opacity="0.5"/>
+      <path d="M6 16 L10 6 Q12 3 16 3 L32 3 Q36 3 38 6 L42 16" fill="none" stroke-width="3" stroke-linecap="round" style="stroke:var(--icon-accent)"/>
+      <rect x="2" y="15" width="44" height="14" rx="5" style="fill:var(--icon-accent)"/>
+      <circle cx="12" cy="31" r="6" stroke-width="2.5" style="fill:var(--icon-tile-fill);stroke:var(--icon-accent)"/>
+      <circle cx="36" cy="31" r="6" stroke-width="2.5" style="fill:var(--icon-tile-fill);stroke:var(--icon-accent)"/>
+      <rect x="2" y="20" width="11" height="6" rx="2" opacity="0.5" style="fill:var(--icon-tile-fill)"/>
+      <rect x="35" y="20" width="11" height="6" rx="2" opacity="0.5" style="fill:var(--icon-tile-fill)"/>
     </g>
   </svg>
   <div style="font-family:'Fraunces',serif;font-weight:600;font-size:28px;letter-spacing:-0.01em;color:#F6EFE2;">Corrida+</div>
@@ -1195,6 +1204,19 @@ body.dark .brand-name, body.dark .screen-title, body.dark .tabbar-inner::before 
     <div id="glassControls"></div>
     <div id="bgImageRow"></div>
 
+    <div class="section-head" style="margin-top:20px;"><div class="section-title">Ícone do app</div></div>
+    <div class="section-sub" style="margin-bottom:8px;">Aparece na tela de carregamento e no login. O ícone instalado no ecrã inicial só muda ao instalar de novo.</div>
+    <div class="field" style="margin-top:8px;">
+      <label>Cor do ícone</label>
+      <div class="theme-color-grid" id="iconColorGrid"></div>
+    </div>
+    <div class="switch-row" style="margin-top:8px;">
+      <div class="switch-row-text">
+        <div class="switch-row-title">Efeito transparente no ícone</div>
+        <div class="switch-row-sub">Bloco translúcido com contorno claro, como o efeito transparente da app.</div>
+      </div>
+      <div class="switch" id="swIconGlass" onclick="toggleIconGlass()"></div>
+    </div>
     <div style="height:24px;"></div>
   </div>
 
@@ -1498,7 +1520,7 @@ body.dark .brand-name, body.dark .screen-title, body.dark .tabbar-inner::before 
 // Esquema de versão: de volta ao pré-1.0 (0.x.x) — a v1.0.0 fica
 // reservada para o lançamento com assinatura paga completa. A numeração
 // 4.x.x usada temporariamente para a integração Firebase foi abandonada.
-const APP_VERSION = '0.104';
+const APP_VERSION = '0.107';
 // Mostra o número da versão na tela de carregamento imediatamente (sem
 // esperar por loadAll/qualquer coisa assíncrona) — sempre visível,
 // independente da mensagem dinâmica ("A carregar…", "A sincronizar…",
@@ -2951,6 +2973,7 @@ function openAparencia(){
   el.classList.add('active','slide-r');
   activateTab('tabSettings');
   renderSettings();
+  renderIconControls();
   glassRefreshAll(false);
   const appEl = document.getElementById('app');
   if(appEl) appEl.scrollTop = 0;
@@ -3058,7 +3081,42 @@ async function setDarkMode(mode){
   softChange(() => { applyDarkModeClass(); applyCustomBackground(); });
   document.querySelectorAll('#darkModeSeg .seg-opt').forEach(el => el.classList.toggle('active', el.dataset.m === mode));
 }
+// Ícone do app (dentro da app): cor e efeito transparente. Preferência deste aparelho.
+function applyIconAppearance(){
+  const root = document.documentElement;
+  const key = localSettings.iconColor || 'tema';
+  const theme = THEME_COLORS.find(x => x.key === key);
+  if(theme){ root.style.setProperty('--icon-tile', theme.vault2); root.style.setProperty('--icon-accent', theme.brassLight); }
+  else { root.style.setProperty('--icon-tile', 'var(--vault-2)'); root.style.setProperty('--icon-accent', 'var(--brass-light)'); }
+  const glass = localSettings.iconGlass === true;
+  root.style.setProperty('--icon-tile-fill', glass ? 'color-mix(in srgb, var(--icon-tile) 60%, transparent)' : 'var(--icon-tile)');
+  root.style.setProperty('--icon-tile-stroke', glass ? 'rgba(255,255,255,0.35)' : 'transparent');
+}
+function renderIconControls(){
+  const grid = document.getElementById('iconColorGrid');
+  if(grid){
+    const cur = localSettings.iconColor || 'tema';
+    grid.innerHTML = `<div class="theme-color-swatch ${cur === 'tema' ? 'selected' : ''}" title="Igual ao tema" onclick="setIconColor('tema')" style="background:linear-gradient(135deg, var(--vault) 50%, var(--brass-light) 50%);"></div>` +
+      THEME_COLORS.map(x => `<div class="theme-color-swatch ${x.key === cur ? 'selected' : ''}" title="${x.label}" onclick="setIconColor('${x.key}')" style="background:${x.vault};"></div>`).join('');
+  }
+  const sw = document.getElementById('swIconGlass');
+  if(sw) sw.className = 'switch' + (localSettings.iconGlass === true ? ' on' : '');
+}
+async function setIconColor(key){
+  localSettings.iconColor = key;
+  await persistLocalSettings();
+  applyIconAppearance();
+  renderIconControls();
+}
+async function toggleIconGlass(){
+  localSettings.iconGlass = !(localSettings.iconGlass === true);
+  await persistLocalSettings();
+  applyIconAppearance();
+  renderIconControls();
+  showToast(localSettings.iconGlass ? 'Ícone com efeito transparente' : 'Ícone sem efeito transparente');
+}
 function applyAllAppearance(){
+  applyIconAppearance();
   applyThemeColor(localSettings.themeColor || 'green');
   applyDarkModeClass();
   applyLiquidGlass();
