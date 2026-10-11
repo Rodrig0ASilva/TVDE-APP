@@ -2,7 +2,7 @@
 
 Gestão financeira para motoristas TVDE (Uber, Bolt) e corridas particulares. É uma aplicação web de ficheiro único (`corridaplus.html`), pensada para usar como app no telemóvel, com aspeto nativo (estilo iOS) e suporte ao efeito transparente ("liquid glass").
 
-**Versão atual:** 0.80 (ver o histórico na Parte II de `DOCUMENTATION.md`).
+**Versão atual:** 0.104 (ver o histórico na Parte II de `DOCUMENTATION.md`).
 
 ---
 
