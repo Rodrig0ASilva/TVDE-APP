@@ -446,7 +446,8 @@ body.dark .platform-pick-opt.active { border-color: var(--vault-text, var(--vaul
 body.dark .field input, body.dark .field select, body.dark .field textarea, body.dark .bill-amount-input { background: #1C1C23; color: var(--ink); border-color: rgba(255,255,255,0.14); }
 body.dark .field input::placeholder, body.dark .field textarea::placeholder { color: rgba(230,225,215,0.32); }
 body.dark .field select option { background: #1C1C23; color: var(--ink); }
-body.dark .field label { color: var(--vault-light); }
+/* Rótulos no modo escuro: cor clara do tema (a cor escura de destaque ficava ilegível sobre o fundo). */
+body.dark .field label, body.dark label { color: var(--vault-text, var(--vault-light)) !important; }
 body.dark .field-money::before { color: rgba(230,225,215,0.45); }
 body.dark .seg { background: #1C1C23; border-color: rgba(255,255,255,0.10); }
 body.dark .seg-opt { color: var(--text-muted); }
@@ -787,6 +788,10 @@ body.dark .tab-ov { color: var(--vault-text, var(--vault-light)); }
 .tabbar, .tabbar * { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; -webkit-tap-highlight-color: transparent; }
 body { height: 100dvh; }
 #app { height: 100dvh; overflow-y: auto; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; }
+/* Blocos de Configurações: cada opção fica separada; IVA e comissão ficam juntos (mesmo tema). */
+.cfg-group { padding: 16px 0; border-bottom: 1px solid var(--line); }
+.cfg-group:last-of-type { border-bottom: none; }
+.cfg-head { font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-muted); margin-bottom: 6px; }
 /* Barra de rolagem discreta (computador): fina, sem fundo branco, com a cor do tema.
    Aplica-se à área principal, às folhas (sheet) e ao registo de sincronização. */
 .sheet, #syncLogContainer { scrollbar-width: thin; scrollbar-color: rgba(42,36,32,0.22) transparent; }
@@ -1108,6 +1113,8 @@ body.dark .brand-name, body.dark .screen-title, body.dark .tabbar-inner::before 
     <div style="height:1px;background:var(--line);margin:26px 0 0;"></div>
     <div class="section-head" style="margin-top:22px;"><div class="section-title">Configurações</div></div>
     <div class="section-sub" style="margin-bottom:6px;">Liga só o que usas. Cada opção aparece nos ecrãs e nos cálculos apenas quando estiver ativa.</div>
+    <div class="cfg-group">
+      <div class="cfg-head">Impostos</div>
     <div class="switch-row">
       <div class="switch-row-text">
         <div class="switch-row-title">IVA / Imposto</div>
@@ -1153,22 +1160,8 @@ body.dark .brand-name, body.dark .screen-title, body.dark .tabbar-inner::before 
 
     </div>
 
-    <div class="switch-row">
-      <div class="switch-row-text">
-        <div class="switch-row-title">Turno de trabalho</div>
-        <div class="switch-row-sub">Mostra o seletor de turno ao registar ganhos e o gráfico "Ganhos por turno" nas Estatísticas.</div>
-      </div>
-      <div class="switch" id="swTurno" onclick="toggleFeature('showTurno')"></div>
     </div>
-    <div id="turnoNamesRow" style="display:none;margin:0 0 8px;"></div>
-    <div class="switch-row">
-      <div class="switch-row-text">
-        <div class="switch-row-title">Quilómetros (km)</div>
-        <div class="switch-row-sub">Campo opcional de km ao registar ganhos. Se preenchido, aparece nas Estatísticas (km totais e lucro por km).</div>
-      </div>
-      <div class="switch" id="swKm" onclick="toggleFeature('showKm')"></div>
-    </div>
-
+    <div class="cfg-group">
     <div class="switch-row">
       <div class="switch-row-text">
         <div class="switch-row-title">Ativar metas de lucro</div>
@@ -1191,6 +1184,29 @@ body.dark .brand-name, body.dark .screen-title, body.dark .tabbar-inner::before 
     </div>
 
 
+    </div>
+    <div class="cfg-group">
+      <div class="cfg-head">Turnos</div>
+    <div class="switch-row">
+      <div class="switch-row-text">
+        <div class="switch-row-title">Turno de trabalho</div>
+        <div class="switch-row-sub">Mostra o seletor de turno ao registar ganhos e o gráfico "Ganhos por turno" nas Estatísticas.</div>
+      </div>
+      <div class="switch" id="swTurno" onclick="toggleFeature('showTurno')"></div>
+    </div>
+    <div id="turnoNamesRow" style="display:none;margin:0 0 8px;"></div>
+    </div>
+    <div class="cfg-group">
+    <div class="switch-row">
+      <div class="switch-row-text">
+        <div class="switch-row-title">Quilómetros (km)</div>
+        <div class="switch-row-sub">Campo opcional de km ao registar ganhos. Se preenchido, aparece nas Estatísticas (km totais e lucro por km).</div>
+      </div>
+      <div class="switch" id="swKm" onclick="toggleFeature('showKm')"></div>
+    </div>
+
+    </div>
+    <div class="cfg-group">
     <div class="switch-row">
       <div class="switch-row-text">
         <div class="switch-row-title">Usar outras plataformas</div>
@@ -1217,6 +1233,8 @@ body.dark .brand-name, body.dark .screen-title, body.dark .tabbar-inner::before 
       </div>
     </div>
 
+    </div>
+    <div class="cfg-group">
     <div class="switch-row">
       <div class="switch-row-text">
         <div class="switch-row-title">Resumo de ontem</div>
@@ -1600,7 +1618,7 @@ body.dark .brand-name, body.dark .screen-title, body.dark .tabbar-inner::before 
 // Esquema de versão: de volta ao pré-1.0 (0.x.x) — a v1.0.0 fica
 // reservada para o lançamento com assinatura paga completa. A numeração
 // 4.x.x usada temporariamente para a integração Firebase foi abandonada.
-const APP_VERSION = '0.116';
+const APP_VERSION = '0.119';
 // Mostra o número da versão na tela de carregamento imediatamente (sem
 // esperar por loadAll/qualquer coisa assíncrona) — sempre visível,
 // independente da mensagem dinâmica ("A carregar…", "A sincronizar…",
