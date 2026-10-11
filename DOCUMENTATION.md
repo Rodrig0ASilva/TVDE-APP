@@ -3,7 +3,7 @@
 Este ficheiro reúne a documentação de arquitetura e o histórico de alterações da app `corridaplus.html`.
 O HTML principal mantém apenas comentários curtos, apontando para aqui quando for preciso mais contexto.
 
-**Versão atual: 0.80.** A última secção deste documento é a versão atual.
+**Versão atual: 0.104.** A última secção deste documento é a versão atual.
 
 ## Índice
 - **Parte I — Documentação técnica**: sincronização, IVA e lucro, encriptação, biometria, atualização, armazenamento, Firebase e funcionalidades específicas (secções 1 a 24).
@@ -1474,3 +1474,213 @@ Histórico agrupado por assunto, em ordem cronológica. A última secção é a 
 - **Versão 0.80 — títulos legíveis no modo escuro**: o "Corrida+" da barra lateral (computador) e os
   títulos das telas ("Você", "Ganhos", etc.) usavam o verde escuro do tema, pouco contrastado no modo
   escuro. Agora usam a cor de texto do tema nesse modo. O modo claro não muda.
+
+## Versão 0.81 — Modo escuro gradual, nome sem fechar o teclado e barras do sistema
+
+- **Seletor Claro · Sistema · Escuro com transição gradual.** A troca não reconstrói
+  mais as Configurações: só atualiza a opção ativa. Antes, o redesenho do ecrã
+  apagava as transições das cores dos cartões.
+- **Nome do perfil guardado só ao confirmar.** Passou de `oninput` para `onchange`
+  (ao sair do campo ou com Enter). Antes, cada letra disparava uma gravação, que
+  por sua vez reconstruía o ecrã e fechava o teclado.
+- **Cor da barra do sistema (Android).** A barra de cima e a de baixo seguem a cor do
+  tema. Com o efeito transparente ativo, usam a cor de base do vidro (creme no modo
+  claro, quase preto no escuro). O elemento `meta theme-color` é recriado a cada
+  mudança, porque o Chrome nem sempre atualiza só o atributo.
+  - Limitação: uma página web não consegue tornar transparente a barra do sistema do
+    Android. A aproximação é a cor de fundo do vidro. Pode ser preciso reabrir a app
+    instalada para a cor nova aparecer.
+
+## Versão 0.82 — Transição de cor da gota nos seletores
+
+- **Gota do seletor com cor gradual ao mudar o tema.** A regra `html.soft-change .glass-pill`
+  definia a lista de propriedades animadas com `!important` e não incluía a cor de fundo.
+  Assim, a gota (a opção ativa do seletor e da barra) trocava de cor de repente, enquanto
+  o resto da app fazia a transição. Agora `background-color`, `border-color` e `box-shadow`
+  fazem parte da transição.
+
+## Versão 0.83 — Cor da barra de navegação do Android acompanha o tema
+
+- **Causa:** a barra de baixo (e de cima) da app instalada ficava verde porque o Android
+  usa o `theme_color` do manifest (`#1F3A2E`), e não só a tag `meta theme-color`.
+- **Correção:** ao mudar o tema, o modo claro/escuro ou o efeito transparente, a app
+  atualiza também o `theme_color` e o `background_color` do manifest, com a mesma cor.
+- **Limitação:** o Chrome relê o manifest ao abrir a app. A nova cor pode só aparecer ao
+  fechar e reabrir a app instalada (ou reinstalá-la).
+
+## Versão 0.84 — Assinatura expirada e aviso de validade
+
+- **Causa:** o app só lia o `status` da assinatura e nunca comparava `current_period_end`
+  com a data de hoje. Um documento com `status: "active"` e data já passada continuava a
+  aparecer como ativo, e o Firestore não enviava nenhuma alteração com a passagem do tempo.
+- **Correção:** o cartão "Assinatura" compara a data de fim com a data atual:
+  - depois da data: "⛔ Assinatura expirada", com a data em que o período terminou;
+  - nos últimos 7 dias: aviso com os dias que faltam;
+  - o cartão é reavaliado a cada minuto, sem depender de alterações no Firestore.
+- **Limitação:** este cartão apenas informa. O bloqueio real de acesso fica para a Fase 3
+  (regras do Firestore e extensão Stripe), e ainda não existe.
+
+## Versão 0.85 — Modo só leitura quando a assinatura expira
+
+- **Regra:** com assinatura expirada (data de fim já passada), a conta fica só para leitura:
+  vê os dados, mas não regista, edita nem apaga. Sem tolerância de dias.
+- **App:** um aviso fixo no topo de todos os ecrãs indica a data de expiração e tem o botão
+  "Renovar assinatura" (por agora, leva a Configurações → Conta; o checkout do Stripe ainda
+  não está ligado). Todas as ações de escrita passam por `readOnlyGuard()`, que mostra um aviso
+  e cancela a ação.
+- **Servidor (o que realmente bloqueia):** a Cloud Function `updateAccess`
+  (`functions/index.js`) recalcula, sempre que uma assinatura muda, até quando o acesso é válido
+  e grava `access/{uid}.until`. As regras (`firestore.rules`) só permitem escrever em
+  `users/{uid}` quando esse campo está no futuro.
+- **Assunção:** sem assinatura nenhuma (ainda sem Stripe), a app continua livre. Quando o Stripe
+  estiver ligado, isto deve ser revisto: as regras negam escrita sem `access/{uid}`.
+- **Publicação:** primeiro a função (`firebase deploy --only functions`), depois as regras
+  (`firebase deploy --only firestore:rules`). A função só corre quando uma assinatura muda, por isso,
+  para a conta de teste, basta editar um campo do documento em `customers/{uid}/subscriptions`
+  para criar `access/{uid}`.
+
+## Versão 0.86 — Sub-ecrã de Aparência
+
+- **Motivo:** a secção Aparência dentro de Você tinha muitos controlos (modo, cor, efeito
+  transparente, imagem de fundo), e as pessoas achavam que Configurações tinha só isso.
+- **Mudança:** Você mostra agora um botão "🎨 Aparência ›". Abre o ecrã `screen-aparencia`, que
+  não está na barra de abas e tem uma seta para voltar a Você. O conteúdo é o mesmo, só mudou de sítio.
+- **Efeito colateral corrigido:** no modo básico, as regras de bloqueio das Configurações
+  também desativavam o efeito transparente e a imagem de fundo. Agora estão no ecrã próprio,
+  fora da lista bloqueada. (Só o aparência de cor e modo escuro já funcionava no modo básico.)
+
+## Versão 0.87 — Toque longo na barra de abas
+
+- **Sintoma:** manter o dedo em "Você" na barra de abas mostrava a barra de carregamento
+  no topo e a app recarregava depois de cerca de 3 segundos.
+- **Causa provável (não confirmada):** o gesto de toque longo chegava ao navegador, que
+  o interpretava como menu ou recarregamento. Nenhuma função da app recarrega ao tocar nas abas.
+- **Correção:** a barra de abas deixa de mostrar o menu de toque longo e de selecionar texto;
+  o gesto de puxar para atualizar fica desativado (`overscroll-behavior: none`).
+- **A confirmar:** se o recarregamento continuar, é preciso saber se é a app instalada ou o
+  navegador, porque o comportamento pode depender do navegador do aparelho.
+
+## Versão 0.88 — Manter "Você" para procurar atualização
+
+- **Gesto:** manter o dedo em "Você" na barra de abas (cerca de 0,7 s) procura uma atualização.
+  Se houver uma versão nova, a app atualiza-se sozinha, sem perguntar. Se já estiver na versão
+  mais recente, mostra um aviso com a versão atual. Um toque normal continua a abrir Você.
+- **Como funciona:** lê a versão publicada (`APP_VERSION` na página) e, se for diferente,
+  guarda-a em `pendingUpdateNotice` e recarrega a página. Na abertura seguinte aparece o aviso
+  "Atualizado para vX.X.X" no ecrã de carregamento, como já acontecia.
+- **Substitui o comportamento da 0.87:** o toque longo deixou de ser só bloqueado.
+
+## Versão 0.89 — Gesto "toque e depois manter" em Você
+
+- **Gesto:** um toque em "Você" e, menos de 1,5 s depois, manter o dedo cerca de 0,7 s
+  procura uma atualização (ver 0.88). Manter o dedo sem um toque antes não faz nada, para
+  evitar atualizações por engano.
+- Um toque normal continua a abrir Você.
+
+## Versão 0.90 — Transição do sub-ecrã de Aparência
+
+- O sub-ecrã Aparência entrava de repente. Agora entra com o mesmo deslize das abas
+  (pela direita) e sai com a seta, que o faz deslizar para a esquerda, como ao mudar de aba.
+
+## Versão 0.91 — Interruptor do gesto em Você (Modo Dev)
+
+- Modo Dev → Atualização → "Atualizar ao manter Você". Ligado por omissão.
+- Guardado só neste aparelho (`localSettings.holdUpdateEnabled`), porque o Modo Dev também é deste aparelho.
+- Desligado, o toque longo em Você não procura atualizações; o toque normal continua a funcionar.
+
+## Versão 0.92 — Cor de destaque da aba acompanha a gota
+
+- **Antes:** a aba ativa ficava inteira com a cor de destaque, e a gota só mudava de posição.
+  Ao deslizar a gota, a cor ficava na aba antiga até a gota sair.
+- **Agora:** a cor de destaque só aparece dentro da gota. Uma camada `.tab-ov` (cópia das abas)
+  fica por cima da barra e é recortada pela forma da gota (`clip-path`). Se a gota estiver a
+  meio de um ícone, só essa metade fica colorida, como no iOS. O recorte acompanha a gota no arrasto
+  e na animação.
+- **Nota:** o ícone da aba ativa deixou de ter a ampliação de 8%, para as duas camadas ficarem iguais.
+- **Fora desta versão:** os seletores Dia · Semana · Mês continuam a mudar de cor de uma vez.
+
+## Versão 0.93 — Correção da cor de destaque no modo escuro
+
+- A camada de cor da 0.92 ficava cinzenta no modo escuro: a regra `body.dark .tab` tinha mais
+  peso do que a herança da cópia. Agora a cópia força a herança da cor (`!important`).
+- Testado num navegador headless nos modos claro, efeito transparente e escuro.
+
+## Versão 0.94 — Sem texto duplicado ao parar a gota
+
+- **Sintoma:** quando a gota parava, a cópia colorida ficava por cima do texto cinzento e as duas
+  palavras sobrepunham-se (efeito de texto em negrito ou com sombra).
+- **Correção:** duas camadas que nunca se sobrepõem. `.tab-base` (cinzento) é recortado para ficar
+  fora da gota (`path()` com regra evenodd). `.tab-ov` (cor de destaque) fica só dentro da gota.
+  As abas reais ficam transparentes e só recebem os toques.
+- Testado num navegador headless nos modos claro, efeito transparente e escuro.
+
+## Versão 0.95 — Turnos: Dia e Noite, e pergunta do período no ganho
+
+- **Turnos padrão:** agora são só **Dia** e **Noite**. Manhã, Tarde e Madrugada deixam de ser padrão.
+  Continua a ser possível adicionar outros turnos em Configurações → Turno de trabalho.
+- **Migração:** quem já tinha Manhã, Tarde ou Madrugada na lista vê-os arquivados (aparecem em
+  "Removidos" e podem ser reativados). Os ganhos antigos mantêm o nome que tinham.
+- **Novo ganho:** a pergunta do seletor passou a ser "Qual período trabalhou mais?".
+
+## Versão 0.96 — Turnos antigos saem das Configurações
+
+- Manhã, Tarde e Madrugada deixam de aparecer em Configurações, inclusive em "Removidos".
+  A migração remove-os da lista guardada.
+- Os ganhos antigos com esses turnos continuam a mostrar o nome certo no gráfico "Ganhos por
+  turno" e na exportação, através do mapa `TURNOS_ANTIGOS` (só para leitura).
+
+## Versão 0.97 — Período do lançamento obrigatório e dias no gráfico por turno
+
+- Os lançamentos são feitos uma vez por dia, no fim do turno. Por isso, a escolha do período
+  deixa de ter "Não dizer": o primeiro período ativo vem selecionado por omissão.
+  Assim, todos os lançamentos entram no gráfico "Ganhos por turno".
+- O gráfico indica quantos dias contou o período que mais rendeu ("Melhor turno: Dia · 12 dias").
+
+## Versão 0.98 — "Não dizer" volta ao seletor de período
+
+- Com os turnos ativados, o seletor "Qual período trabalhou mais?" volta a ter a opção
+  "Não dizer", selecionada por omissão. A alteração da 0.97 que a removia foi revertida.
+- Mantém-se o contador de dias no gráfico "Ganhos por turno".
+
+## Versão 0.99 — Dias trabalhados por período nas Estatísticas
+
+- O gráfico "Ganhos por turno" mostra, por período, quantos dias foram lançados e as datas
+  (dd/mm). Ex.: "☀️ Dia · 5 dias" e por baixo "03/10 · 04/10 · …".
+- Conta cada data uma vez por período, dentro do intervalo que está em ecrã (dia, semana, mês ou ano).
+
+## Versão 0.100 — Estatísticas mais completas por período
+
+- **Por período (Dia e Noite):** a lista do gráfico "Ganhos por turno" mostra o total ganho e a
+  média por dia de cada período.
+- **Melhores dias:** novo cartão com os 5 dias de maior ganho bruto (soma de todas as plataformas
+  nesse dia), com o dia da semana, a data e o período. Aparece em Estatísticas → Mês e → Ano.
+
+## Versão 0.101 — Análise completa nas Estatísticas
+
+Novo bloco, no fim das Estatísticas de Mês e de Ano:
+
+- **Atividade:** dias trabalhados (e de quantos do mês), média por dia, melhor e pior dia.
+- **Por dia da semana:** média de ganho em cada dia da semana, com o melhor destacado.
+- **Ganhos acumulados no mês (só Mês):** linha que mostra como o total foi crescendo ao longo do mês.
+- **Comparado com o mês anterior (só Mês):** bruto e lucro, com a variação em percentagem.
+
+Os cálculos usam os mesmos valores do resto das estatísticas (IVA, comissão, despesas fixas e variáveis).
+
+## Versão 0.102 — Barra lateral alinhada no computador
+
+- No ecrã largo, a barra lateral ficava desalinhada: as camadas de cor subiam cerca de 25 px.
+  A causa era o título "Corrida+" existir só na barra original. Agora as camadas têm o mesmo
+  título, escondido, e as posições ficam iguais às das abas.
+
+## Versão 0.103 — Barra de rolagem discreta no computador
+
+- A barra de rolagem padrão do navegador aparecia branca e larga no lado direito. Agora é fina,
+  com fundo transparente e a cor do tema (claro ou escuro). A rolagem com o rato continua igual.
+
+## Versão 0.104 — Opção "Nas semanas" nas despesas fixas mensais
+
+- Com a opção padrão ("não aparecer nas semanas"), a despesa não mostra nada extra.
+- Com "dividir pelas semanas" ou "tudo na 1ª semana", aparece uma linha legível com o resumo e
+  o botão "alterar".
+- "alterar" abre uma folha com as três opções. Também permite voltar à opção padrão.
+- O seletor branco da lista, que ficava ilegível no modo escuro, foi removido.
