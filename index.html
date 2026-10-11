@@ -631,8 +631,9 @@ body.glass .tab.active {
 /* Troca de abas: a nova aba entra do lado de onde vem (só deslize, opacidade total) */
 @keyframes slideFromRight { from { transform: translateX(28px); } to { transform: translateX(0); } }
 @keyframes slideFromLeft { from { transform: translateX(-28px); } to { transform: translateX(0); } }
-.screen.slide-r { animation: slideFromRight 0.3s cubic-bezier(.2,.8,.2,1); }
-.screen.slide-l { animation: slideFromLeft 0.3s cubic-bezier(.2,.8,.2,1); }
+/* Curva de rebote (igual à gota): a troca de ecrã e de conteúdo ultrapassa ligeiramente e assenta. */
+.screen.slide-r { animation: slideFromRight 0.42s cubic-bezier(.34,1.56,.64,1); }
+.screen.slide-l { animation: slideFromLeft 0.42s cubic-bezier(.34,1.56,.64,1); }
 body.glass.dark .tab.active { background: rgba(255,255,255,0.12); border-color: rgba(255,255,255,0.18); }
 body.glass .stat-card, body.glass .chart-box, body.glass .profile-card, body.glass .income-row-compact {
   background: rgba(255,255,255,0.5);
@@ -812,8 +813,8 @@ body.glass.dark .stat-card, body.glass.dark .chart-box, body.glass.dark .profile
 .cfg-group:last-of-type { border-bottom: none; }
 .cfg-head { font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-muted); margin-bottom: 6px; }
 /* Transição do conteúdo ao trocar Dia/Semana/Mês/Ano ou de período: o mesmo deslize da troca de abas. */
-.troca-r { animation: slideFromRight 0.3s cubic-bezier(.2,.8,.2,1); }
-.troca-l { animation: slideFromLeft 0.3s cubic-bezier(.2,.8,.2,1); }
+.troca-r { animation: slideFromRight 0.42s cubic-bezier(.34,1.56,.64,1); }
+.troca-l { animation: slideFromLeft 0.42s cubic-bezier(.34,1.56,.64,1); }
 /* Barra de rolagem discreta (computador): fina, sem fundo branco, com a cor do tema.
    Aplica-se à área principal, às folhas (sheet) e ao registo de sincronização. */
 .sheet, #syncLogContainer { scrollbar-width: thin; scrollbar-color: rgba(42,36,32,0.22) transparent; }
@@ -1643,7 +1644,7 @@ body.dark .brand-name, body.dark .screen-title, body.dark .tabbar-inner::before 
 // Esquema de versão: de volta ao pré-1.0 (0.x.x) — a v1.0.0 fica
 // reservada para o lançamento com assinatura paga completa. A numeração
 // 4.x.x usada temporariamente para a integração Firebase foi abandonada.
-const APP_VERSION = '0.127';
+const APP_VERSION = '0.128';
 // Mostra o número da versão na tela de carregamento imediatamente (sem
 // esperar por loadAll/qualquer coisa assíncrona) — sempre visível,
 // independente da mensagem dinâmica ("A carregar…", "A sincronizar…",
