@@ -4,6 +4,37 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
 <title>Corrida+</title>
+<script>
+// Aplica já, antes da primeira pintura, a cor do tema e o ícone guardados neste aparelho
+// (evita que a tela de carregamento mostre primeiro as cores por omissão).
+(function(){
+  try{
+    const s = JSON.parse(localStorage.getItem('localSettings') || 'null');
+    if(!s) return;
+    const TEMAS = {
+      green:      { vault:'#1F3A2E', vault2:'#2C4F3D', vaultLight:'#3E6650', brassLight:'#D9A949' },
+      blue:       { vault:'#1A2E4A', vault2:'#243D63', vaultLight:'#2E5075', brassLight:'#6AAFD4' },
+      purple:     { vault:'#2D1F4A', vault2:'#3D2C6A', vaultLight:'#5040A0', brassLight:'#B890D4' },
+      terracotta: { vault:'#4A2010', vault2:'#6A2E18', vaultLight:'#8B4020', brassLight:'#D4A060' },
+      slate:      { vault:'#1A2535', vault2:'#243050', vaultLight:'#2E4060', brassLight:'#90B0C8' }
+    };
+    const tema = TEMAS[s.themeColor || 'green'] || TEMAS.green;
+    const r = document.documentElement.style;
+    r.setProperty('--vault', tema.vault);
+    r.setProperty('--vault-2', tema.vault2);
+    r.setProperty('--vault-light', tema.vaultLight);
+    r.setProperty('--brass-light', tema.brassLight);
+    const ic = (s.iconColor && TEMAS[s.iconColor]) ? TEMAS[s.iconColor] : (s.iconColor ? null : tema);
+    const tile = ic ? ic.vault2 : 'var(--vault-2)';
+    const accent = ic ? ic.brassLight : 'var(--brass-light)';
+    const glass = s.iconGlass === true;
+    r.setProperty('--icon-tile', tile);
+    r.setProperty('--icon-accent', accent);
+    r.setProperty('--icon-tile-fill', glass ? 'color-mix(in srgb, var(--icon-tile) 60%, transparent)' : 'var(--icon-tile)');
+    r.setProperty('--icon-tile-stroke', glass ? 'rgba(255,255,255,0.35)' : 'transparent');
+  }catch(e){}
+})();
+</script>
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%231F3A2E'/%3E%3Cg transform='translate(8,18)'%3E%3Cpath d='M6 16 L10 6 Q12 3 16 3 L32 3 Q36 3 38 6 L42 16' fill='none' stroke='%23D9A949' stroke-width='3' stroke-linecap='round'/%3E%3Crect x='2' y='15' width='44' height='14' rx='5' fill='%23D9A949'/%3E%3Ccircle cx='12' cy='31' r='6' fill='%231F3A2E' stroke='%23D9A949' stroke-width='2.5'/%3E%3Ccircle cx='36' cy='31' r='6' fill='%231F3A2E' stroke='%23D9A949' stroke-width='2.5'/%3E%3Crect x='2' y='20' width='11' height='6' rx='2' fill='%231F3A2E' opacity='0.5'/%3E%3Crect x='35' y='20' width='11' height='6' rx='2' fill='%231F3A2E' opacity='0.5'/%3E%3C/g%3E%3C/svg%3E" />
 <link rel="manifest" href="data:application/manifest+json;base64,eyJuYW1lIjogIkNvcnJpZGErIiwgInNob3J0X25hbWUiOiAiQ29ycmlkYSsiLCAiZGVzY3JpcHRpb24iOiAiR2VzdMOjbyBmaW5hbmNlaXJhIHBhcmEgbW90b3Jpc3RhIGRlIGFwcCIsICJzdGFydF91cmwiOiAiLi8iLCAic2NvcGUiOiAiLi8iLCAiZGlzcGxheSI6ICJzdGFuZGFsb25lIiwgIm9yaWVudGF0aW9uIjogInBvcnRyYWl0IiwgImJhY2tncm91bmRfY29sb3IiOiAiI0Y2RUZFMiIsICJ0aGVtZV9jb2xvciI6ICIjMUYzQTJFIiwgImljb25zIjogW3sic3JjIjogImRhdGE6aW1hZ2Uvc3ZnK3htbCw8c3ZnIHhtbG5zPSdodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2Zycgdmlld0JveD0nMCAwIDY0IDY0Jz48cmVjdCB3aWR0aD0nNjQnIGhlaWdodD0nNjQnIHJ4PScxNCcgZmlsbD0nJTIzMUYzQTJFJy8+PGcgdHJhbnNmb3JtPSd0cmFuc2xhdGUoMTIsMTYpJyBmaWxsPSdub25lJyBzdHJva2U9JyUyM0Q5QTk0OScgc3Ryb2tlLXdpZHRoPScyLjYnPjxwYXRoIGQ9J00zIDE2IEw2IDggUTcuNSA1IDEwLjUgNSBMMjkuNSA1IFEzMi41IDUgMzQgOCBMMzcgMTYnIHN0cm9rZS1saW5lY2FwPSdyb3VuZCcvPjxyZWN0IHg9JzInIHk9JzE1JyB3aWR0aD0nMzYnIGhlaWdodD0nMTQnIHJ4PSczLjUnLz48Y2lyY2xlIGN4PSc5LjUnIGN5PSczMCcgcj0nMy42JyBmaWxsPSclMjNEOUE5NDknIHN0cm9rZT0nbm9uZScvPjxjaXJjbGUgY3g9JzMwLjUnIGN5PSczMCcgcj0nMy42JyBmaWxsPSclMjNEOUE5NDknIHN0cm9rZT0nbm9uZScvPjwvZz48L3N2Zz4iLCAic2l6ZXMiOiAiYW55IiwgInR5cGUiOiAiaW1hZ2Uvc3ZnK3htbCIsICJwdXJwb3NlIjogImFueSBtYXNrYWJsZSJ9XX0=" />
 <link rel="apple-touch-icon" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAALQAAAC0CAYAAAA9zQYyAAAEy0lEQVR4nO3d0VXbMBiGYSWnW3DBBgzAAF0ns3QdBmAANuCic9CLnnAgOLYkS9b/fXqfAagtvf2tJCU9pQAen58+Rl8D9nt/fTuNvoYhF0DA8zg68sP+MCLGEXF3/QOIGEt6ht3lBxMycvQIu/kPJGaUahl2sx9EyNirRdjnFhdCzGihRUe7/kYQMnqpndbVE5qY0VNtX1VBEzOOUNNZcdDEjCOV9lYUNDFjhJLusoMmZoyU219W0MSMCHI63AyamBHJVo9NPlgBolgNmumMiNa6vBs0MSOye31y5ICVxaCZzlCw1OmPoIkZSm575cgBK9+CZjpD0ddumdCwQtCw8hk0xw0ou/bLhIYVgoaVU0ocN+CDCQ0rBA0rBA0rZ87PcMKEhhWChhWChhWChhWChhWChhWChhWChhWChhWChhWChhWChhWChhWChhWChhWChhWChhWChhWChhWChhWChpVfoy9ghJfLw+hLOMTvP39HX8LhTjN9L8csId+aKexpjhyzxpzSXPduP6Fn2swc7tPaekIT80/ua2I5od03rRXHaW0VNCHXcQrb5shBzPWc1k5+Qu/ZDKfJ9NXMazLlByvqm7blen9OkzeXbNA1m+Ue8q3asF8uD7JrZXOG3qK6QS2U3Lv6VJc8Q5cs+swhL3FfO+sJrbghvbmviewZeo37pu3l/KJRbkI7bkJUimstFzSwxi5ojhv5HNdKKmjFR6A6tTWXChrYYhW04yO0N7c1kwla7dHnRGntZYIGckgEnTMh3B6dR8pZO5UpLRE0kMsiaKbzfi5rGD5olUfdDBT2InzQQAn5oF0elRE4rGXooBUecbOJviehgwZKyf8D/+gTA8cKO6EJNa7IexM2aKAGQcMKQcNK2KAd3hN1FXlvwgYN1CBoFIv8Lof8+9CRH3+qIge7RXpCE3MfyusqHTRwi6BhhaBhhaBhhaBhhaBhhaBhhaBhhaBhhaBhhaBhhaBhhaBhhaBhhaBhhaBhhaBhhaBhhaBhhaBhhaBhhaBhRfp7OV4uD7v/jz3lX9lf0uJelb+X4/T4/PQx+iLuUV5Yd1EHQegjR9RFm13kfQkdNFAqfNCRp8GMou9H+KBTir+Is1DYB4mgU9JYTGcq6y8TdEo6i+pGad1Dv223hrf0+lMK+Uo26Fs9Ao+6oTPdaympIwewhaBhhaBhhaBhxSbo1i9qIr9ImuleS9kEDaRkFnSrSaMwsWa61xJWQae0f4OUNnime81lF3RK9RuluMEz3WsOy6BTKt8w5Q2e6V632Hz0vYbfKfzP7V6XTBE05mF75MCcCBpWCBpWCBpWCBpWCBpWzu+vb6fRFwG0woSGFYKGFYKGFYKGlXNKKfHCEA7eX99OTGhYIWhY+QyaYweUXftlQsPKt6CZ0lD0tVsmNKz8CJopDSW3vTKhYWUxaKY0FCx1yoSGlbtBM6UR2b0+Vyc0USOitS45ckDK1pDdDJopDSVZE5qoEUFOh9lHDqLGSLn9FZ2hiRojlHRX/KKQqHGk0t6q3uUgahyhprNdYfLd0uhhz8BsMmkJG63sffo3+WCFIwhaaNFR8xCZ1ijVciB2maxEjRw9nuxdjwqEjSU9j6iHnX2JG0e81hryYo6453H0Gwb/AMnXgMvik2jYAAAAAElFTkSuQmCC" />
@@ -1521,7 +1552,7 @@ body.dark .brand-name, body.dark .screen-title, body.dark .tabbar-inner::before 
 // Esquema de versão: de volta ao pré-1.0 (0.x.x) — a v1.0.0 fica
 // reservada para o lançamento com assinatura paga completa. A numeração
 // 4.x.x usada temporariamente para a integração Firebase foi abandonada.
-const APP_VERSION = '0.108';
+const APP_VERSION = '0.109';
 // Mostra o número da versão na tela de carregamento imediatamente (sem
 // esperar por loadAll/qualquer coisa assíncrona) — sempre visível,
 // independente da mensagem dinâmica ("A carregar…", "A sincronizar…",
@@ -2236,9 +2267,14 @@ let unsubSubscription = null;
 async function loadAll(){
   const splashMsg = document.getElementById('splashMsg');
   const splash    = document.getElementById('splashScreen');
+  const splashStart = Date.now();
   function setSplash(msg){ if(splashMsg) splashMsg.textContent = msg; }
+  // Mantém a tela de carregamento visível pelo menos 1,2 s, para o ícone ser visto.
   function hideSplash(){
-    if(splash){ splash.style.opacity = '0'; setTimeout(()=>{ splash.style.display='none'; }, 400); }
+    const resta = Math.max(0, 1200 - (Date.now() - splashStart));
+    setTimeout(() => {
+      if(splash){ splash.style.opacity = '0'; setTimeout(()=>{ splash.style.display='none'; }, 400); }
+    }, resta);
   }
 
   // Login Google OPCIONAL por agora (enquanto em teste) — só verifica se
