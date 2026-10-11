@@ -1206,6 +1206,7 @@ body.dark .brand-name, body.dark .screen-title, body.dark .tabbar-inner::before 
 
     <div class="section-head" style="margin-top:20px;"><div class="section-title">Ícone do app</div></div>
     <div class="section-sub" style="margin-bottom:8px;">Aparece na tela de carregamento e no login. O ícone instalado no ecrã inicial só muda ao instalar de novo.</div>
+    <div id="iconPreview" style="display:flex;justify-content:center;align-items:center;padding:20px;border-radius:var(--r-xl);background:var(--vault);margin:8px 0 12px;"></div>
     <div class="field" style="margin-top:8px;">
       <label>Cor do ícone</label>
       <div class="theme-color-grid" id="iconColorGrid"></div>
@@ -1520,7 +1521,7 @@ body.dark .brand-name, body.dark .screen-title, body.dark .tabbar-inner::before 
 // Esquema de versão: de volta ao pré-1.0 (0.x.x) — a v1.0.0 fica
 // reservada para o lançamento com assinatura paga completa. A numeração
 // 4.x.x usada temporariamente para a integração Firebase foi abandonada.
-const APP_VERSION = '0.107';
+const APP_VERSION = '0.108';
 // Mostra o número da versão na tela de carregamento imediatamente (sem
 // esperar por loadAll/qualquer coisa assíncrona) — sempre visível,
 // independente da mensagem dinâmica ("A carregar…", "A sincronizar…",
@@ -3093,6 +3094,14 @@ function applyIconAppearance(){
   root.style.setProperty('--icon-tile-stroke', glass ? 'rgba(255,255,255,0.35)' : 'transparent');
 }
 function renderIconControls(){
+  applyIconAppearance();
+  const prev = document.getElementById('iconPreview');
+  const splashSvg = document.querySelector('#splashScreen svg');
+  if(prev && splashSvg){
+    const svg = splashSvg.cloneNode(true);
+    svg.setAttribute('style', 'width:96px;height:96px;margin:0;');
+    prev.replaceChildren(svg);
+  }
   const grid = document.getElementById('iconColorGrid');
   if(grid){
     const cur = localSettings.iconColor || 'tema';
