@@ -811,6 +811,9 @@ body.glass.dark .stat-card, body.glass.dark .chart-box, body.glass.dark .profile
 .cfg-group { padding: 16px 0; border-bottom: 1px solid var(--line); }
 .cfg-group:last-of-type { border-bottom: none; }
 .cfg-head { font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-muted); margin-bottom: 6px; }
+/* Transição do conteúdo ao trocar Dia/Semana/Mês/Ano ou de período: o mesmo deslize da troca de abas. */
+.troca-r { animation: slideFromRight 0.3s cubic-bezier(.2,.8,.2,1); }
+.troca-l { animation: slideFromLeft 0.3s cubic-bezier(.2,.8,.2,1); }
 /* Barra de rolagem discreta (computador): fina, sem fundo branco, com a cor do tema.
    Aplica-se à área principal, às folhas (sheet) e ao registo de sincronização. */
 .sheet, #syncLogContainer { scrollbar-width: thin; scrollbar-color: rgba(42,36,32,0.22) transparent; }
@@ -1640,7 +1643,7 @@ body.dark .brand-name, body.dark .screen-title, body.dark .tabbar-inner::before 
 // Esquema de versão: de volta ao pré-1.0 (0.x.x) — a v1.0.0 fica
 // reservada para o lançamento com assinatura paga completa. A numeração
 // 4.x.x usada temporariamente para a integração Firebase foi abandonada.
-const APP_VERSION = '0.126';
+const APP_VERSION = '0.127';
 // Mostra o número da versão na tela de carregamento imediatamente (sem
 // esperar por loadAll/qualquer coisa assíncrona) — sempre visível,
 // independente da mensagem dinâmica ("A carregar…", "A sincronizar…",
@@ -4660,6 +4663,8 @@ function weeksInMonth(key){
 }
 
 function setStatsView(v){
+  if(v === statsView) return;
+  animarTroca(['statsContent'], ORDEM_VISTA[v] > ORDEM_VISTA[statsView] ? 1 : -1);
   statsView = v;
   document.querySelectorAll('#statsViewSeg .seg-opt').forEach(el => el.classList.toggle('active', el.dataset.v === v));
   document.getElementById('statsMonthNav').style.display = (v === 'mes') ? 'flex' : 'none';
@@ -4668,10 +4673,12 @@ function setStatsView(v){
   renderStats();
 }
 function changeStatsDayWeek(delta){
+  animarTroca(['statsContent'], delta);
   statsRefDate = addDays(statsRefDate, statsView === 'semana' ? delta*7 : delta);
   renderStats();
 }
 function changeStatsYear(delta){
+  animarTroca(['statsContent'], delta);
   statsRefYear += delta;
   document.getElementById('statsLabelAno').textContent = String(statsRefYear);
   renderStats();
@@ -5203,6 +5210,8 @@ function renderStats(){
 
 // --- LUCRO SCREEN ---
 function setLucroView(v){
+  if(v === lucroView) return;
+  animarTroca(['lucroContent'], ORDEM_VISTA[v] > ORDEM_VISTA[lucroView] ? 1 : -1);
   lucroView = v;
   document.querySelectorAll('#lucroViewSeg .seg-opt').forEach(el => el.classList.toggle('active', el.dataset.v === v));
   document.getElementById('lucroMonthNav').style.display = (v === 'mes') ? 'flex' : 'none';
@@ -5210,6 +5219,7 @@ function setLucroView(v){
   renderLucro();
 }
 function changeLucroDayWeek(delta){
+  animarTroca(['lucroContent'], delta);
   lucroRefDate = addDays(lucroRefDate, lucroView === 'semana' ? delta*7 : delta);
   renderLucro();
 }
@@ -5414,6 +5424,7 @@ function closeSheetOnBackdrop(e){ if(e.target.id === 'overlay') closeSheet(); }
 
 // --- MÊS navigation / picker ---
 function changeMonth(delta){
+  animarConteudoAtivo(delta);
   const [y,m] = currentMonthKey.split('-').map(Number);
   currentMonthKey = monthKeyFor(new Date(y, m-1+delta, 1));
   renderGanhos(); renderDespesas(); renderStats(); renderLucro();
@@ -5753,7 +5764,30 @@ function weekdayLabel(d){ return d.toLocaleDateString('pt-BR', { weekday:'short'
 function dayMonthLabel(d){ return d.toLocaleDateString('pt-BR', { day:'2-digit', month:'short' }).replace('.',''); }
 
 // --- GANHOS SCREEN ---
+// Transição do conteúdo ao trocar de vista ou de período (mesmo deslize das abas).
+const ORDEM_VISTA = { dia: 0, semana: 1, mes: 2, ano: 3 };
+function animarTroca(ids, dir){
+  ids.forEach(id => {
+    const el = document.getElementById(id);
+    if(!el) return;
+    el.classList.remove('troca-r', 'troca-l');
+    void el.offsetWidth;
+    el.classList.add(dir > 0 ? 'troca-r' : 'troca-l');
+  });
+}
+function animarConteudoAtivo(dir){
+  const ativo = document.querySelector('.screen.active');
+  const mapa = {
+    'screen-ganhos': ['noIncomeState', 'mainMonthContent'],
+    'screen-despesas': ['despesasHero', 'billsBox', 'variableExpensesContent'],
+    'screen-lucro': ['lucroContent'],
+    'screen-stats': ['statsContent']
+  };
+  if(ativo && mapa[ativo.id]) animarTroca(mapa[ativo.id], dir);
+}
 function setGanhosView(v){
+  if(v === ganhosView) return;
+  animarTroca(['noIncomeState', 'mainMonthContent'], ORDEM_VISTA[v] > ORDEM_VISTA[ganhosView] ? 1 : -1);
   ganhosView = v;
   document.querySelectorAll('#ganhosViewSeg .seg-opt').forEach(el => el.classList.toggle('active', el.dataset.v === v));
   document.getElementById('ganhosMonthNav').style.display = (v === 'mes') ? 'flex' : 'none';
@@ -5761,6 +5795,7 @@ function setGanhosView(v){
   renderGanhos();
 }
 function changeGanhosDayWeek(delta){
+  animarTroca(['noIncomeState', 'mainMonthContent'], delta);
   ganhosRefDate = addDays(ganhosRefDate, ganhosView === 'semana' ? delta*7 : delta);
   renderGanhos();
 }
