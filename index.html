@@ -9,8 +9,7 @@
 // (evita que a tela de carregamento mostre primeiro as cores por omissão).
 (function(){
   try{
-    const s = JSON.parse(localStorage.getItem('localSettings') || 'null');
-    if(!s) return;
+    const s = JSON.parse(localStorage.getItem('localSettings') || 'null') || {};
     const TEMAS = {
       green:      { vault:'#1F3A2E', vault2:'#2C4F3D', vaultLight:'#3E6650', brassLight:'#D9A949' },
       blue:       { vault:'#1A2E4A', vault2:'#243D63', vaultLight:'#2E5075', brassLight:'#6AAFD4' },
@@ -20,6 +19,9 @@
     };
     const tema = TEMAS[s.themeColor || 'green'] || TEMAS.green;
     const r = document.documentElement.style;
+    const modo = s.darkMode || 'system';
+    const escuro = modo === 'dark' || (modo === 'system' && !!(window.matchMedia && matchMedia('(prefers-color-scheme: dark)').matches));
+    document.documentElement.classList.toggle('splash-dark', escuro);
     r.setProperty('--vault', tema.vault);
     r.setProperty('--vault-2', tema.vault2);
     r.setProperty('--vault-light', tema.vaultLight);
@@ -503,17 +505,17 @@ body.dark button[onclick="lockSyncUrl()"] { background: var(--vault); color: #ff
 }
 @media (min-width: 860px) and (max-width: 1199px) { .tabbar { width: 280px; } }
 :root { --icon-tile: var(--vault-2); --icon-accent: var(--brass-light); --icon-tile-fill: var(--icon-tile); --icon-tile-stroke: transparent; }
-#splashScreen { background: var(--vault); }
+/* Fundo da tela de carregamento: cor do tema; no modo escuro, uma versão mais escura da mesma cor. */
+:root { --splash-bg: var(--vault); }
+html.splash-dark { --splash-bg: color-mix(in srgb, var(--vault) 35%, #0b0b0e); }
+#splashScreen { background: var(--splash-bg); }
 /* Ícone da tela de carregamento: começa cinzento e passa gradualmente para a cor ao terminar a sincronização */
 #splashIcon { transition: filter 0.9s ease; }
 #splashIcon.icon-gray { filter: grayscale(1); }
 #splashScreen .splash-title { color: #F6EFE2; }
 #splashScreen .splash-msg { color: rgba(246,239,226,0.55); }
-@media (prefers-color-scheme: dark) {
-  #splashScreen { background: #16161B; background-image: radial-gradient(circle at 100% 0%, rgba(184,134,43,0.09), transparent 45%), radial-gradient(circle at 0% 100%, rgba(31,58,46,0.12), transparent 40%); }
-  #splashScreen .splash-title { color: #F0EDE6; }
-  #splashScreen .splash-msg { color: rgba(230,225,215,0.62); }
-}
+#splashScreen .splash-title { color: #F6EFE2; }
+#splashScreen .splash-msg { color: rgba(246,239,226,0.55); }
 .theme-input { background:#fff; color:var(--ink); }
 body.dark .theme-input { background:#1C1C23; color:var(--ink); border-color:rgba(255,255,255,0.14); }
 .theme-card { background:#fff; }
@@ -682,7 +684,7 @@ body.dark .seg > .glass-pill { background: var(--vault); }
 /* Mudanças de tema, de modo e do efeito: as cores passam gradualmente */
 html.soft-change, html.soft-change * {
   transition: background-color 0.5s ease, color 0.5s ease, border-color 0.5s ease,
-              box-shadow 0.5s ease, fill 0.5s ease !important;
+              box-shadow 0.5s ease, fill 0.5s ease, stroke 0.5s ease !important;
 }
 .theme-color-swatch:active { transform: scale(0.9); }
 /* Imagem de fundo: aparece e desaparece com fade */
@@ -1240,7 +1242,7 @@ body.dark .brand-name, body.dark .screen-title, body.dark .tabbar-inner::before 
 
     <div class="section-head" style="margin-top:20px;"><div class="section-title">Ícone do app</div></div>
     <div class="section-sub" style="margin-bottom:8px;">Aparece na tela de carregamento e no login. O ícone instalado no ecrã inicial só muda ao instalar de novo.</div>
-    <div id="iconPreview" style="display:flex;justify-content:center;align-items:center;padding:20px;border-radius:var(--r-xl);background:var(--vault);margin:8px 0 12px;"></div>
+    <div id="iconPreview" style="display:flex;justify-content:center;align-items:center;padding:20px;border-radius:var(--r-xl);background:var(--splash-bg);margin:8px 0 12px;"></div>
     <div class="field" style="margin-top:8px;">
       <label>Cor do ícone</label>
       <div class="theme-color-grid" id="iconColorGrid"></div>
@@ -1555,7 +1557,7 @@ body.dark .brand-name, body.dark .screen-title, body.dark .tabbar-inner::before 
 // Esquema de versão: de volta ao pré-1.0 (0.x.x) — a v1.0.0 fica
 // reservada para o lançamento com assinatura paga completa. A numeração
 // 4.x.x usada temporariamente para a integração Firebase foi abandonada.
-const APP_VERSION = '0.111';
+const APP_VERSION = '0.114';
 // Mostra o número da versão na tela de carregamento imediatamente (sem
 // esperar por loadAll/qualquer coisa assíncrona) — sempre visível,
 // independente da mensagem dinâmica ("A carregar…", "A sincronizar…",
@@ -3112,12 +3114,14 @@ function setManifestColors(color, bg){
 }
 function applyDarkModeClass(){
   const mode = localSettings.darkMode || 'system';
+  // Fundo da tela de carregamento acompanha o modo (ver --splash-bg).
   if(mode === 'dark'){ document.body.classList.add('dark'); }
   else if(mode === 'light'){ document.body.classList.remove('dark'); }
   else {
     const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
     document.body.classList.toggle('dark', prefersDark);
   }
+  document.documentElement.classList.toggle('splash-dark', document.body.classList.contains('dark'));
   updateThemeColorMeta();
 }
 async function setDarkMode(mode){
@@ -3139,20 +3143,25 @@ function applyIconAppearance(){
 }
 function renderIconControls(){
   applyIconAppearance();
+  // Não reconstrói a pré-visualização nem a grelha de cores: isso apagaria as transições.
+  // Só atualiza as classes (ver NOTA DE PADRÃO em softChange).
   const prev = document.getElementById('iconPreview');
   const splashSvg = document.querySelector('#splashScreen svg');
-  if(prev && splashSvg){
+  if(prev && !prev.firstChild && splashSvg){
     const svg = splashSvg.cloneNode(true);
     svg.removeAttribute('id');
     svg.classList.remove('icon-gray');
     svg.setAttribute('style', 'width:96px;height:96px;margin:0;');
-    prev.replaceChildren(svg);
+    prev.appendChild(svg);
   }
   const grid = document.getElementById('iconColorGrid');
+  const cur = localSettings.iconColor || 'tema';
   if(grid){
-    const cur = localSettings.iconColor || 'tema';
-    grid.innerHTML = `<div class="theme-color-swatch ${cur === 'tema' ? 'selected' : ''}" title="Igual ao tema" onclick="setIconColor('tema')" style="background:linear-gradient(135deg, var(--vault) 50%, var(--brass-light) 50%);"></div>` +
-      THEME_COLORS.map(x => `<div class="theme-color-swatch ${x.key === cur ? 'selected' : ''}" title="${x.label}" onclick="setIconColor('${x.key}')" style="background:${x.vault};"></div>`).join('');
+    if(!grid.firstChild){
+      grid.innerHTML = `<div class="theme-color-swatch" data-ikey="tema" title="Igual ao tema" onclick="setIconColor('tema')" style="background:linear-gradient(135deg, var(--vault) 50%, var(--brass-light) 50%);"></div>` +
+        THEME_COLORS.map(x => `<div class="theme-color-swatch" data-ikey="${x.key}" title="${x.label}" onclick="setIconColor('${x.key}')" style="background:${x.vault};"></div>`).join('');
+    }
+    grid.querySelectorAll('.theme-color-swatch').forEach(el => el.classList.toggle('selected', el.dataset.ikey === cur));
   }
   const sw = document.getElementById('swIconGlass');
   if(sw) sw.className = 'switch' + (localSettings.iconGlass === true ? ' on' : '');
@@ -3160,13 +3169,13 @@ function renderIconControls(){
 async function setIconColor(key){
   localSettings.iconColor = key;
   await persistLocalSettings();
-  applyIconAppearance();
+  softChange(() => applyIconAppearance());
   renderIconControls();
 }
 async function toggleIconGlass(){
   localSettings.iconGlass = !(localSettings.iconGlass === true);
   await persistLocalSettings();
-  applyIconAppearance();
+  softChange(() => applyIconAppearance());
   renderIconControls();
   showToast(localSettings.iconGlass ? 'Ícone com efeito transparente' : 'Ícone sem efeito transparente');
 }
@@ -3373,6 +3382,12 @@ function renderBgImageRow(){
     if(pv){ pv.style.backgroundImage = `url("${localSettings.bgImage}")`; }
   }
 }
+// NOTA DE PADRÃO (vale para toda a app):
+// Qualquer mudança visual feita pelo utilizador tem de ser gradual.
+//  1. Envolve a alteração em softChange(() => ...), como no tema, no modo escuro e no ícone.
+//  2. Nos seletores (cores, Claro/Sistema/Escuro, etc.) atualiza só as classes (.selected / .active)
+//     e NUNCA reconstrói o HTML do seletor, senão o elemento novo não tem transição.
+//  3. Não use display:none/innerHTML em elementos que precisam de animar.
 // Liga a transição suave de cores durante a mudança; desliga depois de a animação acabar.
 let softTimer = null;
 function softChange(fn){
