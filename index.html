@@ -1359,6 +1359,13 @@ body.dark .brand-name, body.dark .screen-title, body.dark .tabbar-inner::before 
         <div class="switch on" onclick="toggleDevMode()"></div>
       </div>
 
+      <div class="switch-row" style="margin-bottom:8px;">
+        <div class="switch-row-text">
+          <div class="switch-row-title">Transparência 100% (efeito transparente)</div>
+          <div class="switch-row-sub">Cartões, barra e folhas sem fundo próprio, só com o contorno. Para testar. Só neste aparelho.</div>
+        </div>
+        <div class="switch" id="glassFullSwitch" onclick="toggleGlassFull()"></div>
+      </div>
       <div class="section-head" style="margin-top:0;"><div class="section-title">🔗 Sincronização</div></div>
     <div id="syncUrlLockedView" style="background:rgba(31,58,46,0.06);border-radius:var(--r-md);padding:14px;margin-top:8px;display:flex;align-items:center;gap:12px;">
       <div style="font-size:22px;">🔒</div>
@@ -1644,7 +1651,7 @@ body.dark .brand-name, body.dark .screen-title, body.dark .tabbar-inner::before 
 // Esquema de versão: de volta ao pré-1.0 (0.x.x) — a v1.0.0 fica
 // reservada para o lançamento com assinatura paga completa. A numeração
 // 4.x.x usada temporariamente para a integração Firebase foi abandonada.
-const APP_VERSION = '0.130';
+const APP_VERSION = '0.131';
 // Mostra o número da versão na tela de carregamento imediatamente (sem
 // esperar por loadAll/qualquer coisa assíncrona) — sempre visível,
 // independente da mensagem dinâmica ("A carregar…", "A sincronizar…",
@@ -2351,6 +2358,13 @@ async function checkUpdateNow(){
   }catch(e){
     showToast('Sem ligação para procurar atualização');
   }
+}
+async function toggleGlassFull(){
+  localSettings.glassFull = !(localSettings.glassFull === true);
+  await persistLocalSettings();
+  applyGlassVars();
+  renderSettings();
+  showToast(localSettings.glassFull ? 'Transparência 100% ativada' : 'Transparência 100% desativada');
 }
 // Toque longo na barra de abas não abre o menu do navegador nem recarrega a app.
 document.addEventListener('contextmenu', e => {
@@ -3532,7 +3546,9 @@ function glassLevel(){
 function glassLevelLabel(L){ return L < 35 ? 'Mais transparente' : (L > 65 ? 'Mais opaco' : 'Padrão'); }
 function applyGlassVars(){
   const L = glassLevel();
-  document.body.style.setProperty('--gl-k', (0.4 + 1.2 * L / 100).toFixed(3));
+  // Modo Dev: transparência 100% (cartões, barra e folhas sem fundo próprio).
+  const k = localSettings.glassFull === true ? 0 : (0.4 + 1.2 * L / 100);
+  document.body.style.setProperty('--gl-k', k.toFixed(3));
   document.body.style.setProperty('--gl-b', (0.35 + 1.3 * L / 100).toFixed(3));
 }
 // Ao arrastar, só atualiza o aspeto; ao soltar, guarda.
@@ -3762,6 +3778,8 @@ function renderSettings(){
     if(vLabel) vLabel.textContent = APP_VERSION;
     const sw = document.getElementById('hiddenModeSwitch');
     if(sw) sw.className = 'switch' + (showHiddenData ? ' on' : '');
+    const gf = document.getElementById('glassFullSwitch');
+    if(gf) gf.className = 'switch' + (localSettings.glassFull === true ? ' on' : '');
     const hu = document.getElementById('holdUpdateSwitch');
     if(hu) hu.className = 'switch' + (localSettings.holdUpdateEnabled !== false ? ' on' : '');
     const container = document.getElementById('hiddenDataContainer');
