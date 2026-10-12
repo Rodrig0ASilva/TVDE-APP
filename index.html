@@ -1359,13 +1359,6 @@ body.dark .brand-name, body.dark .screen-title, body.dark .tabbar-inner::before 
         <div class="switch on" onclick="toggleDevMode()"></div>
       </div>
 
-      <div class="switch-row" style="margin-bottom:8px;">
-        <div class="switch-row-text">
-          <div class="switch-row-title">Transparência 100% (efeito transparente)</div>
-          <div class="switch-row-sub">Cartões, barra e folhas sem fundo próprio, só com o contorno. Para testar. Só neste aparelho.</div>
-        </div>
-        <div class="switch" id="glassFullSwitch" onclick="toggleGlassFull()"></div>
-      </div>
       <div class="section-head" style="margin-top:0;"><div class="section-title">🔗 Sincronização</div></div>
     <div id="syncUrlLockedView" style="background:rgba(31,58,46,0.06);border-radius:var(--r-md);padding:14px;margin-top:8px;display:flex;align-items:center;gap:12px;">
       <div style="font-size:22px;">🔒</div>
@@ -1409,17 +1402,6 @@ body.dark .brand-name, body.dark .screen-title, body.dark .tabbar-inner::before 
       <div class="section-sub" style="margin-bottom:10px;">Versão atual: <strong id="devVersionLabel"></strong></div>
       <button onclick="checkForUpdates()" id="checkUpdateBtn" style="width:100%;padding:13px;border-radius:var(--r-md);border:1.5px solid var(--line);background:transparent;color:var(--ink);font-weight:700;font-size:14px;cursor:pointer;">🔍 Procurar atualização</button>
       <div id="updateResult" style="margin-top:10px;font-size:13px;text-align:center;color:var(--text-muted);"></div>
-
-      <div class="section-head" style="margin-top:20px;"><div class="section-title">🗂️ Formato de armazenamento</div></div>
-      <div class="section-sub" style="margin-bottom:10px;">Reestrutura o JSON gravado na planilha para um formato mais organizado: separa configurações e brincadeiras do perfil, e transforma ganhos/despesas agrupados por mês em listas simples com campo de data. A leitura entende os dois formatos sempre, em qualquer dispositivo — pode ativar sem pressa, e desativar a qualquer momento sem perder nada.</div>
-      <div class="switch-row" style="margin-bottom:8px;">
-        <div class="switch-row-text">
-          <div class="switch-row-title">Gravar no formato novo (schema v1)</div>
-          <div class="switch-row-sub">Ao ligar, os próximos envios já usam o formato novo. Nada muda de imediato — só quando houver a próxima gravação.</div>
-        </div>
-        <div class="switch" id="normalizedSchemaSwitch" onclick="toggleNormalizedSchema()"></div>
-      </div>
-      <button onclick="migrateNowToNormalizedSchema()" style="width:100%;padding:13px;border-radius:var(--r-md);border:1.5px solid var(--line);background:transparent;color:var(--ink);font-weight:700;font-size:14px;cursor:pointer;">🔄 Converter e enviar agora</button>
 
       <div class="section-head" style="margin-top:20px;"><div class="section-title">🔒 Encriptação dos dados sincronizados</div></div>
       <div class="switch-row" style="margin-bottom:8px;">
@@ -1651,7 +1633,7 @@ body.dark .brand-name, body.dark .screen-title, body.dark .tabbar-inner::before 
 // Esquema de versão: de volta ao pré-1.0 (0.x.x) — a v1.0.0 fica
 // reservada para o lançamento com assinatura paga completa. A numeração
 // 4.x.x usada temporariamente para a integração Firebase foi abandonada.
-const APP_VERSION = '0.131';
+const APP_VERSION = '0.135';
 // Mostra o número da versão na tela de carregamento imediatamente (sem
 // esperar por loadAll/qualquer coisa assíncrona) — sempre visível,
 // independente da mensagem dinâmica ("A carregar…", "A sincronizar…",
@@ -1835,7 +1817,6 @@ async function loadLocalOnlySettings(){
   try{ const bu = await window.storage.get('biometricUnlockEnabled'); biometricUnlockEnabled = bu.value === 'true' || bu.value === true; }catch(e){ biometricUnlockEnabled = false; }
   try{ const ru = await window.storage.get('requireUnlockEachSync'); requireUnlockEachSync = ru.value === 'true' || ru.value === true; }catch(e){ requireUnlockEachSync = false; }
   try{ const sl = await window.storage.get('syncLog'); syncLog = JSON.parse(sl.value) || []; }catch(e){ syncLog = []; }
-  try{ const ns = await window.storage.get('useNormalizedSchema'); useNormalizedSchema = ns.value === 'true' || ns.value === true; }catch(e){ useNormalizedSchema = true; }
   try{
     const ls = await window.storage.get('localSettings');
     const parsed = JSON.parse(ls.value);
@@ -1844,10 +1825,18 @@ async function loadLocalOnlySettings(){
   }catch(e){}
 }
 
+// Fonte de verdade: schema v1 ('stateV1'). A app trabalha com a vista em memória (bills, monthData, profile),
+// montada a partir do v1 na abertura. Só se o v1 não existir é que lê o formato antigo (fallback).
 async function loadFromLocalStorage(){
-  try{ const p  = await window.storage.get('profile');   profile   = JSON.parse(p.value); }catch(e){ profile   = { name:'', photo:null }; }
-  try{ const b  = await window.storage.get('bills');     bills     = JSON.parse(b.value); }catch(e){ bills     = []; }
-  try{ const md = await window.storage.get('monthData'); monthData = JSON.parse(md.value);}catch(e){ monthData = {}; }
+  const v1 = await lerStateV1();
+  if(v1){
+    const d = denormalizeFromSchemaV1(v1);
+    profile = d.profile; bills = d.bills; monthData = d.monthData;
+  } else {
+    try{ const p  = await window.storage.get('profile');   profile   = JSON.parse(p.value); }catch(e){ profile   = { name:'', photo:null }; }
+    try{ const b  = await window.storage.get('bills');     bills     = JSON.parse(b.value); }catch(e){ bills     = []; }
+    try{ const md = await window.storage.get('monthData'); monthData = JSON.parse(md.value);}catch(e){ monthData = {}; }
+  }
   if(profile && profile.vehicle) delete profile.vehicle;
 }
 
@@ -1881,10 +1870,12 @@ function applyCloudData(data){
   bills.forEach(b => { if(!b.frequency) b.frequency = 'mensal'; });
 }
 
+// Grava a fonte de verdade (schema v1) e as preferências deste aparelho.
+async function salvarStateV1(){
+  try{ await window.storage.set(STATE_V1_KEY, JSON.stringify(normalizeToSchemaV1({ bills, monthData, profile }))); }catch(e){}
+}
 async function persistLocalOnlySilently(){
-  try{ await window.storage.set('bills',     JSON.stringify(bills));     }catch(e){}
-  try{ await window.storage.set('monthData', JSON.stringify(monthData));}catch(e){}
-  try{ await window.storage.set('profile',   JSON.stringify(profile));   }catch(e){}
+  await salvarStateV1();
   try{ await window.storage.set('localSettings', JSON.stringify(localSettings)); }catch(e){}
 }
 
@@ -2006,7 +1997,7 @@ function refreshActiveScreen(){
 // - normalizeToSchemaV1(payload): bills/monthData/profile → schema v1
 // - denormalizeFromSchemaV1(data): schema v1 → bills/monthData/profile
 //
-// `useNormalizedSchema` (device-local, Modo Dev) decide se ESTE
+// Desde a v0.132 todos os envios usam sempre o schema v1 (sem interruptor). Antes, `useNormalizedSchema` decidia se ESTE
 // dispositivo grava no formato novo. A LEITURA entende os dois formatos
 // sempre, em qualquer dispositivo — por isso é seguro ativar num
 // dispositivo só, sem coordenar com os outros: cada um decide sozinho em
@@ -2015,7 +2006,6 @@ function refreshActiveScreen(){
 // Schema v1 (formato normalizado) é o padrão a partir de agora — ver
 // loadLocalOnlySettings() para o fallback que preserva esta escolha como
 // 'true' por padrão para quem nunca mexeu no interruptor do Modo Dev.
-let useNormalizedSchema = true;
 
 function normalizeToSchemaV1(payload){
   const oldBills     = payload.bills || [];
@@ -2102,6 +2092,31 @@ function denormalizeFromSchemaV1(data){
 // para o formato clássico antes de seguir; senão devolve como veio. Usado
 // em todos os pontos onde dados vindos da nuvem (ou de um JSON colado
 // manualmente) entram na app.
+// ---------------------------------------------------------------
+// MIGRAÇÃO PARA SCHEMA V1 — FASE 1 (dados locais)
+// Cria uma cópia v1 dos dados do aparelho em 'stateV1' e guarda as chaves antigas em
+// 'backup_pre_v1_*' (cópia de segurança). A app ainda lê o formato antigo nesta fase.
+// ---------------------------------------------------------------
+const STATE_V1_KEY = 'stateV1';
+async function migrarLocalParaV1(){
+  try{
+    const existe = await window.storage.get(STATE_V1_KEY);
+    if(existe && existe.value) return 'ja-migrado';
+  }catch(e){}
+  let bills = [], monthData = {}, profile = {};
+  try{ bills = JSON.parse((await window.storage.get('bills')).value) || []; }catch(e){}
+  try{ monthData = JSON.parse((await window.storage.get('monthData')).value) || {}; }catch(e){}
+  try{ profile = JSON.parse((await window.storage.get('profile')).value) || {}; }catch(e){}
+  for(const k of ['bills','monthData','profile']){
+    try{ const r = await window.storage.get(k); if(r && r.value) await window.storage.set('backup_pre_v1_' + k, r.value); }catch(e){}
+  }
+  const v1 = normalizeToSchemaV1({ bills, monthData, profile });
+  await window.storage.set(STATE_V1_KEY, JSON.stringify(v1));
+  return 'migrado';
+}
+async function lerStateV1(){
+  try{ const r = await window.storage.get(STATE_V1_KEY); return r && r.value ? JSON.parse(r.value) : null; }catch(e){ return null; }
+}
 function resolveIncomingPayload(raw){
   if(raw && raw.schemaVersion === 1) return denormalizeFromSchemaV1(raw);
   return raw;
@@ -2359,13 +2374,6 @@ async function checkUpdateNow(){
     showToast('Sem ligação para procurar atualização');
   }
 }
-async function toggleGlassFull(){
-  localSettings.glassFull = !(localSettings.glassFull === true);
-  await persistLocalSettings();
-  applyGlassVars();
-  renderSettings();
-  showToast(localSettings.glassFull ? 'Transparência 100% ativada' : 'Transparência 100% desativada');
-}
 // Toque longo na barra de abas não abre o menu do navegador nem recarrega a app.
 document.addEventListener('contextmenu', e => {
   if(e.target && e.target.closest && e.target.closest('.tabbar')) e.preventDefault();
@@ -2402,6 +2410,7 @@ async function loadAll(){
   await loadLocalOnlySettings();
   devMode = localSettings.devMode === true;
   await loadDeletedIdsFromStorage();
+  try{ await migrarLocalParaV1(); }catch(e){ console.warn('Migração v1 falhou:', e); }
   await loadFromLocalStorage();
 
   applyTabVisibility();
@@ -2478,9 +2487,8 @@ async function persistLocalSettings() {
 
 async function safeSet(key, value){
   try{
-    await window.storage.set(key, JSON.stringify(value));
-    if(SYNC_KEYS.includes(key)){ scheduleCloudPush(); }
-    else { setSyncStatus(syncUrl ? 'synced' : 'nolink'); }
+    if(SYNC_KEYS.includes(key)){ await salvarStateV1(); scheduleCloudPush(); }
+    else { await window.storage.set(key, JSON.stringify(value)); setSyncStatus(syncUrl ? 'synced' : 'nolink'); }
     return true;
   }catch(e){
     setSyncStatus('nolink');
@@ -2839,7 +2847,7 @@ async function pushToCloud(migrationUrl, skipMerge){
   // Se ativado no Modo Dev, grava no formato normalizado (schema v1) em vez
   // do formato clássico. A leitura entende os dois formatos sempre, então
   // isto é seguro de ligar/desligar a qualquer momento.
-  const payload = useNormalizedSchema ? normalizeToSchemaV1(rawPayload) : rawPayload;
+  const payload = normalizeToSchemaV1(rawPayload);
   if(migrationUrl){ payload.syncUrl = migrationUrl; }
   let body;
   try{
@@ -3546,9 +3554,7 @@ function glassLevel(){
 function glassLevelLabel(L){ return L < 35 ? 'Mais transparente' : (L > 65 ? 'Mais opaco' : 'Padrão'); }
 function applyGlassVars(){
   const L = glassLevel();
-  // Modo Dev: transparência 100% (cartões, barra e folhas sem fundo próprio).
-  const k = localSettings.glassFull === true ? 0 : (0.4 + 1.2 * L / 100);
-  document.body.style.setProperty('--gl-k', k.toFixed(3));
+  document.body.style.setProperty('--gl-k', (0.4 + 1.2 * L / 100).toFixed(3));
   document.body.style.setProperty('--gl-b', (0.35 + 1.3 * L / 100).toFixed(3));
 }
 // Ao arrastar, só atualiza o aspeto; ao soltar, guarda.
@@ -3778,14 +3784,10 @@ function renderSettings(){
     if(vLabel) vLabel.textContent = APP_VERSION;
     const sw = document.getElementById('hiddenModeSwitch');
     if(sw) sw.className = 'switch' + (showHiddenData ? ' on' : '');
-    const gf = document.getElementById('glassFullSwitch');
-    if(gf) gf.className = 'switch' + (localSettings.glassFull === true ? ' on' : '');
     const hu = document.getElementById('holdUpdateSwitch');
     if(hu) hu.className = 'switch' + (localSettings.holdUpdateEnabled !== false ? ' on' : '');
     const container = document.getElementById('hiddenDataContainer');
     if(container) container.innerHTML = showHiddenData ? renderHiddenDataList() : '';
-    const schemaSw = document.getElementById('normalizedSchemaSwitch');
-    if(schemaSw) schemaSw.className = 'switch' + (useNormalizedSchema ? ' on' : '');
     const encSw = document.getElementById('encryptionSwitch');
     if(encSw) encSw.className = 'switch' + (encryptionEnabled ? ' on' : '');
     const encRow = document.getElementById('encryptionPasswordRow');
@@ -4385,10 +4387,9 @@ async function performResetInner(scope){
     encryptionPassword = '';
     biometricUnlockEnabled = false;
     requireUnlockEachSync = false;
-    useNormalizedSchema = true;
     devForceEasterEgg = false;
     devForceBirthday = false;
-    for(const [k, v] of [['encryptionEnabled', false], ['encryptionPassword', ''], ['biometricUnlockEnabled', false], ['requireUnlockEachSync', false], ['useNormalizedSchema', true]]){
+    for(const [k, v] of [['encryptionEnabled', false], ['encryptionPassword', ''], ['biometricUnlockEnabled', false], ['requireUnlockEachSync', false]]){
       try{ await window.storage.set(k, v); }catch(e){}
     }
     try{ await window.storage.delete('biometricCredentialId'); }catch(e){}
@@ -6990,28 +6991,6 @@ async function checkForUpdates(){
   }
 }
 
-// Liga/desliga se ESTE dispositivo grava no formato novo (schema v1) a
-// partir de agora — não força nenhuma conversão imediata, só muda o
-// formato dos PRÓXIMOS envios. Ver migrateNowToNormalizedSchema() para
-// converter e enviar já.
-async function toggleNormalizedSchema(){
-  useNormalizedSchema = !useNormalizedSchema;
-  try{ await window.storage.set('useNormalizedSchema', useNormalizedSchema); }catch(e){}
-  renderSettings();
-  showToast(useNormalizedSchema ? '🗂️ A gravar no formato novo a partir de agora' : '🗂️ A gravar no formato antigo a partir de agora');
-}
-// Ativa o formato novo e força um envio imediato, convertendo os dados
-// atuais e gravando-os já na planilha nesse formato.
-async function migrateNowToNormalizedSchema(){
-  if(!syncUrl){ showToast('Configure a sincronização primeiro'); return; }
-  if(!confirm('Converter os dados atuais para o novo formato e enviar já para a planilha?')) return;
-  useNormalizedSchema = true;
-  try{ await window.storage.set('useNormalizedSchema', true); }catch(e){}
-  renderSettings();
-  showToast('🔄 A converter e enviar…');
-  await pushToCloud();
-  showToast('✅ Convertido e enviado no formato novo');
-}
 // ---------------------------------------------------------------
 // ATUALIZAÇÃO AUTOMÁTICA E SILENCIOSA (na abertura do app)
 // Não pergunta nada ao utilizador. Fluxo em duas partes, porque a
@@ -7158,8 +7137,15 @@ if(window.matchMedia){
 // terminar de inicializar antes OU depois deste script clássico chegar
 // até aqui. Cobre os dois casos: se já estiver pronto, arranca já; senão,
 // espera pelo evento que esse módulo dispara ao terminar.
-if(window.__fbReady){ loadAll(); }
-else { window.addEventListener('firebase-ready', loadAll, { once:true }); }
+// Arranque: a app abre mesmo sem Firebase (sem internet ou bloqueado). Se o Firebase não ficar pronto
+// em 3 s, a app arranca em modo local. Quando o Firebase chegar, a sessão só é usada na abertura seguinte.
+let __appArrancou = false;
+function arrancarApp(){ if(__appArrancou) return; __appArrancou = true; loadAll(); }
+if(window.__fbReady){ arrancarApp(); }
+else {
+  window.addEventListener('firebase-ready', arrancarApp, { once:true });
+  setTimeout(arrancarApp, 3000);
+}
 </script>
 </body>
 </html>
