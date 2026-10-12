@@ -1633,7 +1633,7 @@ body.dark .brand-name, body.dark .screen-title, body.dark .tabbar-inner::before 
 // Esquema de versão: de volta ao pré-1.0 (0.x.x) — a v1.0.0 fica
 // reservada para o lançamento com assinatura paga completa. A numeração
 // 4.x.x usada temporariamente para a integração Firebase foi abandonada.
-const APP_VERSION = '0.135';
+const APP_VERSION = '0.136';
 // Mostra o número da versão na tela de carregamento imediatamente (sem
 // esperar por loadAll/qualquer coisa assíncrona) — sempre visível,
 // independente da mensagem dinâmica ("A carregar…", "A sincronizar…",
@@ -2643,28 +2643,57 @@ async function saveSyncBase(state){
 function askCloudConflict(localSt, cloudSt, stamp){
   return new Promise(resolve => {
     window._conflictResolve = resolve;
+    window._conflictChoice = null;
     const when = stamp
       ? new Date(stamp).toLocaleString('pt-BR', { day:'2-digit', month:'2-digit', year:'numeric', hour:'2-digit', minute:'2-digit' })
       : 'data desconhecida';
+    const cartao = (key, titulo, sub, resumo) => `
+      <div id="conflictCard_${key}" onclick="selectCloudConflict('${key}')" style="cursor:pointer;border:2px solid var(--line);border-radius:var(--r-lg);padding:14px 16px;margin-bottom:12px;background:#fff;transition:border-color 0.25s ease, box-shadow 0.25s ease;">
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;">
+          <div style="font-weight:800;font-size:15px;">${titulo}</div>
+          <div class="conflict-check" style="width:22px;height:22px;border-radius:50%;border:2px solid var(--line);display:flex;align-items:center;justify-content:center;font-size:12px;color:#fff;transition:background 0.25s ease, border-color 0.25s ease;"></div>
+        </div>
+        <div style="font-size:11px;color:var(--text-muted);margin-top:3px;">${sub}</div>
+        <div style="font-size:12px;margin-top:8px;">${resumo}</div>
+      </div>`;
     openSheet(`
       <div class="sheet-handle"></div>
       <div class="sheet-title">Dados diferentes</div>
-      <div class="sheet-sub">A tua conta já tem dados na nuvem, e este aparelho tem dados que ainda não foram sincronizados com ela.</div>
-      <div class="chart-box" style="margin-bottom:10px;">
-        <div class="chart-box-title">☁️ Dados da nuvem</div>
-        <div class="chart-box-sub">Guardados em ${escapeHtml(when)}</div>
-        <div style="font-size:12px;">${escapeHtml(summarizeState(cloudSt))}</div>
-      </div>
-      <div class="chart-box" style="margin-bottom:14px;">
-        <div class="chart-box-title">📱 Este aparelho</div>
-        <div class="chart-box-sub">Dados criados neste aparelho</div>
-        <div style="font-size:12px;">${escapeHtml(summarizeState(localSt))}</div>
-      </div>
-      <button class="btn btn-primary" onclick="resolveCloudConflict('local')">Manter os deste aparelho (substitui a nuvem)</button>
-      <button class="btn btn-danger-text" onclick="resolveCloudConflict('cloud')">Começar de novo com os da nuvem (apaga os deste aparelho)</button>
+      <div class="sheet-sub">A tua conta já tem dados na nuvem, e este aparelho tem dados que ainda não foram sincronizados com ela. Escolhe qual manter.</div>
+      ${cartao('cloud', '☁️ Dados da nuvem', 'Guardados em ' + escapeHtml(when), escapeHtml(summarizeState(cloudSt)))}
+      ${cartao('local', '📱 Este aparelho', 'Dados criados neste aparelho', escapeHtml(summarizeState(localSt)))}
+      <button id="conflictConfirmBtn" class="btn btn-primary" onclick="confirmCloudConflict()" disabled style="opacity:0.4;">Escolhe uma opção</button>
       <button class="btn btn-ghost" onclick="resolveCloudConflict(null)">Decidir depois</button>
     `);
   });
+}
+// Seleção de um dos dois cartões: destaca o escolhido e só então ativa o botão de confirmar.
+function selectCloudConflict(key){
+  window._conflictChoice = key;
+  ['cloud','local'].forEach(k => {
+    const card = document.getElementById('conflictCard_' + k);
+    if(!card) return;
+    const on = k === key;
+    card.style.borderColor = on ? 'var(--vault)' : 'var(--line)';
+    card.style.boxShadow = on ? '0 0 0 3px rgba(31,58,46,0.12)' : 'none';
+    const check = card.querySelector('.conflict-check');
+    if(check){
+      check.style.background = on ? 'var(--vault)' : 'transparent';
+      check.style.borderColor = on ? 'var(--vault)' : 'var(--line)';
+      check.textContent = on ? '✓' : '';
+    }
+  });
+  const btn = document.getElementById('conflictConfirmBtn');
+  if(btn){
+    btn.disabled = false;
+    btn.style.opacity = '1';
+    btn.textContent = key === 'cloud' ? 'Usar os da nuvem (apaga os deste aparelho)' : 'Usar os deste aparelho (substitui a nuvem)';
+    btn.className = key === 'cloud' ? 'btn btn-danger-text' : 'btn btn-primary';
+  }
+}
+function confirmCloudConflict(){
+  if(!window._conflictChoice) return;
+  resolveCloudConflict(window._conflictChoice);
 }
 function resolveCloudConflict(choice){
   const r = window._conflictResolve;
