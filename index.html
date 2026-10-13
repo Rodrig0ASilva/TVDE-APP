@@ -1637,7 +1637,7 @@ body.dark .brand-name, body.dark .screen-title, body.dark .tabbar-inner::before 
 // Esquema de versão: de volta ao pré-1.0 (0.x.x) — a v1.0.0 fica
 // reservada para o lançamento com assinatura paga completa. A numeração
 // 4.x.x usada temporariamente para a integração Firebase foi abandonada.
-const APP_VERSION = '0.146';
+const APP_VERSION = '0.147';
 // Mostra o número da versão na tela de carregamento imediatamente (sem
 // esperar por loadAll/qualquer coisa assíncrona) — sempre visível,
 // independente da mensagem dinâmica ("A carregar…", "A sincronizar…",
@@ -5411,7 +5411,7 @@ function lucroBreakdownHTML(apps, comb, part, fixas, varOther, km, hours, contex
   if(fixas > 0)     html += lucroLineHTML('Despesas fixas', -fixas, true);
   if(variaveis > 0) html += lucroLineHTML('Outras despesas variáveis', -variaveis, true);
 
-  html += `<div style="display:flex;justify-content:space-between;align-items:center;padding:12px 0 4px;border-top:2px solid var(--line);margin-top:6px;">
+  html += `<div style="display:flex;justify-content:space-between;align-items:center;padding:12px 0 4px;margin-top:0;">
     <span style="font-size:var(--text-md);font-weight:700;">${lucro >= 0 ? '💰 Lucro líquido' : '⚠️ Resultado'}</span>
     <span style="font-family:'JetBrains Mono',monospace;font-weight:700;font-size:var(--text-lg);color:${lucro>=0?'var(--vault-light)':'var(--terracotta)'};">${fmt(lucro)}</span>
   </div>`;
