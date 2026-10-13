@@ -586,7 +586,8 @@ body.basic-mode #statsViewSeg .seg-opt:not([data-v="mes"]) { display:none; }
    Os elementos ficam translúcidos e com desfoque. Sem o modo ativo, nada muda. */
 body.glass { background: #EFE7D6; }
 body::before {
-  content: ''; position: fixed; inset: 0; z-index: 0; pointer-events: none;
+  /* Estendida para além da borda inferior: no iOS instalado, a janela não chega à zona do indicador do ecrã. */
+  content: ''; position: fixed; top: 0; left: 0; right: 0; bottom: -160px; z-index: 0; pointer-events: none;
   opacity: 0; transition: opacity 0.5s ease;
   background:
     radial-gradient(circle at 12% 18%, rgba(217,169,73,0.75) 0, transparent 38%),
@@ -1633,7 +1634,7 @@ body.dark .brand-name, body.dark .screen-title, body.dark .tabbar-inner::before 
 // Esquema de versão: de volta ao pré-1.0 (0.x.x) — a v1.0.0 fica
 // reservada para o lançamento com assinatura paga completa. A numeração
 // 4.x.x usada temporariamente para a integração Firebase foi abandonada.
-const APP_VERSION = '0.136';
+const APP_VERSION = '0.139';
 // Mostra o número da versão na tela de carregamento imediatamente (sem
 // esperar por loadAll/qualquer coisa assíncrona) — sempre visível,
 // independente da mensagem dinâmica ("A carregar…", "A sincronizar…",
@@ -2659,7 +2660,7 @@ function askCloudConflict(localSt, cloudSt, stamp){
     openSheet(`
       <div class="sheet-handle"></div>
       <div class="sheet-title">Dados diferentes</div>
-      <div class="sheet-sub">A tua conta já tem dados na nuvem, e este aparelho tem dados que ainda não foram sincronizados com ela. Escolhe qual manter.</div>
+      <div class="sheet-sub">A tua conta já tem dados na nuvem, e este aparelho tem dados que ainda não foram sincronizados com ela. Escolhe qual manter: o outro é substituído.</div>
       ${cartao('cloud', '☁️ Dados da nuvem', 'Guardados em ' + escapeHtml(when), escapeHtml(summarizeState(cloudSt)))}
       ${cartao('local', '📱 Este aparelho', 'Dados criados neste aparelho', escapeHtml(summarizeState(localSt)))}
       <button id="conflictConfirmBtn" class="btn btn-primary" onclick="confirmCloudConflict()" disabled style="opacity:0.4;">Escolhe uma opção</button>
@@ -2687,8 +2688,9 @@ function selectCloudConflict(key){
   if(btn){
     btn.disabled = false;
     btn.style.opacity = '1';
-    btn.textContent = key === 'cloud' ? 'Usar os da nuvem (apaga os deste aparelho)' : 'Usar os deste aparelho (substitui a nuvem)';
-    btn.className = key === 'cloud' ? 'btn btn-danger-text' : 'btn btn-primary';
+    // As duas opções têm o mesmo peso visual: nenhuma aparece como "errada".
+    btn.textContent = key === 'cloud' ? 'Usar os dados da nuvem' : 'Usar os dados deste aparelho';
+    btn.className = 'btn btn-primary';
   }
 }
 function confirmCloudConflict(){
@@ -3228,7 +3230,8 @@ function updateThemeColorMeta(){
   const glass = localSettings.liquidGlass === true;
   const theme  = THEME_COLORS.find(t => t.key === (localSettings.themeColor || 'green')) || THEME_COLORS[0];
   // Barras do sistema (topo e fundo no Android): cor do tema; com o efeito transparente, a cor de base do vidro.
-  const color = glass ? (isDark ? '#0E0E12' : '#EFE7D6') : (isDark ? '#111114' : theme.vault);
+  // Com efeito transparente, a barra do navegador usa o topo do gradiente de fundo (a barra não aceita gradiente).
+  const color = glass ? (isDark ? '#16161B' : '#F6EFE2') : (isDark ? '#111114' : theme.vault);
   const bg    = glass ? (isDark ? '#0E0E12' : '#EFE7D6') : (isDark ? '#16161B' : '#F6EFE2');
   setThemeColorMeta(color, bg);
 }
