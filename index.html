@@ -1637,7 +1637,7 @@ body.dark .brand-name, body.dark .screen-title, body.dark .tabbar-inner::before 
 // Esquema de versão: de volta ao pré-1.0 (0.x.x) — a v1.0.0 fica
 // reservada para o lançamento com assinatura paga completa. A numeração
 // 4.x.x usada temporariamente para a integração Firebase foi abandonada.
-const APP_VERSION = '0.144';
+const APP_VERSION = '0.146';
 // Mostra o número da versão na tela de carregamento imediatamente (sem
 // esperar por loadAll/qualquer coisa assíncrona) — sempre visível,
 // independente da mensagem dinâmica ("A carregar…", "A sincronizar…",
@@ -3283,9 +3283,93 @@ async function setDarkMode(mode){
   document.querySelectorAll('#darkModeSeg .seg-opt').forEach(el => el.classList.toggle('active', el.dataset.m === mode));
 }
 // Ícone do app (dentro da app): cor e efeito transparente. Preferência deste aparelho.
+// Ícone do iOS (apple-touch-icon): é lido no momento de "Adicionar à Tela de Início", por isso é gerado
+// a partir das escolhas atuais (cor do ícone e efeito transparente). Quadrado cheio; o iOS aplica a máscara.
+function atualizarIconeIOS(){
+  const link = document.querySelector('link[rel="apple-touch-icon"]');
+  if(!link || typeof THEME_COLORS === 'undefined') return;
+  const key = localSettings.iconColor || 'tema';
+  const tema = THEME_COLORS.find(x => x.key === (localSettings.themeColor || 'green')) || THEME_COLORS[0];
+  const ic = key === 'tema' ? tema : (THEME_COLORS.find(x => x.key === key) || tema);
+  const tile = ic.vault2, accent = ic.brassLight;
+  const S = 180, k = S / 64 * 0.9;
+  const c = document.createElement('canvas'); c.width = S; c.height = S;
+  const g = c.getContext('2d');
+  g.fillStyle = tile; g.fillRect(0, 0, S, S);
+  if(localSettings.iconGlass === true){
+    g.strokeStyle = 'rgba(255,255,255,0.35)'; g.lineWidth = 4; g.strokeRect(2, 2, S - 4, S - 4);
+  }
+  const M = (x, y) => [90 + (x - 32) * k, 90 + (y - 38) * k];
+  const G = (x, y) => M(x + 8, y + 18);
+  // teto (contorno com cantos arredondados)
+  g.strokeStyle = accent; g.lineWidth = 3 * k; g.lineCap = 'round'; g.lineJoin = 'round';
+  g.beginPath();
+  let p = G(6, 16); g.moveTo(p[0], p[1]);
+  p = G(10, 6); g.lineTo(p[0], p[1]);
+  let c1 = G(12, 3), e1 = G(16, 3); g.quadraticCurveTo(c1[0], c1[1], e1[0], e1[1]);
+  p = G(32, 3); g.lineTo(p[0], p[1]);
+  c1 = G(36, 3); e1 = G(38, 6); g.quadraticCurveTo(c1[0], c1[1], e1[0], e1[1]);
+  p = G(42, 16); g.lineTo(p[0], p[1]);
+  g.stroke();
+  // corpo
+  const b0 = G(2, 15), b1 = G(46, 29);
+  g.fillStyle = accent; g.beginPath();
+  if(g.roundRect) g.roundRect(b0[0], b0[1], b1[0] - b0[0], b1[1] - b0[1], 5 * k); else g.rect(b0[0], b0[1], b1[0] - b0[0], b1[1] - b0[1]);
+  g.fill();
+  // retrovisores (meia opacidade)
+  const mix = `rgba(${Math.round((parseInt(tile.slice(1,3),16)+parseInt(accent.slice(1,3),16))/2)},${Math.round((parseInt(tile.slice(3,5),16)+parseInt(accent.slice(3,5),16))/2)},${Math.round((parseInt(tile.slice(5,7),16)+parseInt(accent.slice(5,7),16))/2)},1)`;
+  g.fillStyle = mix;
+  [[2, 20], [35, 20]].forEach(([x, y]) => {
+    const a = G(x, y), z = G(x + 11, y + 6);
+    g.beginPath();
+    if(g.roundRect) g.roundRect(a[0], a[1], z[0] - a[0], z[1] - a[1], 2 * k); else g.rect(a[0], a[1], z[0] - a[0], z[1] - a[1]);
+    g.fill();
+  });
+  // rodas: anel (accent) com interior da cor do fundo
+  [12, 36].forEach(cx => {
+    const o = G(cx, 31), r1 = 7.25 * k, r2 = 4.75 * k;
+    g.fillStyle = accent; g.beginPath(); g.arc(o[0], o[1], r1, 0, Math.PI * 2); g.fill();
+    g.fillStyle = tile; g.beginPath(); g.arc(o[0], o[1], r2, 0, Math.PI * 2); g.fill();
+  });
+  link.setAttribute('href', c.toDataURL('image/png'));
+}
+// Ícone do manifest (Android): o Chrome lê-o ao oferecer a instalação. Segue a cor escolhida, como o ícone do iOS.
+function atualizarManifestIcone(){
+  const link = document.querySelector('link[rel="manifest"]');
+  if(!link || typeof THEME_COLORS === 'undefined') return;
+  try{
+    const key = localSettings.iconColor || 'tema';
+    const tema = THEME_COLORS.find(x => x.key === (localSettings.themeColor || 'green')) || THEME_COLORS[0];
+    const ic = key === 'tema' ? tema : (THEME_COLORS.find(x => x.key === key) || tema);
+    const glass = localSettings.iconGlass === true;
+    const borda = glass ? "<rect x='0.75' y='0.75' width='62.5' height='62.5' rx='13.5' fill='none' stroke='#ffffff' stroke-opacity='0.35' stroke-width='1.5'/>" : "";
+    const svg = "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'>" +
+      `<rect width='64' height='64' rx='14' fill='${ic.vault2}'/>` + borda +
+      "<g transform='translate(12.8,9.2) scale(0.6)'><g transform='translate(8,18)'>" +
+      `<path d='M6 16 L10 6 Q12 3 16 3 L32 3 Q36 3 38 6 L42 16' fill='none' stroke='${ic.brassLight}' stroke-width='3' stroke-linecap='round'/>` +
+      `<rect x='2' y='15' width='44' height='14' rx='5' fill='${ic.brassLight}'/>` +
+      `<circle cx='12' cy='31' r='6' fill='${ic.vault2}' stroke='${ic.brassLight}' stroke-width='2.5'/>` +
+      `<circle cx='36' cy='31' r='6' fill='${ic.vault2}' stroke='${ic.brassLight}' stroke-width='2.5'/>` +
+      `<rect x='2' y='20' width='11' height='6' rx='2' fill='${ic.vault2}' opacity='0.5'/>` +
+      `<rect x='35' y='20' width='11' height='6' rx='2' fill='${ic.vault2}' opacity='0.5'/>` +
+      "</g></g></svg>";
+    const m = link.href.match(/base64,([A-Za-z0-9+/=]+)/);
+    if(!m) return;
+    const bytes = Uint8Array.from(atob(m[1]), c => c.charCodeAt(0));
+    const manifest = JSON.parse(new TextDecoder().decode(bytes));
+    const src = 'data:image/svg+xml,' + encodeURIComponent(svg);
+    if(manifest.icons && manifest.icons[0] && manifest.icons[0].src === src) return;
+    if(manifest.icons && manifest.icons[0]) manifest.icons[0].src = src;
+    const json = new TextEncoder().encode(JSON.stringify(manifest));
+    let bin = ''; json.forEach(c => { bin += String.fromCharCode(c); });
+    link.href = 'data:application/manifest+json;base64,' + btoa(bin);
+  }catch(e){ console.warn('Falha ao atualizar ícone do manifest:', e); }
+}
 function applyIconAppearance(){
   const root = document.documentElement;
   if(window.aplicarFavicon) window.aplicarFavicon(localSettings);
+  atualizarIconeIOS();
+  atualizarManifestIcone();
   const key = localSettings.iconColor || 'tema';
   const theme = THEME_COLORS.find(x => x.key === key);
   if(theme){ root.style.setProperty('--icon-tile', theme.vault2); root.style.setProperty('--icon-accent', theme.brassLight); }
