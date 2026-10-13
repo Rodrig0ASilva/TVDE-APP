@@ -1639,7 +1639,7 @@ body.dark .brand-name, body.dark .screen-title, body.dark .tabbar-inner::before 
 // Esquema de versão: de volta ao pré-1.0 (0.x.x) — a v1.0.0 fica
 // reservada para o lançamento com assinatura paga completa. A numeração
 // 4.x.x usada temporariamente para a integração Firebase foi abandonada.
-const APP_VERSION = '0.149';
+const APP_VERSION = '0.150';
 // Mostra o número da versão na tela de carregamento imediatamente (sem
 // esperar por loadAll/qualquer coisa assíncrona) — sempre visível,
 // independente da mensagem dinâmica ("A carregar…", "A sincronizar…",
@@ -2387,13 +2387,27 @@ document.addEventListener('contextmenu', e => {
 // Reavalia a data de validade de tempos em tempos, mesmo sem nenhuma alteração no Firestore.
 setInterval(() => { try{ renderSubscriptionCard(); renderReadOnlyBanner(); }catch(e){} }, 60 * 1000);
 
+// Troca o texto da tela de carregamento com desvanecimento (sai, troca, entra), sem piscar.
+window.__splashTok = 0;
+function trocarTextoSplash(msg){
+  const el = document.getElementById('splashMsg');
+  if(!el || el.textContent === msg) return;
+  const tok = ++window.__splashTok;
+  el.style.transition = 'opacity 0.25s ease';
+  el.style.opacity = '0';
+  setTimeout(() => {
+    if(tok !== window.__splashTok) return;
+    el.textContent = msg;
+    el.style.opacity = '1';
+  }, 250);
+}
 let unsubUserData = null;
 let unsubSubscription = null;
 async function loadAll(){
   const splashMsg = document.getElementById('splashMsg');
   const splash    = document.getElementById('splashScreen');
   const splashStart = Date.now();
-  function setSplash(msg){ if(splashMsg) splashMsg.textContent = msg; }
+  function setSplash(msg){ trocarTextoSplash(msg); }
   // Mantém a tela de carregamento visível pelo menos 1,2 s, para o ícone ser visto.
   function hideSplash(){
     const resta = Math.max(0, 1200 - (Date.now() - splashStart));
@@ -5650,7 +5664,7 @@ const FEATURE_DEFAULTS = {
   customPlatformsEnabled: () => (profile.customPlatforms || []).length > 0,
   ivaEnabled: () => (parseFloat(profile.ivaRate) || 0) > 0,
   comissaoEnabled: () => (parseFloat(profile.comissaoRate) || 0) > 0,
-  dailySummaryEnabled: () => false
+  dailySummaryEnabled: () => true
 };
 function featureOn(flag){
   return profile[flag] === undefined ? FEATURE_DEFAULTS[flag]() : !!profile[flag];
@@ -7159,7 +7173,7 @@ async function checkForUpdatesOnStartup(){
     // Sem sessão: não recarrega sozinho. Mostra o alerta, com a opção de entrar (mais tarde, quando a app abrir).
     if(basicMode()){ pendingUpdateSheet = remoteVersion; return false; }
     const splashMsg = document.getElementById('splashMsg');
-    if(splashMsg) splashMsg.textContent = `⬇️ A atualizar para v${remoteVersion}…`;
+    trocarTextoSplash(`⬇️ A atualizar para v${remoteVersion}…`);
     try{ await window.storage.set('pendingUpdateNotice', remoteVersion); }catch(e){}
     location.replace(location.href.split('?')[0] + '?v=' + Date.now());
     return true;
