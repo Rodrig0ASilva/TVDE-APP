@@ -907,6 +907,16 @@ body.dark #glassRange::-moz-range-track { background: rgba(255,255,255,0.3); }
 .stat-card-label .plat-badge { margin-right: 4px; }
 /* Títulos (Corrida+ na barra lateral e títulos das telas) legíveis no modo escuro */
 body.dark .brand-name, body.dark .screen-title, body.dark .tabbar-inner::before { color: var(--vault-text, var(--vault-light)); }
+/* Folhas: mais opacas com o efeito transparente; fecho animado (desce e desaparece); alça arrastável */
+body.glass .sheet { background: rgba(246,239,226, min(0.97, calc(0.96 * var(--gl-k)))); }
+body.glass.dark .sheet { background: rgba(26,26,33, min(0.97, calc(0.96 * var(--gl-k)))); }
+.overlay.closing { opacity: 0; transition: opacity 0.26s ease; }
+.overlay.closing .sheet { transform: translateY(100%); transition: transform 0.26s cubic-bezier(.4,0,.2,1); }
+@media (min-width: 860px) {
+  .overlay.closing .sheet { transform: translateY(16px); opacity: 0; transition: transform 0.26s ease, opacity 0.26s ease; }
+}
+.sheet-handle { touch-action: none; cursor: grab; position: relative; }
+.sheet-handle::after { content: ''; position: absolute; left: -40px; right: -40px; top: -14px; bottom: -14px; }
 </style>
 </head>
 <body>
@@ -956,7 +966,7 @@ body.dark .brand-name, body.dark .screen-title, body.dark .tabbar-inner::before 
     </g>
   </svg>
   <div style="font-family:'Fraunces',serif;font-weight:600;font-size:28px;letter-spacing:-0.01em;color:#F6EFE2;">Corrida+</div>
-  <div style="font-size:13px;color:rgba(246,239,226,0.65);margin:10px 0 30px;max-width:280px;line-height:1.5;">Entra com a tua conta Google para aceder aos teus dados.</div>
+  <div style="font-size:13px;color:rgba(246,239,226,0.65);margin:10px 0 30px;max-width:280px;line-height:1.5;" data-i18n="login_texto">Entra com a tua conta Google para aceder aos teus dados.</div>
   <button id="loginGateBtn" onclick="handleGoogleSignIn()" style="display:flex;align-items:center;gap:10px;background:#fff;color:#2A2420;border:none;padding:14px 26px;border-radius:100px;font-weight:700;font-size:15px;cursor:pointer;box-shadow:0 2px 10px rgba(0,0,0,0.25);">
     <svg width="18" height="18" viewBox="0 0 48 48">
       <path fill="#FFC107" d="M43.611 20.083H42V20H24v8h11.303c-1.649 4.657-6.08 8-11.303 8-6.627 0-12-5.373-12-12s5.373-12 12-12c3.059 0 5.842 1.154 7.961 3.039l5.657-5.657C34.046 6.053 29.268 4 24 4 12.955 4 4 12.955 4 24s8.955 20 20 20 20-8.955 20-20c0-1.341-.138-2.65-.389-3.917z"/>
@@ -964,7 +974,7 @@ body.dark .brand-name, body.dark .screen-title, body.dark .tabbar-inner::before 
       <path fill="#4CAF50" d="M24 44c5.166 0 9.86-1.977 13.409-5.192l-6.19-5.238A11.91 11.91 0 0 1 24 36c-5.202 0-9.619-3.317-11.283-7.946l-6.522 5.025C9.505 39.556 16.227 44 24 44z"/>
       <path fill="#1976D2" d="M43.611 20.083H42V20H24v8h11.303a12.04 12.04 0 0 1-4.087 5.571l.003-.002 6.19 5.238C36.971 39.205 44 34 44 24c0-1.341-.138-2.65-.389-3.917z"/>
     </svg>
-    Continuar com Google
+    <span data-i18n="btn_google">Continuar com Google</span>
   </button>
   <div id="loginGateError" style="font-size:12px;color:#F0AC9A;margin-top:18px;max-width:280px;"></div>
 </div>
@@ -1015,18 +1025,18 @@ body.dark .brand-name, body.dark .screen-title, body.dark .tabbar-inner::before 
         <div class="screen-icon">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12 L5 7 Q6 5 8 5 L16 5 Q18 5 19 7 L21 12" stroke-linecap="round"/><rect x="2" y="11" width="20" height="8" rx="2"/><circle cx="7" cy="20" r="2" fill="currentColor" stroke="none"/><circle cx="17" cy="20" r="2" fill="currentColor" stroke="none"/></svg>
         </div>
-        <div class="screen-title">Ganhos</div>
+        <div class="screen-title" data-i18n="tab_ganhos">Ganhos</div>
       </div>
       <div class="sync-pill" id="syncPill-ganhos" onclick="loadAll()" title="Toque para sincronizar agora">
         <span class="sync-dot" id="syncDot-ganhos"></span>
-        <span id="syncStatus-ganhos">sincronizando</span>
+        <span id="syncStatus-ganhos" data-i18n="sync_sincronizando">sincronizando</span>
       </div>
     </div>
 
     <div class="seg" id="ganhosViewSeg" style="margin-bottom:14px;">
-      <div class="seg-opt" data-v="dia" onclick="setGanhosView('dia')">Dia</div>
-      <div class="seg-opt" data-v="semana" onclick="setGanhosView('semana')">Semana</div>
-      <div class="seg-opt active" data-v="mes" onclick="setGanhosView('mes')">Mês</div>
+      <div class="seg-opt" data-v="dia" onclick="setGanhosView('dia')"><span data-i18n="seg_dia">Dia</span></div>
+      <div class="seg-opt" data-v="semana" onclick="setGanhosView('semana')"><span data-i18n="seg_semana">Semana</span></div>
+      <div class="seg-opt active" data-v="mes" onclick="setGanhosView('mes')"><span data-i18n="seg_mes">Mês</span></div>
     </div>
 
     <div class="month-nav" id="ganhosDayWeekNav" style="display:none;">
@@ -1077,11 +1087,11 @@ body.dark .brand-name, body.dark .screen-title, body.dark .tabbar-inner::before 
         <div class="screen-icon">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7l3-4h12l3 4M3 7h18M3 7v11a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V7M8 11h8"/></svg>
         </div>
-        <div class="screen-title">Despesas</div>
+        <div class="screen-title" data-i18n="tab_despesas">Despesas</div>
       </div>
       <div class="sync-pill" id="syncPill-despesas" onclick="loadAll()" title="Toque para sincronizar agora">
         <span class="sync-dot" id="syncDot-despesas"></span>
-        <span id="syncStatus-despesas">sincronizando</span>
+        <span id="syncStatus-despesas" data-i18n="sync_sincronizando">sincronizando</span>
       </div>
     </div>
     <div class="month-nav">
@@ -1121,28 +1131,38 @@ body.dark .brand-name, body.dark .screen-title, body.dark .tabbar-inner::before 
         <div class="screen-icon">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1-1.6 1.7 1.7 0 0 0-1.9.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.9 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.6-1 1.7 1.7 0 0 0-.3-1.9l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.9.3h.1a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.6 1.7 1.7 0 0 0 1.9-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.9v.1a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.6 1z"/></svg>
         </div>
-        <div class="screen-title">Você</div>
+        <div class="screen-title" data-i18n="tab_settings">Você</div>
       </div>
       <div style="display:flex;flex-direction:column;align-items:flex-end;position:relative;">
         <div class="sync-pill" id="syncPill-settings" onclick="loadAll()" title="Toque para sincronizar agora">
           <span class="sync-dot" id="syncDot-settings"></span>
-          <span id="syncStatus-settings">sincronizando</span>
+          <span id="syncStatus-settings" data-i18n="sync_sincronizando">sincronizando</span>
         </div>
         <div onclick="tapVersion()" style="position:absolute;right:0;top:100%;margin-top:4px;white-space:nowrap;font-size:10px;color:var(--text-faint);font-weight:700;letter-spacing:0.04em;cursor:pointer;">v<span id="appVersionDisplay"></span></div>
       </div>
     </div>
 
     <div id="basicBanner">🔒 <strong>Modo básico.</strong> Limite de 5 ganhos, 5 despesas variáveis e 5 despesas fixas, e as configurações ficam bloqueadas. Entra com a tua conta Google para desbloquear tudo.</div>
-    <div class="section-head" style="margin-top:6px;"><div class="section-title">Conta</div></div>
+    <div class="section-head" style="margin-top:6px;"><div class="section-title" data-i18n="conta">Conta</div></div>
     <div id="profileCardsList"></div>
-
-    <div class="section-head" style="margin-top:24px;"><div class="section-title">Preferências</div></div>
-    <button onclick="openAparencia()" style="display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%;margin:24px 0 8px;padding:14px;border-radius:var(--r-md);border:1.5px solid var(--line);background:transparent;color:var(--ink);font-weight:700;font-size:14px;cursor:pointer;text-align:left;">
-      <span>🎨 Aparência<span style="display:block;font-size:11px;font-weight:500;color:var(--text-muted);margin-top:3px;">Modo escuro, cor do tema, efeito transparente e imagem de fundo</span></span>
+    <button onclick="openCriptografiaSheet()" style="display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%;margin:12px 0 8px;padding:14px;border-radius:var(--r-md);border:1.5px solid var(--line);background:transparent;color:var(--ink);font-weight:700;font-size:14px;cursor:pointer;text-align:left;">
+      <span>🔐 Criptografia dos dados<span style="display:block;font-size:11px;font-weight:500;color:var(--text-muted);margin-top:3px;">Cifra os dados enviados para a nuvem. Opcional e sob a tua responsabilidade</span></span>
       <span style="font-size:20px;color:var(--text-muted);">›</span>
     </button>
+
+    <div class="section-head" style="margin-top:24px;"><div class="section-title" data-i18n="preferencias">Preferências</div></div>
+    <button onclick="openAparencia()" style="display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%;margin:24px 0 8px;padding:14px;border-radius:var(--r-md);border:1.5px solid var(--line);background:transparent;color:var(--ink);font-weight:700;font-size:14px;cursor:pointer;text-align:left;">
+      <span>🎨 <span data-i18n="aparencia">Aparência</span><span style="display:block;font-size:11px;font-weight:500;color:var(--text-muted);margin-top:3px;" data-i18n="aparencia_sub">Modo escuro, cor do tema, efeito transparente e imagem de fundo</span></span>
+      <span style="font-size:20px;color:var(--text-muted);">›</span>
+    </button>
+    <div class="section-head" style="margin-top:20px;"><div class="section-title" data-i18n="idioma">Idioma</div></div>
+    <div class="seg" id="langSeg" style="margin:8px 0 6px;">
+      <div class="seg-opt" data-l="pt" onclick="setIdioma('pt')">🇵🇹 Português</div>
+      <div class="seg-opt" data-l="en" onclick="setIdioma('en')">🇬🇧 English</div>
+      <div class="seg-opt" data-l="fr" onclick="setIdioma('fr')">🇫🇷 Français</div>
+    </div>
     <div style="height:1px;background:var(--line);margin:26px 0 0;"></div>
-    <div class="section-head" style="margin-top:28px;"><div class="section-title">Configurações</div></div>
+    <div class="section-head" style="margin-top:28px;"><div class="section-title" data-i18n="configuracoes">Configurações</div></div>
     <div class="section-sub" style="margin-bottom:6px;">Liga só o que usas. Cada opção aparece nos ecrãs e nos cálculos apenas quando estiver ativa.</div>
     <div class="cfg-group">
       <div class="cfg-head">Impostos</div>
@@ -1501,18 +1521,18 @@ body.dark .brand-name, body.dark .screen-title, body.dark .tabbar-inner::before 
         <div class="screen-icon">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="M7 14l4-4 4 3 5-6" stroke-linecap="round" stroke-linejoin="round"/></svg>
         </div>
-        <div class="screen-title">Estatísticas</div>
+        <div class="screen-title" data-i18n="tab_stats">Estatísticas</div>
       </div>
       <div class="sync-pill" id="syncPill-stats" onclick="loadAll()" title="Toque para sincronizar agora">
         <span class="sync-dot" id="syncDot-stats"></span>
-        <span id="syncStatus-stats">sincronizando</span>
+        <span id="syncStatus-stats" data-i18n="sync_sincronizando">sincronizando</span>
       </div>
     </div>
     <div class="seg" id="statsViewSeg" style="margin:0 0 14px;">
-      <div class="seg-opt" data-v="dia" onclick="setStatsView('dia')">Dia</div>
-      <div class="seg-opt" data-v="semana" onclick="setStatsView('semana')">Semana</div>
-      <div class="seg-opt active" data-v="mes" onclick="setStatsView('mes')">Mês</div>
-      <div class="seg-opt" data-v="ano" onclick="setStatsView('ano')">Ano</div>
+      <div class="seg-opt" data-v="dia" onclick="setStatsView('dia')"><span data-i18n="seg_dia">Dia</span></div>
+      <div class="seg-opt" data-v="semana" onclick="setStatsView('semana')"><span data-i18n="seg_semana">Semana</span></div>
+      <div class="seg-opt active" data-v="mes" onclick="setStatsView('mes')"><span data-i18n="seg_mes">Mês</span></div>
+      <div class="seg-opt" data-v="ano" onclick="setStatsView('ano')"><span data-i18n="seg_ano">Ano</span></div>
     </div>
 
     <div class="month-nav" id="statsDayWeekNav" style="display:none;">
@@ -1555,18 +1575,18 @@ body.dark .brand-name, body.dark .screen-title, body.dark .tabbar-inner::before 
         <div class="screen-icon">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" stroke-linecap="round"/></svg>
         </div>
-        <div class="screen-title">Lucro</div>
+        <div class="screen-title" data-i18n="tab_lucro">Lucro</div>
       </div>
       <div class="sync-pill" id="syncPill-lucro" onclick="loadAll()" title="Toque para sincronizar agora">
         <span class="sync-dot" id="syncDot-lucro"></span>
-        <span id="syncStatus-lucro">sincronizando</span>
+        <span id="syncStatus-lucro" data-i18n="sync_sincronizando">sincronizando</span>
       </div>
     </div>
 
     <div class="seg" id="lucroViewSeg" style="margin:0 0 14px;">
-      <div class="seg-opt" data-v="dia" onclick="setLucroView('dia')">Dia</div>
-      <div class="seg-opt" data-v="semana" onclick="setLucroView('semana')">Semana</div>
-      <div class="seg-opt active" data-v="mes" onclick="setLucroView('mes')">Mês</div>
+      <div class="seg-opt" data-v="dia" onclick="setLucroView('dia')"><span data-i18n="seg_dia">Dia</span></div>
+      <div class="seg-opt" data-v="semana" onclick="setLucroView('semana')"><span data-i18n="seg_semana">Semana</span></div>
+      <div class="seg-opt active" data-v="mes" onclick="setLucroView('mes')"><span data-i18n="seg_mes">Mês</span></div>
     </div>
 
     <div class="month-nav" id="lucroDayWeekNav" style="display:none;">
@@ -1601,23 +1621,23 @@ body.dark .brand-name, body.dark .screen-title, body.dark .tabbar-inner::before 
   <div class="tabbar-inner">
     <div class="tab" id="tabGanhos" onclick="goGanhos()">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" stroke-linecap="round"/></svg>
-      Ganhos
+      <span data-i18n="tab_ganhos">Ganhos</span>
     </div>
     <div class="tab" id="tabDespesas" onclick="goDespesas()">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7l3-4h12l3 4M3 7h18M3 7v11a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V7M8 11h8"/></svg>
-      Despesas
+      <span data-i18n="tab_despesas">Despesas</span>
     </div>
     <div class="tab active" id="tabLucro" onclick="goLucro()">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" stroke-linecap="round"/><circle cx="19" cy="5" r="3" fill="currentColor" stroke="none"/></svg>
-      Lucro
+      <span data-i18n="tab_lucro">Lucro</span>
     </div>
     <div class="tab" id="tabStats" onclick="goStats()">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="M7 14l4-4 4 3 5-6" stroke-linecap="round" stroke-linejoin="round"/></svg>
-      Estatísticas
+      <span data-i18n="tab_stats">Estatísticas</span>
     </div>
     <div class="tab" id="tabSettings" onclick="goSettings()">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1-1.6 1.7 1.7 0 0 0-1.9.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.9 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.6-1 1.7 1.7 0 0 0-.3-1.9l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.9.3h.1a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.6 1.7 1.7 0 0 0 1.9-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.9v.1a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.6 1z"/></svg>
-      Você
+      <span data-i18n="tab_settings">Você</span>
     </div>
     <div class="tab hidden-tab" id="tabDev" onclick="goDev()">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.7 6.3a4 4 0 0 0-5.4 5.4L3 18l3 3 6.3-6.3a4 4 0 0 0 5.4-5.4l-2.5 2.5-2.5-.5-.5-2.5z"/></svg>
@@ -1639,7 +1659,68 @@ body.dark .brand-name, body.dark .screen-title, body.dark .tabbar-inner::before 
 // Esquema de versão: de volta ao pré-1.0 (0.x.x) — a v1.0.0 fica
 // reservada para o lançamento com assinatura paga completa. A numeração
 // 4.x.x usada temporariamente para a integração Firebase foi abandonada.
-const APP_VERSION = '0.150';
+const APP_VERSION = '0.160';
+
+// ---------------------------------------------------------------
+// IDIOMA — português (pt) e inglês (en). Escolha guardada neste aparelho (localSettings.lang).
+// Os textos fixos do HTML levam data-i18n; os dinâmicos usam tr('chave').
+// Datas e números seguem LOCALE(). Ainda em português: folhas, mensagens e ecrãs de detalhe.
+// ---------------------------------------------------------------
+const I18N = {
+  pt: {
+    tab_ganhos:'Ganhos', tab_despesas:'Despesas', tab_lucro:'Lucro', tab_stats:'Estatísticas', tab_settings:'Você', tab_dev:'Dev',
+    seg_dia:'Dia', seg_semana:'Semana', seg_mes:'Mês', seg_ano:'Ano',
+    sync_sincronizado:'sincronizado', sync_sincronizando:'sincronizando', sync_salvando:'salvando…', sync_offline:'offline / sem link',
+    login_texto:'Entra com a tua conta Google para aceder aos teus dados.', btn_google:'Continuar com Google',
+    welcome_titulo:'Bem-vindo ao Corrida+ 👋', welcome_sub:'Controla os teus ganhos, despesas e lucro.',
+    welcome_corpo:'Entra com a tua conta Google para sincronizar os teus dados e desbloquear todas as opções.<br><br>Sem login, podes usar o modo básico: até 5 ganhos, 5 despesas variáveis e 5 despesas fixas, com as configurações bloqueadas.',
+    welcome_entrar:'Entrar com Google', welcome_basico:'Continuar em modo básico',
+    idioma:'Idioma', conta:'Conta', preferencias:'Preferências', configuracoes:'Configurações', aparencia:'Aparência',
+    aparencia_sub:'Modo escuro, cor do tema, efeito transparente e imagem de fundo'
+  }
+};
+let LANG = (() => {
+  try{ const s = JSON.parse(localStorage.getItem('localSettings') || 'null') || {}; return ['en','fr'].includes(s.lang) ? s.lang : 'pt'; }
+  catch(e){ return 'pt'; }
+})();
+function tr(chave){ return (I18N[LANG] && I18N[LANG][chave]) || I18N.pt[chave] || chave; }
+// Português está neste ficheiro; os outros idiomas vêm de idioma-<código>.js (carregado só quando é escolhido).
+const IDIOMA_FICHEIROS = { en: 'idioma-en.js', fr: 'idioma-fr.js' };
+function carregarIdioma(lang){
+  if(lang === 'pt' || I18N[lang]) return Promise.resolve(true);
+  const ficheiro = IDIOMA_FICHEIROS[lang];
+  if(!ficheiro) return Promise.resolve(false);
+  return new Promise((resolve) => {
+    const s = document.createElement('script');
+    s.src = ficheiro + '?v=' + encodeURIComponent(APP_VERSION);
+    s.onload = () => {
+      if(window.I18N_LANGS && window.I18N_LANGS[lang]){ I18N[lang] = window.I18N_LANGS[lang]; resolve(true); }
+      else resolve(false);
+    };
+    s.onerror = () => resolve(false);
+    document.head.appendChild(s);
+  });
+}
+const LOCALES = { pt: 'pt-BR', en: 'en-GB', fr: 'fr-FR' };
+function LOCALE(){ return LOCALES[LANG] || 'pt-BR'; }
+function aplicarIdioma(){
+  document.documentElement.lang = LANG === 'en' ? 'en' : LOCALE();
+  document.querySelectorAll('[data-i18n]').forEach(el => { el.textContent = tr(el.dataset.i18n); });
+}
+async function setIdioma(lang){
+  const pedido = lang;
+  const ok = await carregarIdioma(pedido);
+  if(!ok){ showToast('Não foi possível carregar o idioma'); return; }
+  LANG = pedido;
+  localSettings.lang = LANG;
+  await persistLocalSettings();
+  aplicarIdioma();
+  rebuildTabOverlay();
+  refreshActiveScreen();
+  renderSettings();
+  if(document.querySelector('#sheet [data-welcome]') && document.getElementById('overlay').classList.contains('show')) showWelcomeSheet();
+}
+
 // Mostra o número da versão na tela de carregamento imediatamente (sem
 // esperar por loadAll/qualquer coisa assíncrona) — sempre visível,
 // independente da mensagem dinâmica ("A carregar…", "A sincronizar…",
@@ -1752,7 +1833,7 @@ function previousMonthKey(key){
 }
 function monthLabelFor(key){
   const [y,m] = key.split('-').map(Number);
-  return new Date(y, m-1, 1).toLocaleDateString('pt-BR', { month:'long', year:'numeric' });
+  return new Date(y, m-1, 1).toLocaleDateString(LOCALE(), { month:'long', year:'numeric' });
 }
 function ensureMonthEntry(key){
   if(!monthData[key]){
@@ -1797,14 +1878,14 @@ function sumByPlatform(list, platform){ return list.filter(e=>e.platform===platf
 function billAmount(entry, bill){ return entry.billOverrides.hasOwnProperty(bill.id) ? entry.billOverrides[bill.id] : bill.defaultAmount; }
 const fmt = (n) => {
   const rounded = Math.round(n * 100) / 100;
-  return '€ ' + (rounded === 0 ? 0 : rounded).toLocaleString('pt-BR', {minimumFractionDigits:2, maximumFractionDigits:2});
+  return '€ ' + (rounded === 0 ? 0 : rounded).toLocaleString(LOCALE(), {minimumFractionDigits:2, maximumFractionDigits:2});
 };
 function uid(){ return Math.random().toString(36).slice(2,10) + Date.now().toString(36); }
 function escapeHtml(s){ return String(s).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
 function formatDate(ts){
   const d = new Date(ts), today = new Date();
-  if(d.toDateString() === today.toDateString()) return 'hoje, ' + d.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
-  return d.toLocaleDateString('pt-BR', {day:'2-digit', month:'short'});
+  if(d.toDateString() === today.toDateString()) return 'hoje, ' + d.toLocaleTimeString(LOCALE(),{hour:'2-digit',minute:'2-digit'});
+  return d.toLocaleDateString(LOCALE(), {day:'2-digit', month:'short'});
 }
 function formatDateStr(dateStr){
   if(!dateStr) return '';
@@ -1812,7 +1893,7 @@ function formatDateStr(dateStr){
   const dt = new Date(y, m-1, d);
   const today = new Date();
   if(dt.toDateString() === today.toDateString()) return 'hoje';
-  return dt.toLocaleDateString('pt-BR', { weekday:'short', day:'2-digit', month:'short' });
+  return dt.toLocaleDateString(LOCALE(), { weekday:'short', day:'2-digit', month:'short' });
 }
 
 // --- STORAGE (local) ---
@@ -2045,7 +2126,8 @@ function normalizeToSchemaV1(payload){
   return {
     schemaVersion: 1,
     updatedAt: new Date().toISOString(),
-    profile: { name: name || '', photo: photo || null, ...restProfile },
+    // A foto de perfil fica só neste aparelho: não vai para a nuvem nem para a cópia de segurança.
+    profile: { name: name || '', ...restProfile },
     settings: {
       ivaRate: ivaRate || 0,
       comissaoRate: comissaoRate || 0,
@@ -2098,6 +2180,751 @@ function denormalizeFromSchemaV1(data){
 // para o formato clássico antes de seguir; senão devolve como veio. Usado
 // em todos os pontos onde dados vindos da nuvem (ou de um JSON colado
 // manualmente) entram na app.
+
+// ---------------------------------------------------------------
+// CRIPTOGRAFIA DE DADOS — FASE 1 (núcleo, sem ligação à sincronização)
+// Modelo: uma chave de dados (DEK) aleatória de 256 bits cifra os campos.
+// A DEK fica guardada 3 vezes, cada uma embrulhada (AES-GCM) com uma chave derivada de:
+//   1. a senha escolhida pelo utilizador
+//   2. a chave de recuperação de 24 caracteres (gerada pela app)
+//   3. as respostas às 4 perguntas de recuperação (normalizadas)
+// Assim, trocar a senha não obriga a recifrar tudo, e a recuperação funciona sem a senha.
+// ---------------------------------------------------------------
+const CRIPTO_ITER = 600000;
+const CRIPTO_ALFABETO = 'ABCDEFGHJKMNPQRSTVWXYZ23456789'; // sem caracteres ambíguos (I, L, O, U, 0, 1)
+function criptoBytes(n){ return crypto.getRandomValues(new Uint8Array(n)); }
+function criptoB64(bytes){ let s=''; bytes.forEach(b => s += String.fromCharCode(b)); return btoa(s); }
+function criptoDeB64(b64){ return Uint8Array.from(atob(b64), c => c.charCodeAt(0)); }
+// Chave de recuperação: 24 caracteres em 6 grupos de 4 (ex.: ABCD-EFGH-…)
+function gerarChaveRecuperacao(){
+  const r = criptoBytes(24);
+  let s = '';
+  for(let i = 0; i < 24; i++){ s += CRIPTO_ALFABETO[r[i] % CRIPTO_ALFABETO.length]; }
+  return s.match(/.{1,4}/g).join('-');
+}
+// Normaliza o texto de um segredo: sem maiúsculas, sem acentos, sem espaços extra.
+function criptoNormalizar(texto){
+  return String(texto || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim().replace(/\s+/g, ' ');
+}
+// Deriva uma chave AES-GCM de 256 bits a partir de um segredo e de um sal (PBKDF2-SHA256).
+async function criptoDerivar(segredo, sal){
+  const base = await crypto.subtle.importKey('raw', new TextEncoder().encode(segredo), 'PBKDF2', false, ['deriveKey']);
+  return crypto.subtle.deriveKey({ name:'PBKDF2', salt: sal, iterations: CRIPTO_ITER, hash:'SHA-256' },
+    base, { name:'AES-GCM', length:256 }, false, ['encrypt','decrypt']);
+}
+// Cifra bytes com AES-GCM. Devolve {iv, ct} em base64.
+async function criptoCifrar(chave, dados){
+  const iv = criptoBytes(12);
+  const ct = new Uint8Array(await crypto.subtle.encrypt({ name:'AES-GCM', iv }, chave, dados));
+  return { iv: criptoB64(iv), ct: criptoB64(ct) };
+}
+async function criptoDecifrar(chave, emb){
+  const pt = await crypto.subtle.decrypt({ name:'AES-GCM', iv: criptoDeB64(emb.iv) }, chave, criptoDeB64(emb.ct));
+  return new Uint8Array(pt);
+}
+// Cria o "cofre" de encriptação: gera a DEK e embrulha-a para senha, recuperação e perguntas.
+// perguntas: array de 4 pares { pergunta, resposta }. Devolve o cofre (guardável) e a chave de recuperação (mostrar uma vez).
+async function criarCofreCripto(senha, perguntas){
+  if(!senha || senha.length < 8 || !/[A-Z]/.test(senha) || !/[^A-Za-z0-9]/.test(senha)) throw new Error('senha-fraca');
+  if(!Array.isArray(perguntas) || perguntas.length !== 4) throw new Error('perguntas');
+  const dek = criptoBytes(32);
+  const chaveRec = gerarChaveRecuperacao();
+  const respostas = perguntas.map(p => criptoNormalizar(p.resposta)).join('|');
+  if(perguntas.some(p => !String(p.pergunta||'').trim() || !String(p.resposta||'').trim())) throw new Error('resposta-vazia');
+  const cofre = { v: 1, iter: CRIPTO_ITER, perguntas: perguntas.map(p => p.pergunta), tipos: perguntas.map(p => p.tipo === 'data' ? 'data' : 'texto') };
+  for(const [nome, segredo] of [['senha', senha], ['recuperacao', chaveRec.replace(/-/g,'')], ['respostas', respostas]]){
+    const sal = criptoBytes(16);
+    const chave = await criptoDerivar(segredo, sal);
+    const emb = await criptoCifrar(chave, dek);
+    cofre[nome] = { sal: criptoB64(sal), iv: emb.iv, ct: emb.ct };
+  }
+  return { cofre, chaveRecuperacao: chaveRec, dek: criptoB64(dek) };
+}
+// Recupera a DEK a partir de um dos 3 segredos. Devolve a DEK (Uint8Array) ou lança erro.
+async function abrirCofreCripto(cofre, tipo, valor){
+  const seg = tipo === 'senha' ? valor : tipo === 'recuperacao' ? valor.replace(/-/g,'') : valor.map(criptoNormalizar).join('|');
+  const ent = cofre[tipo];
+  if(!ent) throw new Error('tipo-invalido');
+  const chave = await criptoDerivar(seg, criptoDeB64(ent.sal));
+  return criptoDecifrar(chave, ent);
+}
+// Cifra um campo de texto ou número com a DEK. Devolve { iv, ct } (base64).
+async function cifrarCampo(dek, valor){
+  const chave = await crypto.subtle.importKey('raw', dek, { name:'AES-GCM' }, false, ['encrypt','decrypt']);
+  return criptoCifrar(chave, new TextEncoder().encode(JSON.stringify(valor)));
+}
+async function decifrarCampo(dek, emb){
+  const chave = await crypto.subtle.importKey('raw', dek, { name:'AES-GCM' }, false, ['encrypt','decrypt']);
+  return JSON.parse(new TextDecoder().decode(await criptoDecifrar(chave, emb)));
+}
+
+// ---------------------------------------------------------------
+// CRIPTOGRAFIA — FASE 2 (ecrã de configuração)
+// O cofre (sem nenhuma chave em claro) fica guardado neste aparelho em COFRE_KEY.
+// A fase 4 liga-o à sincronização. Apagar dados ou tudo também remove o cofre.
+// ---------------------------------------------------------------
+const COFRE_KEY = 'cofreCripto';
+let cripState = null;
+async function lerCofreLocal(){
+  try{ const r = await window.storage.get(COFRE_KEY); return r && r.value ? JSON.parse(r.value) : null; }
+  catch(e){ return null; }
+}
+function cripGuardarRisco(){
+  return `
+    <div class="sheet-handle"></div>
+    <div class="sheet-title">🔐 Criptografia dos dados</div>
+    <div class="sheet-sub">Antes de continuar, lê com atenção.</div>
+    <div style="font-size:13px;line-height:1.6;margin-bottom:14px;">
+      <p style="margin:0 0 10px;">Os campos sensíveis (valores, notas e nomes) passam a ser cifrados antes de sair do teu aparelho e de chegarem à nuvem.</p>
+      <p style="margin:0 0 10px;">Cada aparelho novo pede a senha ou a chave de recuperação.</p>
+      <p style="margin:0 0 10px;">Nesta versão, os dados guardados no próprio aparelho não ficam cifrados. A encriptação protege a nuvem.</p>
+      <p style="margin:0 0 10px;">Se esqueceres a senha, as respostas e a chave de recuperação, os dados não se recuperam. A Corrida+ não tem forma de os recuperar.</p>
+      <p style="margin:0 0 10px;">Quem tiver a chave de recuperação, ou souber as respostas, pode aceder aos dados. Guarda a chave com cuidado.</p>
+      <p style="margin:0 0 10px;">As respostas funcionam como uma segunda chave. Escolhe respostas difíceis de adivinhar: respostas curtas ou comuns são fáceis de descobrir se os dados forem roubados.</p>
+      <p style="margin:0;"><strong>Responsabilidade:</strong> a Corrida+ não se responsabiliza por perda de dados ou acessos indevidos decorrentes desta opção. És tu o responsável pela senha, pelas respostas e pela chave de recuperação.</p>
+    </div>
+    <label style="display:flex;gap:10px;align-items:flex-start;font-size:13px;line-height:1.5;margin-bottom:16px;cursor:pointer;">
+      <input type="checkbox" id="cripAceito" onchange="document.getElementById('cripContinuar').disabled = !this.checked" style="margin-top:3px;" />
+      <span>Li e aceito os riscos e a responsabilidade indicados.</span>
+    </label>
+    <button class="btn btn-primary" id="cripContinuar" disabled onclick="cripIrSenha()" style="opacity:0.4;">Continuar</button>
+    <button class="btn btn-ghost" onclick="closeSheet()">Cancelar</button>`;
+}
+async function openCriptografiaSheet(){
+  const cofre = await lerCofreLocal();
+  if(cofre && !(await lerDekLocal())){ cripAbrirDesbloqueio(); return; }
+  if(!cofre && window.__fbCloudCrypto){ showToast('Esta conta já tem criptografia: desbloqueia-a'); cripAbrirDesbloqueio(); return; }
+  if(cofre){
+    const data = cofre.criadoEm ? new Date(cofre.criadoEm).toLocaleDateString(LOCALE(), { day:'2-digit', month:'long', year:'numeric' }) : '';
+    openSheet(`
+      <div class="sheet-handle"></div>
+      <div class="sheet-title">🔐 Criptografia ativa</div>
+      <div class="sheet-sub">${data ? 'Ativada em ' + escapeHtml(data) : 'Ativa neste aparelho'}</div>
+      <div style="font-size:13px;line-height:1.6;margin-bottom:14px;">Os campos sensíveis ficam cifrados antes de sair do teu aparelho. Cada aparelho novo pede a senha ou a chave de recuperação.</div>
+      <button class="btn theme-card" onclick="cripEsquecerAqui()" style="border:1.5px solid var(--line);color:var(--ink);">Esquecer a chave neste aparelho</button>
+      <button class="btn theme-card" onclick="cripPedirRemocao()" style="border:1.5px solid var(--line);color:var(--terracotta);">Remover criptografia</button>
+      <button class="btn btn-ghost" onclick="closeSheet()">Fechar</button>`);
+    return;
+  }
+  openSheet(cripGuardarRisco());
+}
+function cripIrSenha(){
+  if(!document.getElementById('cripAceito')?.checked) return;
+  cripState = { perguntas: [] };
+  openSheet(`
+    <div class="sheet-handle"></div>
+    <div class="sheet-title">Escolhe a senha</div>
+    <div class="sheet-sub">Esta senha abre os dados em cada aparelho novo.</div>
+    <div class="field"><label>Senha</label><input type="password" id="cripSenha1" autocomplete="new-password" /></div>
+    <div class="field"><label>Confirma a senha</label><input type="password" id="cripSenha2" autocomplete="new-password" /></div>
+    <div class="section-sub" style="font-size:11px;margin-bottom:14px;">Mínimo 8 caracteres, com pelo menos uma letra maiúscula e um caractere especial (ex.: ! @ # $ %).</div>
+    <button class="btn btn-primary" onclick="cripValidarSenha()">Continuar</button>
+    <button class="btn btn-ghost" onclick="openCriptografiaSheet()">Voltar</button>`);
+}
+function cripValidarSenha(){
+  const a = document.getElementById('cripSenha1').value;
+  const b = document.getElementById('cripSenha2').value;
+  if(a !== b){ showToast('As senhas não coincidem'); return; }
+  if(a.length < 8 || !/[A-Z]/.test(a) || !/[^A-Za-z0-9]/.test(a)){ showToast('A senha não cumpre os requisitos'); return; }
+  cripState.senha = a;
+  cripIrPerguntas();
+}
+function cripIrPerguntas(){
+  const bloco = (i) => `
+    <div class="chart-box" style="margin-bottom:12px;">
+      <div class="field"><label>Pergunta ${i+1}</label><input type="text" id="cripP${i}" maxlength="80" placeholder="Ex.: Nome da primeira escola" /></div>
+      <div class="field" style="margin-bottom:0;">
+        <label>Resposta</label>
+        <div class="seg" id="cripTipo${i}" style="margin-bottom:8px;">
+          <div class="seg-opt active" data-t="texto" onclick="cripTipo(${i},'texto')">Texto</div>
+          <div class="seg-opt" data-t="data" onclick="cripTipo(${i},'data')">Data</div>
+        </div>
+        <input type="text" id="cripR${i}" maxlength="200" placeholder="Escreve a resposta" />
+      </div>
+    </div>`;
+  openSheet(`
+    <div class="sheet-handle"></div>
+    <div class="sheet-title">Perguntas de recuperação</div>
+    <div class="sheet-sub">Escolhe as perguntas e escreve as respostas. Sem limite de tamanho, mas quanto mais difíceis de adivinhar, mais segura fica a tua conta.</div>
+    ${[0,1,2,3].map(bloco).join('')}
+    <button class="btn btn-primary" onclick="cripCriarCofre()">Criar criptografia</button>
+    <button class="btn btn-ghost" onclick="cripIrSenha()">Voltar</button>`);
+}
+function cripTipo(i, tipo){
+  const seg = document.getElementById('cripTipo' + i);
+  if(seg) seg.querySelectorAll('.seg-opt').forEach(el => el.classList.toggle('active', el.dataset.t === tipo));
+  const inp = document.getElementById('cripR' + i);
+  if(!inp) return;
+  const val = inp.value;
+  const novo = document.createElement('input');
+  novo.id = 'cripR' + i;
+  novo.maxLength = tipo === 'data' ? 10 : 200;
+  novo.type = tipo === 'data' ? 'date' : 'text';
+  novo.placeholder = tipo === 'data' ? '' : 'Escreve a resposta';
+  novo.value = tipo === 'data' ? '' : val;
+  inp.replaceWith(novo);
+}
+async function cripCriarCofre(){
+  const perguntas = [];
+  for(let i = 0; i < 4; i++){
+    const pergunta = document.getElementById('cripP' + i).value.trim();
+    const resposta = document.getElementById('cripR' + i).value.trim();
+    if(!pergunta || !resposta){ showToast('Preenche as 4 perguntas e respostas'); return; }
+    const tipo = document.querySelector(`#cripTipo${i} .seg-opt.active`)?.dataset.t === 'data' ? 'data' : 'texto';
+    perguntas.push({ pergunta, resposta, tipo });
+  }
+  try{
+    await cripAnonimizarPlataformas();
+    const { cofre, chaveRecuperacao, dek } = await criarCofreCripto(cripState.senha, perguntas);
+    cofre.criadoEm = new Date().toISOString();
+    await window.storage.set(COFRE_KEY, JSON.stringify(cofre));
+    await guardarDekLocal(dek);
+    if(window.__fbUser) await pushToFirestore(false);
+    cripState = null;
+    cripMostrarChave(chaveRecuperacao);
+  }catch(e){
+    console.error('Falha ao criar criptografia:', e);
+    showToast('Não foi possível criar a criptografia');
+  }
+}
+function cripMostrarChave(chave){
+  cripState = { chave };
+  openSheet(`
+    <div class="sheet-handle"></div>
+    <div class="sheet-title">A tua chave de recuperação</div>
+    <div class="sheet-sub">Guarda esta chave. Ela não volta a aparecer.</div>
+    <div id="cripQr" style="display:flex;justify-content:center;align-items:center;min-height:200px;margin-bottom:12px;background:#fff;border-radius:var(--r-md);padding:12px;"></div>
+    <div style="font-family:'JetBrains Mono',monospace;font-weight:700;font-size:16px;text-align:center;letter-spacing:0.04em;word-break:break-all;padding:12px;background:var(--cream-2);border-radius:var(--r-md);margin-bottom:12px;user-select:all;">${escapeHtml(chave)}</div>
+    <div style="font-size:12px;line-height:1.6;margin-bottom:14px;">Ao entrar noutro aparelho, a app pede a senha ou esta chave, que pode ser lida pelo QR code. Quem tiver esta chave pode aceder aos dados. Guarda a imagem num sítio seguro.</div>
+    <button class="btn btn-primary" onclick="cripGuardarImagem()">💾 Guardar imagem</button>
+    <button class="btn theme-card" onclick="cripPartilharImagem()" style="border:1.5px solid var(--line);color:var(--ink);">📤 Partilhar</button>
+    <button class="btn btn-ghost" onclick="cripConcluir()">Concluí, já guardei a chave</button>`);
+  cripDesenharQr(chave);
+}
+let qrLibPromise = null;
+function carregarQrLib(){
+  if(window.QRCode) return Promise.resolve(true);
+  if(!qrLibPromise){
+    qrLibPromise = new Promise((resolve) => {
+      const s = document.createElement('script');
+      s.src = 'https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js';
+      s.onload = () => resolve(true);
+      s.onerror = () => resolve(false);
+      document.head.appendChild(s);
+    });
+  }
+  return qrLibPromise;
+}
+async function cripDesenharQr(chave){
+  const box = document.getElementById('cripQr');
+  if(!box) return;
+  const ok = await carregarQrLib();
+  if(!ok || !window.QRCode){ box.innerHTML = '<div style="font-size:12px;color:#444;text-align:center;">QR indisponível sem ligação. Usa a chave escrita acima.</div>'; return; }
+  box.innerHTML = '';
+  new QRCode(box, { text: chave, width: 200, height: 200, correctLevel: QRCode.CorrectLevel.H });
+}
+function cripQrCanvas(){
+  const box = document.getElementById('cripQr');
+  const c = box && box.querySelector('canvas');
+  if(c) return c;
+  const img = box && box.querySelector('img');
+  if(img){ const cc = document.createElement('canvas'); cc.width = 200; cc.height = 200; cc.getContext('2d').drawImage(img, 0, 0, 200, 200); return cc; }
+  return null;
+}
+// Imagem para guardar: QR, chave e o aviso de responsabilidade.
+async function cripGerarImagem(){
+  const W = 900, H = 1200;
+  const c = document.createElement('canvas'); c.width = W; c.height = H;
+  const g = c.getContext('2d');
+  g.fillStyle = '#F6EFE2'; g.fillRect(0, 0, W, H);
+  g.fillStyle = '#1F3A2E'; g.font = 'bold 46px sans-serif'; g.textAlign = 'center';
+  g.fillText('Corrida+ — Chave de recuperação', W / 2, 90);
+  const qr = cripQrCanvas();
+  if(qr){ g.fillStyle = '#fff'; g.fillRect(W/2 - 240, 130, 480, 480); g.drawImage(qr, W/2 - 220, 150, 440, 440); }
+  g.fillStyle = '#2A2420'; g.font = 'bold 40px monospace';
+  g.fillText(cripState.chave, W / 2, 690);
+  g.font = '26px sans-serif'; g.textAlign = 'left';
+  const linhas = [
+    'Esta chave permite recuperar os teus dados.',
+    'Quem a tiver pode aceder aos dados. Guarda-a num sítio seguro.',
+    'Não é possível recuperar os dados sem a senha, a chave ou as respostas.',
+    'A Corrida+ não se responsabiliza por perdas ou acessos indevidos.',
+    'És responsável por guardar esta chave e a tua senha.'
+  ];
+  let y = 760;
+  linhas.forEach(l => { g.fillText(l, 60, y); y += 44; });
+  g.fillStyle = 'rgba(42,36,32,0.6)'; g.font = '22px sans-serif';
+  g.fillText('Gerada em ' + new Date().toLocaleDateString(LOCALE()), 60, H - 50);
+  return new Promise(resolve => c.toBlob(resolve, 'image/png'));
+}
+async function cripGuardarImagem(){
+  const blob = await cripGerarImagem();
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = 'corridaplus-chave-recuperacao.png';
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+  showToast('Imagem guardada');
+}
+async function cripPartilharImagem(){
+  const blob = await cripGerarImagem();
+  const file = new File([blob], 'corridaplus-chave-recuperacao.png', { type: 'image/png' });
+  if(navigator.canShare && navigator.canShare({ files: [file] })){
+    try{ await navigator.share({ files: [file], title: 'Chave de recuperação Corrida+' }); return; }
+    catch(e){ if(e && e.name === 'AbortError') return; }
+  }
+  cripGuardarImagem();
+}
+function cripConcluir(){
+  cripState = null;
+  closeSheet();
+  showToast('Criptografia criada neste aparelho');
+  renderSettings();
+}
+
+// ---------------------------------------------------------------
+// CRIPTOGRAFIA — FASE 3 (lembrar no aparelho, desbloquear, QR pela câmara ou galeria)
+// A chave de dados (DEK) fica guardada em 'dekAparelho' neste aparelho, para não pedir a senha em cada abertura.
+// Em cada aparelho novo, a app pede a senha, a chave de recuperação, o QR code, ou as respostas.
+// ---------------------------------------------------------------
+async function guardarDekLocal(dekB64){ try{ await window.storage.set('dekAparelho', dekB64); }catch(e){} }
+async function lerDekLocal(){
+  try{ const r = await window.storage.get('dekAparelho'); return r && r.value ? criptoDeB64(r.value) : null; }
+  catch(e){ return null; }
+}
+async function cripEsquecerAqui(){
+  try{ await window.storage.delete('dekAparelho'); }catch(e){}
+  closeSheet();
+  showToast('Chave esquecida neste aparelho');
+  renderSettings();
+}
+function cripSenhaValida(s){ return s.length >= 8 && /[A-Z]/.test(s) && /[^A-Za-z0-9]/.test(s); }
+window._cripLembrar = true;
+function cripAbrirDesbloqueio(){
+  window._cripLembrar = true;
+  openSheet(`
+    <div class="sheet-handle"></div>
+    <div class="sheet-title">🔐 Desbloquear criptografia</div>
+    <div class="sheet-sub">Este aparelho ainda não tem a chave. Escolhe uma forma de entrar.</div>
+    <div class="field"><label>Senha</label><input type="password" id="cripUSenha" autocomplete="current-password" /></div>
+    <button class="btn btn-primary" onclick="cripDesbloquearSenha()">Desbloquear com a senha</button>
+    <div class="section-sub" style="text-align:center;margin:12px 0;">ou</div>
+    <div class="field"><label>Chave de recuperação</label><input type="text" id="cripUChave" placeholder="XXXX-XXXX-XXXX-XXXX-XXXX-XXXX" autocomplete="off" autocapitalize="characters" /></div>
+    <button class="btn theme-card" onclick="cripDesbloquearChave()" style="border:1.5px solid var(--line);color:var(--ink);">Desbloquear com a chave</button>
+    <button class="btn theme-card" onclick="cripLerQrCamera()" style="border:1.5px solid var(--line);color:var(--ink);">📷 Ler QR com a câmara</button>
+    <button class="btn theme-card" onclick="cripLerQrGaleria()" style="border:1.5px solid var(--line);color:var(--ink);">🖼️ Escolher QR na galeria</button>
+    <button class="btn theme-card" onclick="cripEsqueciSenha()" style="border:1.5px solid var(--line);color:var(--ink);">Esqueci a senha (perguntas)</button>
+    <label style="display:flex;gap:10px;align-items:center;margin:14px 0 8px;font-size:13px;cursor:pointer;">
+      <input type="checkbox" checked onchange="window._cripLembrar = this.checked" /> Lembrar neste aparelho
+    </label>
+    <div class="section-sub" style="font-size:11px;line-height:1.5;margin-bottom:12px;">Cada aparelho novo pede a senha ou a chave. Se lembrares neste aparelho, quem tiver o telemóvel desbloqueado pode aceder aos dados.</div>
+    <button class="btn btn-ghost" onclick="closeSheet()">Cancelar</button>`);
+}
+async function cripConcluirDesbloqueio(dek){
+  if(window._cripLembrar !== false) await guardarDekLocal(criptoB64(dek));
+  window._pedidoDesbloqueio = false;
+  closeSheet();
+  showToast('Criptografia desbloqueada');
+  renderSettings();
+  if(window.__fbUser) reprocessarNuvem();
+}
+async function cripDesbloquearSenha(){
+  const senha = document.getElementById('cripUSenha')?.value || '';
+  const cofre = await lerCofreLocal();
+  if(!cofre || !senha) return;
+  try{ const dek = await abrirCofreCripto(cofre, 'senha', senha); await cripConcluirDesbloqueio(dek); }
+  catch(e){ showToast('Senha incorreta'); }
+}
+async function cripDesbloquearComChave(texto){
+  const chave = String(texto || '').trim().toUpperCase();
+  const cofre = await lerCofreLocal();
+  if(!cofre) return;
+  if(!/^([A-Z2-9]{4}-){5}[A-Z2-9]{4}$/.test(chave)){ showToast('Chave inválida'); return; }
+  try{ const dek = await abrirCofreCripto(cofre, 'recuperacao', chave); await cripConcluirDesbloqueio(dek); }
+  catch(e){ showToast('Chave incorreta'); }
+}
+function cripDesbloquearChave(){ cripDesbloquearComChave(document.getElementById('cripUChave')?.value); }
+
+// Leitor de QR (jsQR, carregado do cdnjs quando é preciso)
+let jsQRLibPromise = null;
+function carregarJsQR(){
+  if(window.jsQR) return Promise.resolve(true);
+  if(!jsQRLibPromise){
+    jsQRLibPromise = new Promise((resolve) => {
+      const s = document.createElement('script');
+      s.src = 'https://cdnjs.cloudflare.com/ajax/libs/jsQR/1.4.0/jsQR.min.js';
+      s.onload = () => resolve(true);
+      s.onerror = () => resolve(false);
+      document.head.appendChild(s);
+    });
+  }
+  return jsQRLibPromise;
+}
+function cripPararCamera(){
+  if(window._camRaf) cancelAnimationFrame(window._camRaf);
+  window._camRaf = null;
+  if(window._camStream){ window._camStream.getTracks().forEach(tr => tr.stop()); window._camStream = null; }
+}
+async function cripLerQrCamera(){
+  if(!(await carregarJsQR())){ showToast('Leitor de QR indisponível sem ligação'); return; }
+  if(!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia){ showToast('Câmara indisponível neste aparelho'); return; }
+  let stream;
+  try{ stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } }); }
+  catch(e){ showToast('Sem permissão para usar a câmara'); return; }
+  openSheet(`
+    <div class="sheet-handle"></div>
+    <div class="sheet-title">Aponta para o QR code</div>
+    <div class="sheet-sub">Lê automaticamente quando estiver bem enquadrado.</div>
+    <video id="camVideo" playsinline muted style="width:100%;border-radius:var(--r-md);background:#000;"></video>
+    <canvas id="camCanvas" style="display:none;"></canvas>
+    <button class="btn btn-ghost" onclick="cripPararCamera(); closeSheet();">Cancelar</button>`);
+  const v = document.getElementById('camVideo');
+  window._camStream = stream;
+  v.srcObject = stream;
+  try{ await v.play(); }catch(e){}
+  const cv = document.getElementById('camCanvas');
+  const ctx = cv.getContext('2d');
+  const ciclo = () => {
+    if(!document.getElementById('camVideo')){ cripPararCamera(); return; }
+    if(v.readyState === v.HAVE_ENOUGH_DATA && v.videoWidth){
+      cv.width = v.videoWidth; cv.height = v.videoHeight;
+      ctx.drawImage(v, 0, 0, cv.width, cv.height);
+      const img = ctx.getImageData(0, 0, cv.width, cv.height);
+      const r = window.jsQR(img.data, img.width, img.height);
+      if(r && r.data){ cripPararCamera(); cripCodigoLido(r.data); return; }
+    }
+    window._camRaf = requestAnimationFrame(ciclo);
+  };
+  ciclo();
+}
+function cripLerQrGaleria(){
+  const inp = document.createElement('input');
+  inp.type = 'file';
+  inp.accept = 'image/*';
+  inp.onchange = () => cripLerFicheiro(inp.files && inp.files[0]);
+  inp.click();
+}
+async function cripLerFicheiro(file){
+  if(!file) return;
+  if(!(await carregarJsQR())){ showToast('Leitor de QR indisponível sem ligação'); return; }
+  const url = URL.createObjectURL(file);
+  const img = new Image();
+  img.onload = () => {
+    const cv = document.createElement('canvas');
+    cv.width = img.naturalWidth; cv.height = img.naturalHeight;
+    const ctx = cv.getContext('2d');
+    ctx.drawImage(img, 0, 0);
+    const d = ctx.getImageData(0, 0, cv.width, cv.height);
+    const r = window.jsQR(d.data, d.width, d.height);
+    URL.revokeObjectURL(url);
+    if(r && r.data) cripCodigoLido(r.data);
+    else showToast('Não encontrei nenhum QR nessa imagem');
+  };
+  img.onerror = () => { URL.revokeObjectURL(url); showToast('Imagem inválida'); };
+  img.src = url;
+}
+function cripCodigoLido(texto){ cripDesbloquearComChave(texto); }
+
+// Recuperação pelas 4 perguntas (ver a fase 1: as respostas são uma das 3 chaves)
+async function cripEsqueciSenha(){
+  const cofre = await lerCofreLocal();
+  if(!cofre) return;
+  const campos = cofre.perguntas.map((p, i) => {
+    const data = (cofre.tipos && cofre.tipos[i]) === 'data';
+    return `<div class="field"><label>${escapeHtml(p)}</label><input type="${data ? 'date' : 'text'}" id="cripE${i}" autocomplete="off" /></div>`;
+  }).join('');
+  openSheet(`
+    <div class="sheet-handle"></div>
+    <div class="sheet-title">Recuperar pelas perguntas</div>
+    <div class="sheet-sub">Responde como respondeste ao criar a criptografia.</div>
+    ${campos}
+    <button class="btn btn-primary" onclick="cripRecuperarRespostas()">Recuperar</button>
+    <button class="btn btn-ghost" onclick="cripAbrirDesbloqueio()">Voltar</button>`);
+}
+async function cripRecuperarRespostas(){
+  const cofre = await lerCofreLocal();
+  if(!cofre) return;
+  const valores = cofre.perguntas.map((_, i) => (document.getElementById('cripE' + i)?.value || '').trim());
+  if(valores.some(v => !v)){ showToast('Responde às 4 perguntas'); return; }
+  try{
+    const dek = await abrirCofreCripto(cofre, 'respostas', valores);
+    cripNovaSenhaDepois(dek);
+  }catch(e){ showToast('As respostas não conferem'); }
+}
+function cripNovaSenhaDepois(dek){
+  window._cripDek = dek;
+  openSheet(`
+    <div class="sheet-handle"></div>
+    <div class="sheet-title">Nova senha</div>
+    <div class="sheet-sub">Recuperaste o acesso. Escolhe uma nova senha.</div>
+    <div class="field"><label>Nova senha</label><input type="password" id="cripNS1" autocomplete="new-password" /></div>
+    <div class="field"><label>Confirma a nova senha</label><input type="password" id="cripNS2" autocomplete="new-password" /></div>
+    <div class="section-sub" style="font-size:11px;margin-bottom:14px;">Mínimo 8 caracteres, com pelo menos uma letra maiúscula e um caractere especial.</div>
+    <button class="btn btn-primary" onclick="cripGravarNovaSenha()">Guardar nova senha</button>`);
+}
+async function cripGravarNovaSenha(){
+  const a = document.getElementById('cripNS1').value;
+  const b = document.getElementById('cripNS2').value;
+  if(a !== b){ showToast('As senhas não coincidem'); return; }
+  if(!cripSenhaValida(a)){ showToast('A senha não cumpre os requisitos'); return; }
+  const cofre = await lerCofreLocal();
+  await trocarSenhaCofre(cofre, window._cripDek, a);
+  await window.storage.set(COFRE_KEY, JSON.stringify(cofre));
+  const dek = window._cripDek;
+  window._cripDek = null;
+  await cripConcluirDesbloqueio(dek);
+  showToast('Nova senha guardada');
+}
+// Volta a embrulhar a DEK com a nova senha (os dados não são recifrados).
+async function trocarSenhaCofre(cofre, dek, novaSenha){
+  const sal = criptoBytes(16);
+  const chave = await criptoDerivar(novaSenha, sal);
+  const emb = await criptoCifrar(chave, dek);
+  cofre.senha = { sal: criptoB64(sal), iv: emb.iv, ct: emb.ct };
+  return cofre;
+}
+
+// ---------------------------------------------------------------
+// CRIPTOGRAFIA — FASE 4 (ligação à sincronização)
+// Só os campos sensíveis saem cifrados (ver CAMPOS_CIFRADOS). Datas, ids, categorias e tipos continuam em claro.
+// Os dados ficam em claro neste aparelho; só são cifrados ao sair para a nuvem, e decifrados ao entrar.
+// Se a conta tiver criptografia e este aparelho não tiver a chave, a sincronização para e pede o desbloqueio.
+// Nunca se envia para a nuvem um documento em claro quando a criptografia está ativa.
+// ---------------------------------------------------------------
+const CAMPOS_CIFRADOS = {
+  earnings: ['amount'],
+  expenses: ['amount', 'note', 'liters'],
+  bills: ['name', 'defaultAmount'],
+  billOverrides: ['amount'],
+  billsPaid: ['amount'],
+  customPlatforms: ['label']
+};
+async function esquecerDekLocal(){ try{ await window.storage.delete('dekAparelho'); }catch(e){} }
+async function removerCriptoLocal(){
+  try{ await window.storage.delete(COFRE_KEY); await window.storage.delete('dekAparelho'); }catch(e){}
+  window._pedidoDesbloqueio = false;
+}
+function pedirDesbloqueioNuvem(){
+  if(window._pedidoDesbloqueio) return;
+  window._pedidoDesbloqueio = true;
+  setSyncStatus('nolink');
+  showToast('Dados cifrados: desbloqueia a criptografia para sincronizar');
+  cripAbrirDesbloqueio();
+}
+// Cada registo: os campos sensíveis saem de cima e vão cifrados para 'enc'.
+async function cripCifrarColecao(lista, campos, chave){
+  return Promise.all((lista || []).map(async r => {
+    if(!r || typeof r !== 'object') return r;
+    const v = {};
+    campos.forEach(c => { if(r[c] !== undefined) v[c] = r[c]; });
+    if(Object.keys(v).length === 0) return r;
+    const cl = { ...r };
+    campos.forEach(c => { delete cl[c]; });
+    cl.enc = await criptoCifrar(chave, new TextEncoder().encode(JSON.stringify(v)));
+    return cl;
+  }));
+}
+async function cripDecifrarColecao(lista, chave){
+  return Promise.all((lista || []).map(async r => {
+    if(!r || !r.enc) return r;
+    const v = JSON.parse(new TextDecoder().decode(await criptoDecifrar(chave, r.enc)));
+    const cl = { ...r };
+    delete cl.enc;
+    return Object.assign(cl, v);
+  }));
+}
+async function cripCifrarPayload(p, dek){
+  const chave = await crypto.subtle.importKey('raw', dek, { name: 'AES-GCM' }, false, ['encrypt', 'decrypt']);
+  const out = { ...p };
+  out.earnings     = await cripCifrarColecao(p.earnings, CAMPOS_CIFRADOS.earnings, chave);
+  out.expenses     = await cripCifrarColecao(p.expenses, CAMPOS_CIFRADOS.expenses, chave);
+  out.bills        = await cripCifrarColecao(p.bills, CAMPOS_CIFRADOS.bills, chave);
+  out.billOverrides = await cripCifrarColecao(p.billOverrides, CAMPOS_CIFRADOS.billOverrides, chave);
+  out.billsPaid    = await cripCifrarColecao(p.billsPaid, CAMPOS_CIFRADOS.billsPaid, chave);
+  out.profile = { ...(p.profile || {}) };
+  if(Array.isArray(out.profile.customPlatforms)){
+    out.profile.customPlatforms = await cripCifrarColecao(out.profile.customPlatforms, CAMPOS_CIFRADOS.customPlatforms, chave);
+  }
+  return out;
+}
+async function cripDecifrarPayload(p, dek){
+  const chave = await crypto.subtle.importKey('raw', dek, { name: 'AES-GCM' }, false, ['encrypt', 'decrypt']);
+  const out = { ...p };
+  out.earnings      = await cripDecifrarColecao(p.earnings, chave);
+  out.expenses      = await cripDecifrarColecao(p.expenses, chave);
+  out.bills         = await cripDecifrarColecao(p.bills, chave);
+  out.billOverrides = await cripDecifrarColecao(p.billOverrides, chave);
+  out.billsPaid     = await cripDecifrarColecao(p.billsPaid, chave);
+  out.profile = { ...(p.profile || {}) };
+  if(Array.isArray(out.profile.customPlatforms)){
+    out.profile.customPlatforms = await cripDecifrarColecao(out.profile.customPlatforms, chave);
+  }
+  return out;
+}
+// Bloco público do cofre que vai para a nuvem (sem o campo local "naNuvem").
+function cripBlocoNuvem(cofre){
+  const { naNuvem, ...pub } = cofre;
+  return pub;
+}
+// ---------------------------------------------------------------
+// ARQUIVO: meses com mais de 12 meses saem do documento principal e ficam num bloco comprimido (gzip).
+// Se houver criptografia, o bloco também é cifrado. O aparelho tem sempre o histórico completo; ao ler,
+// o bloco é descompactado e juntado aos dados recentes, por isso a fusão entre aparelhos não muda.
+// ---------------------------------------------------------------
+const LIMITE_NUVEM_BYTES = 1000000; // o Firestore aceita 1 MiB por documento; deixamos margem
+const ARQUIVO_LISTAS = ['earnings','expenses','billOverrides','billsPaid','hiddenBills'];
+async function gzipBytes(bytes){
+  const stream = new Blob([bytes]).stream().pipeThrough(new CompressionStream('gzip'));
+  return new Uint8Array(await new Response(stream).arrayBuffer());
+}
+async function gunzipBytes(bytes){
+  const stream = new Blob([bytes]).stream().pipeThrough(new DecompressionStream('gzip'));
+  return new Uint8Array(await new Response(stream).arrayBuffer());
+}
+// Separa os registos de meses antigos (anteriores aos últimos 12 meses).
+function arquivarAntigos(p){
+  const d = new Date(); d.setMonth(d.getMonth() - 12);
+  const corte = monthKeyFor(d);
+  const antes = (m) => !!m && m < corte;
+  const arq = { earnings: [], expenses: [], billOverrides: [], billsPaid: [], hiddenBills: [] };
+  const keep = { ...p };
+  const separar = (lista, mesDe, destino) => {
+    const k = [];
+    (lista || []).forEach(x => { if(antes(mesDe(x))) arq[destino].push(x); else k.push(x); });
+    return k;
+  };
+  keep.earnings      = separar(p.earnings,      x => (x.date || '').slice(0, 7), 'earnings');
+  keep.expenses      = separar(p.expenses,      x => (x.date || '').slice(0, 7), 'expenses');
+  keep.billOverrides = separar(p.billOverrides, x => x.month, 'billOverrides');
+  keep.billsPaid     = separar(p.billsPaid,     x => x.month, 'billsPaid');
+  keep.hiddenBills   = separar(p.hiddenBills,   x => x.month, 'hiddenBills');
+  const temArq = ARQUIVO_LISTAS.some(k => arq[k].length > 0);
+  return { principal: keep, arquivo: temArq ? arq : null };
+}
+async function empacotarArquivo(arq, dek){
+  const gz = await gzipBytes(new TextEncoder().encode(JSON.stringify(arq)));
+  if(dek){
+    const chave = await crypto.subtle.importKey('raw', dek, { name: 'AES-GCM' }, false, ['encrypt', 'decrypt']);
+    const emb = await criptoCifrar(chave, gz);
+    return { v: 1, cifrado: true, iv: emb.iv, ct: emb.ct };
+  }
+  return { v: 1, cifrado: false, ct: criptoB64(gz) };
+}
+async function desempacotarArquivo(a, dek){
+  let gz;
+  if(a.cifrado){
+    if(!dek) throw new Error('arquivo-sem-chave');
+    const chave = await crypto.subtle.importKey('raw', dek, { name: 'AES-GCM' }, false, ['encrypt', 'decrypt']);
+    gz = await criptoDecifrar(chave, a);
+  } else {
+    gz = criptoDeB64(a.ct);
+  }
+  return JSON.parse(new TextDecoder().decode(await gunzipBytes(gz)));
+}
+// Escrita: devolve o documento a gravar, cifrado se houver criptografia; null se não puder ser cifrado.
+async function prepararParaNuvem(payload){
+  const cofre = await lerCofreLocal();
+  const dek = cofre ? await lerDekLocal() : null;
+  if(cofre && !dek) return null;
+  let doc;
+  let arquivo = null;
+  if(window.CompressionStream){
+    const sep = arquivarAntigos(payload);
+    doc = sep.principal;
+    arquivo = sep.arquivo;
+  } else {
+    doc = payload;
+  }
+  const out = cofre ? await cripCifrarPayload(doc, dek) : doc;
+  if(arquivo) out.arquivo = await empacotarArquivo(arquivo, dek);
+  if(cofre) out.crypto = cripBlocoNuvem(cofre);
+  return out;
+}
+// Leitura: devolve o estado já decifrado e no formato local; null se faltar a chave (e pede o desbloqueio).
+async function prepararNuvem(raw){
+  if(!raw) return null;
+  const local = await lerCofreLocal();
+  let dek = null;
+  if(raw.crypto){
+    window.__fbCloudCrypto = true;
+    if(!local || !local.recuperacao || local.recuperacao.sal !== raw.crypto.recuperacao.sal){
+      // O cofre da nuvem é o que vale; uma chave local de outro cofre deixa de servir.
+      await window.storage.set(COFRE_KEY, JSON.stringify(cripBlocoNuvem(raw.crypto)));
+      await esquecerDekLocal();
+    }
+    dek = await lerDekLocal();
+    if(!dek){ pedirDesbloqueioNuvem(); return null; }
+  } else {
+    window.__fbCloudCrypto = false;
+    if(local && local.naNuvem){
+      // A criptografia foi removida noutro aparelho: este também deixa de a usar.
+      await removerCriptoLocal();
+      showToast('Criptografia removida noutro aparelho');
+    }
+  }
+  try{
+    const doc = raw.crypto ? await cripDecifrarPayload(raw, dek) : { ...raw };
+    if(raw.arquivo){
+      const arq = await desempacotarArquivo(raw.arquivo, dek);
+      ARQUIVO_LISTAS.forEach(k => { doc[k] = (doc[k] || []).concat(arq[k] || []); });
+    }
+    delete doc.crypto;
+    delete doc.arquivo;
+    return resolveIncomingPayload(doc);
+  }catch(e){
+    if(raw.crypto){
+      await esquecerDekLocal();
+      pedirDesbloqueioNuvem();
+      return null;
+    }
+    throw e;
+  }
+}
+async function reprocessarNuvem(){
+  if(!window.__fbUser) return;
+  try{
+    const raw = await window.fbLoadUserData(window.__fbUser.uid);
+    const remote = await prepararNuvem(raw);
+    if(remote === null) return;
+    const r = await syncWithCloud(remote, { ask: true, stamp: raw && raw.updatedAt });
+    if(r !== 'pending'){
+      await pushToFirestore(false);
+      refreshActiveScreen();
+    }
+  }catch(e){ console.warn('Falha ao reprocessar a nuvem:', e); }
+}
+// Trocar a cópia local dos plaintexts de plataformas extra por chaves aleatórias (o nome não sai na chave).
+async function cripAnonimizarPlataformas(){
+  const mapa = {};
+  (profile.customPlatforms || []).forEach(cp => { mapa[cp.key] = 'custom_' + uid(); });
+  if(Object.keys(mapa).length === 0) return;
+  profile.customPlatforms = profile.customPlatforms.map(cp => ({ ...cp, key: mapa[cp.key] }));
+  Object.keys(monthData).forEach(k => (monthData[k].earnings || []).forEach(e => { if(mapa[e.platform]) e.platform = mapa[e.platform]; }));
+  await persistLocalOnlySilently();
+}
+// Remover a criptografia: pede a senha, grava os dados em claro na nuvem e apaga o cofre deste aparelho.
+function cripPedirRemocao(){
+  openSheet(`
+    <div class="sheet-handle"></div>
+    <div class="sheet-title">Remover criptografia</div>
+    <div class="sheet-sub">Os dados vão ser gravados em claro na nuvem.</div>
+    <div style="font-size:13px;line-height:1.6;margin-bottom:14px;">Para confirmar, escreve a senha. Quem tiver acesso à conta passa a ver os valores, notas e nomes. Os outros aparelhos deixam de usar a criptografia ao sincronizar.</div>
+    <div class="field"><label>Senha</label><input type="password" id="cripRSenha" autocomplete="current-password" /></div>
+    <button class="btn btn-danger-text" onclick="cripRemoverCriptografia()">Remover criptografia</button>
+    <button class="btn btn-ghost" onclick="closeSheet()">Cancelar</button>`);
+}
+async function cripRemoverCriptografia(){
+  const senha = document.getElementById('cripRSenha')?.value || '';
+  const cofre = await lerCofreLocal();
+  if(!cofre || !senha) return;
+  try{ await abrirCofreCripto(cofre, 'senha', senha); }
+  catch(e){ showToast('Senha incorreta'); return; }
+  await removerCriptoLocal();
+  if(window.__fbUser){ await pushToFirestore(true); }
+  closeSheet();
+  showToast('Criptografia removida');
+  renderSettings();
+}
 // ---------------------------------------------------------------
 // MIGRAÇÃO PARA SCHEMA V1 — FASE 1 (dados locais)
 // Cria uma cópia v1 dos dados do aparelho em 'stateV1' e guarda as chaves antigas em
@@ -2268,7 +3095,7 @@ function renderSubscriptionCard(){
     else endDate = new Date(raw);
   }
   if(endDate && isNaN(endDate)) endDate = null;
-  const endStr = endDate ? endDate.toLocaleDateString('pt-BR', { day:'2-digit', month:'long', year:'numeric' }) : null;
+  const endStr = endDate ? endDate.toLocaleDateString(LOCALE(), { day:'2-digit', month:'long', year:'numeric' }) : null;
   const agora = Date.now();
   // O estado pode continuar "active" depois da data de fim (ex.: renovação não processada). Compara sempre com a data de hoje.
   if(endDate && endDate.getTime() <= agora){
@@ -2321,7 +3148,7 @@ function renderReadOnlyBanner(){
     app.prepend(el);
   }
   const end = subscriptionEndDate();
-  const endStr = end ? end.toLocaleDateString('pt-BR', { day:'2-digit', month:'long', year:'numeric' }) : '';
+  const endStr = end ? end.toLocaleDateString(LOCALE(), { day:'2-digit', month:'long', year:'numeric' }) : '';
   const semAssinatura = window.__fbSubscription === null;
   const titulo = semAssinatura ? '⛔ Sem assinatura ativa.' : `⛔ Assinatura expirada${endStr ? ' em ' + endStr : ''}.`;
   el.innerHTML = `<div><strong>${titulo}</strong> Estás em modo só leitura: podes ver os teus dados, mas não registar, editar nem apagar.</div>
@@ -2455,8 +3282,11 @@ async function loadAll(){
     if(unsubUserData) unsubUserData();
     unsubUserData = window.fbListenUserData(uid, (remoteData) => {
       if(window._suppressRemote) return;
-      syncWithCloud(resolveIncomingPayload(remoteData), { ask: false, stamp: remoteData.updatedAt })
-        .then(r => { if(r === 'ok') refreshActiveScreen(); });
+      prepararNuvem(remoteData).then(remote => {
+        if(remote === null) return;
+        return syncWithCloud(remote, { ask: false, stamp: remoteData.updatedAt })
+          .then(r => { if(r === 'ok') refreshActiveScreen(); });
+      });
     });
     if(window.fbListenSubscription){
       if(unsubSubscription) unsubSubscription();
@@ -2640,7 +3470,9 @@ function summarizeState(st){
 async function applyState(st){
   bills = st.bills || [];
   monthData = st.monthData || {};
+  const fotoLocal = profile && profile.photo;
   profile = st.profile || { name: '', photo: null };
+  if(!profile.photo && fotoLocal) profile.photo = fotoLocal;
   if(profile.vehicle) delete profile.vehicle;
   repairTurnoList();
   if(profile.syncUrl) syncUrl = profile.syncUrl;
@@ -2674,7 +3506,7 @@ function askCloudConflict(localSt, cloudSt, stamp){
     window._conflictResolve = resolve;
     window._conflictChoice = null;
     const when = stamp
-      ? new Date(stamp).toLocaleString('pt-BR', { day:'2-digit', month:'2-digit', year:'numeric', hour:'2-digit', minute:'2-digit' })
+      ? new Date(stamp).toLocaleString(LOCALE(), { day:'2-digit', month:'2-digit', year:'numeric', hour:'2-digit', minute:'2-digit' })
       : 'data desconhecida';
     const cartao = (key, titulo, sub, resumo) => `
       <div id="conflictCard_${key}" onclick="selectCloudConflict('${key}')" style="cursor:pointer;border:2px solid var(--line);border-radius:var(--r-lg);padding:14px 16px;margin-bottom:12px;background:#fff;transition:border-color 0.25s ease, box-shadow 0.25s ease;">
@@ -2746,6 +3578,7 @@ async function syncWithCloud(remoteRaw, opts){
     return 'ok';
   }
   if(!hasData(remote)) return 'push';
+  if(!hasLocalData()){ await applyState(remote); await saveSyncBase(remote); return 'ok'; }
   // Dados deste aparelho que ainda não foram sincronizados com esta conta, e a nuvem
   // já tem dados: o utilizador escolhe. Em segundo plano, fica pendente.
   if(!ask) return 'pending';
@@ -2760,8 +3593,11 @@ async function initialCloudSync(uid){
   try{
     const raw = await window.fbLoadUserData(uid);
     let r;
+    let remote = null;
     if(raw){
-      r = await syncWithCloud(resolveIncomingPayload(raw), { ask: true, stamp: raw.updatedAt });
+      remote = await prepararNuvem(raw);
+      if(remote === null){ setSyncStatus('nolink'); return; }
+      r = await syncWithCloud(remote, { ask: true, stamp: raw.updatedAt });
     } else if(hasLocalData()){
       r = 'push';
     } else {
@@ -2775,7 +3611,7 @@ async function initialCloudSync(uid){
       return;
     }
     if(r === 'push'){ await pushToFirestore(true); }
-    else if(stable(currentState()) !== stable(canon(resolveIncomingPayload(raw)))){ await pushToFirestore(false); }
+    else if(stable(currentState()) !== stable(canon(remote))){ await pushToFirestore(false); }
     setSyncStatus('synced');
     refreshActiveScreen();
   }catch(e){
@@ -2788,6 +3624,14 @@ async function initialCloudSync(uid){
 // Grava o estado atual na conta Firebase. Por omissão, funde primeiro com a
 // nuvem; overwrite=true substitui a nuvem (usado quando o utilizador escolhe
 // "manter os deste aparelho" ou ao apagar tudo).
+function avisoLimiteNuvem(){
+  openSheet(`
+    <div class="sheet-handle"></div>
+    <div class="sheet-title">⚠️ Os dados não foram guardados na nuvem</div>
+    <div class="sheet-sub">O documento ultrapassa o limite de 1 MB da nuvem.</div>
+    <div style="font-size:13px;line-height:1.6;margin-bottom:14px;">Os meses com mais de 12 meses já são compactados na nuvem, por isso este limite só é atingido com muito histórico no ano corrente. Os dados continuam neste aparelho. Exporta uma cópia (Você → Exportação de dados → arquivo .json) antes de mais nada.</div>
+    <button class="btn btn-primary" onclick="closeSheet()">Entendi</button>`);
+}
 async function pushToFirestore(overwrite){
   if(!window.__fbUser || basicMode()) return;
   const uid = window.__fbUser.uid;
@@ -2795,18 +3639,40 @@ async function pushToFirestore(overwrite){
     if(!overwrite){
       const raw = await window.fbLoadUserData(uid);
       if(raw){
-        const r = await syncWithCloud(resolveIncomingPayload(raw), { ask: false, stamp: raw.updatedAt });
+        const remote = await prepararNuvem(raw);
+        if(remote === null) return; // cifrado e sem chave neste aparelho: não envia nada
+        const r = await syncWithCloud(remote, { ask: false, stamp: raw.updatedAt });
         if(r === 'pending') return;
       }
     }
     const st = currentState();
-    await window.fbSaveUserData(uid, normalizeToSchemaV1(st));
+    const payload = await prepararParaNuvem(normalizeToSchemaV1(st));
+    if(payload === null) return; // com criptografia ativa e sem chave: não envia em claro
+    const tamanho = new Blob([JSON.stringify(payload)]).size;
+    if(tamanho > LIMITE_NUVEM_BYTES){
+      logSyncEvent('error', 'Dados acima do limite da nuvem: não foram guardados', `${tamanho} bytes`);
+      setSyncStatus('nolink');
+      avisoLimiteNuvem();
+      return;
+    }
+    if(tamanho > LIMITE_NUVEM_BYTES * 0.8 && !window._avisoEspacoMostrado){
+      window._avisoEspacoMostrado = true;
+      showToast('Espaço na nuvem quase cheio: os meses antigos já estão compactados');
+    }
+    await window.fbSaveUserData(uid, payload);
+    const cofreAtual = await lerCofreLocal();
+    if(cofreAtual && !cofreAtual.naNuvem){
+      cofreAtual.naNuvem = true;
+      await window.storage.set(COFRE_KEY, JSON.stringify(cofreAtual));
+    }
     await saveSyncBase(st);
     setSyncStatus('synced');
     await persistLocalOnlySilently();
   }catch(e){
     console.warn('Falha ao gravar no Firestore:', e);
+    logSyncEvent('error', 'Não foi possível guardar na nuvem', e && (e.code || e.message) || '');
     setSyncStatus('nolink');
+    showToast('Não foi possível guardar na nuvem. Os dados ficam neste aparelho');
   }
 }
 
@@ -2950,9 +3816,9 @@ async function pushToCloud(migrationUrl, skipMerge){
 
 function setSyncStatus(state){
   let label, dotClass;
-  if(state === 'saving'){ label = 'salvando…'; dotClass = 'sync-dot'; }
-  else if(state === 'synced'){ label = 'sincronizado'; dotClass = 'sync-dot'; }
-  else { label = 'offline / sem link'; dotClass = 'sync-dot off'; }
+  if(state === 'saving'){ label = tr('sync_salvando'); dotClass = 'sync-dot'; }
+  else if(state === 'synced'){ label = tr('sync_sincronizado'); dotClass = 'sync-dot'; }
+  else { label = tr('sync_offline'); dotClass = 'sync-dot off'; }
   SYNC_PILL_SCREENS.forEach(screen => {
     const dot = document.getElementById('syncDot-' + screen);
     const txt = document.getElementById('syncStatus-' + screen);
@@ -3827,6 +4693,7 @@ function renderSettings(){
   }
   renderSubscriptionCard();
 
+  document.querySelectorAll('#langSeg .seg-opt').forEach(el => el.classList.toggle('active', el.dataset.l === LANG));
   const currentDark = localSettings.darkMode || 'system';
   document.querySelectorAll('#darkModeSeg .seg-opt').forEach(el => el.classList.toggle('active', el.dataset.m === currentDark));
 
@@ -4022,9 +4889,9 @@ async function addCustomPlatform(){
   const input = document.getElementById('newCustomPlatformName');
   const label = (input?.value || '').trim();
   if(!label){ showToast('Digite o nome da plataforma'); return; }
-  const key = 'custom_' + label.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]+/g,'_').replace(/^_+|_+$/g,'') || uid();
   profile.customPlatforms = profile.customPlatforms || [];
-  const existing = profile.customPlatforms.find(cp => cp.key === key);
+  const existing = profile.customPlatforms.find(cp => cp.label.trim().toLowerCase() === label.toLowerCase());
+  const key = existing ? existing.key : 'custom_' + uid();
   if(existing && !existing.archived){ showToast('Essa plataforma já existe'); return; }
   if(existing){ existing.archived = false; existing.label = label; existing.taxed = window._newCustomTaxed === true; }
   else { profile.customPlatforms.push({ key, label, taxed: window._newCustomTaxed === true }); }
@@ -4052,7 +4919,6 @@ async function runDailySummaryCheck(){
   const y = isoDate(addDays(new Date(), -1));
   const items = earningsInRange(y, y);
   const expenses = variableExpensesInRange(y, y);
-  if(!forced && items.length === 0 && expenses.length === 0) return;
   if(forced){
     devForceDailySummary = false;
   } else {
@@ -4061,33 +4927,55 @@ async function runDailySummaryCheck(){
   }
   showDailySummary(y, items, expenses);
 }
-function showDailySummary(y, items, expenses){
-  const apps   = items.filter(e => isTvdePlatform(e.platform)).reduce((s,e) => s + (e.amount||0), 0);
-  const part   = items.filter(e => !isTvdePlatform(e.platform)).reduce((s,e) => s + (e.amount||0), 0);
-  const comb   = combustivelAmount(expenses);
+function ultimoDiaComRegisto(antesDe){
+  let melhor = null;
+  allEarnings().forEach(e => { if(e.date && e.date < antesDe && (!melhor || e.date > melhor)) melhor = e.date; });
+  allVariableExpenses().forEach(x => { const dd = x.date || isoDateFromTs(x.ts); if(dd < antesDe && (!melhor || dd > melhor)) melhor = dd; });
+  return melhor;
+}
+function resumoCartoesHTML(items, expenses){
+  const apps = items.filter(e => isTvdePlatform(e.platform)).reduce((s,e) => s + (e.amount||0), 0);
+  const part = items.filter(e => !isTvdePlatform(e.platform)).reduce((s,e) => s + (e.amount||0), 0);
+  const comb = combustivelAmount(expenses);
   const varOther = expenses.filter(e => e.category !== 'combustivel').reduce((s,e) => s + (e.amount||0), 0);
   const iva = ivaAmount(apps), com = comissaoAmount(apps);
   const liquido = (apps - iva - com) - comb + part;
   const lucro = liquido - varOther;
   const km = sumKm(items);
-  const dateStr = dateFromIso(y).toLocaleDateString('pt-BR', { weekday:'long', day:'2-digit', month:'long' });
-  const dateCap = dateStr.charAt(0).toUpperCase() + dateStr.slice(1);
-  openSheet(`
-    <div class="sheet-handle"></div>
-    <div class="sheet-title">☀️ Resumo de ontem</div>
-    <div class="sheet-sub">${escapeHtml(dateCap)}</div>
+  return `
     <div class="stat-cards">
       <div class="stat-card"><div class="stat-card-label">🚖 Bruto TVDE</div><div class="stat-card-value">${fmt(apps)}</div></div>
       <div class="stat-card"><div class="stat-card-label">🚘 Pessoal</div><div class="stat-card-value">${fmt(part)}</div></div>
       ${comb > 0 ? `<div class="stat-card"><div class="stat-card-label">⛽ Combustível</div><div class="stat-card-value negative">− ${fmt(comb)}</div></div>` : ''}
       ${varOther > 0 ? `<div class="stat-card"><div class="stat-card-label">Outras despesas</div><div class="stat-card-value negative">− ${fmt(varOther)}</div></div>` : ''}
-      ${showKm() ? `<div class="stat-card"><div class="stat-card-label">🛣️ Km</div><div class="stat-card-value">${km.toLocaleString('pt-BR',{maximumFractionDigits:1})} km</div></div>` : ''}
+      ${showKm() ? `<div class="stat-card"><div class="stat-card-label">🛣️ Km</div><div class="stat-card-value">${km.toLocaleString(LOCALE(),{maximumFractionDigits:1})} km</div></div>` : ''}
       <div class="stat-card" style="border-color:var(--vault);grid-column:1/-1;">
         <div class="stat-card-label">💰 Lucro do dia</div>
         <div class="stat-card-value ${lucro < 0 ? 'negative' : ''}" style="font-size:24px;">${fmt(lucro)}</div>
       </div>
     </div>
-    ${showTurno() ? (turnoBreakdownHTML(items) || '<div class="section-sub" style="font-size:11px;margin-bottom:10px;">Sem turno registado ontem.</div>') : ''}
+    ${showTurno() ? (turnoBreakdownHTML(items) || '<div class="section-sub" style="font-size:11px;margin-bottom:10px;">Sem turno registado neste dia.</div>') : ''}`;
+}
+function showDailySummary(y, items, expenses){
+  const dateStr = dateFromIso(y).toLocaleDateString(LOCALE(), { weekday:'long', day:'2-digit', month:'long' });
+  const dateCap = dateStr.charAt(0).toUpperCase() + dateStr.slice(1);
+  let corpo;
+  if(items.length === 0 && expenses.length === 0){
+    corpo = `<div style="font-size:14px;margin-bottom:14px;">Não houve registos ontem.</div>`;
+    const ult = ultimoDiaComRegisto(y);
+    if(ult){
+      const dt = dateFromIso(ult).toLocaleDateString(LOCALE(), { weekday:'long', day:'2-digit', month:'long' });
+      corpo += `<div class="section-sub" style="margin:6px 0 10px;font-weight:700;">Último resumo: ${escapeHtml(dt)}</div>`
+        + resumoCartoesHTML(earningsInRange(ult, ult), variableExpensesInRange(ult, ult));
+    }
+  } else {
+    corpo = resumoCartoesHTML(items, expenses);
+  }
+  openSheet(`
+    <div class="sheet-handle"></div>
+    <div class="sheet-title">☀️ Resumo de ontem</div>
+    <div class="sheet-sub">${escapeHtml(dateCap)}</div>
+    ${corpo}
     <div class="section-sub" style="font-size:11px;margin-bottom:14px;">Não inclui despesas fixas, como nas vistas de dia.</div>
     <button class="btn btn-primary" onclick="closeSheet()">Fechar</button>
   `);
@@ -4251,6 +5139,7 @@ let syncUrlSaveTimer = null;
 // Só com sessão. Envia o estado atual; não lê nem funde nada. Não corre
 // enquanto houver uma decisão pendente sobre os dados.
 async function backupToSheetIfDue(){
+  if(await lerCofreLocal()) return; // com criptografia ativa, nada vai em claro para a planilha
   if(!window.__fbUser || basicMode() || !syncUrl || window._syncPendingDecision) return;
   const last = Number(localSettings.lastSheetBackup) || 0;
   if(Date.now() - last < 24 * 60 * 60 * 1000) return;
@@ -4520,7 +5409,7 @@ async function performReset(scope){
 async function performResetInner(scope){
   const eraseData = scope === 'data' || scope === 'all';
   const eraseSettings = scope === 'settings' || scope === 'all';
-  if(eraseData){ bills = []; monthData = {}; }
+  if(eraseData){ bills = []; monthData = {}; try{ await window.storage.delete(COFRE_KEY); await window.storage.delete('dekAparelho'); }catch(e){} }
   if(eraseSettings){
     const keepIdentity = scope === 'settings';
     profile = { name: keepIdentity ? (profile.name || '') : '', photo: keepIdentity ? (profile.photo || null) : null };
@@ -4597,7 +5486,7 @@ function exportSettingsJson(){
 function lastNMonthKeys(n){ return Object.keys(monthData).sort().slice(-n); }
 function monthShortLabel(key){
   const [y,m] = key.split('-').map(Number);
-  const shortMonth = new Date(y, m-1, 1).toLocaleDateString('pt-BR', { month:'short' }).replace('.','');
+  const shortMonth = new Date(y, m-1, 1).toLocaleDateString(LOCALE(), { month:'short' }).replace('.','');
   return `${shortMonth} ${String(y).slice(2)}`;
 }
 function chartBoxWrap(title, sub, inner){
@@ -4689,7 +5578,7 @@ function kmStatsHTML(items, lucro){
   const porKm = lucro / km;
   return chartBoxWrap('🛣️ Quilometragem', 'Lucro do período ÷ km registados', `
     <div class="stat-cards" style="margin-bottom:0;">
-      <div class="stat-card"><div class="stat-card-label">Km registados</div><div class="stat-card-value">${km.toLocaleString('pt-BR',{maximumFractionDigits:1})} km</div></div>
+      <div class="stat-card"><div class="stat-card-label">Km registados</div><div class="stat-card-value">${km.toLocaleString(LOCALE(),{maximumFractionDigits:1})} km</div></div>
       <div class="stat-card"><div class="stat-card-label">Lucro por km</div><div class="stat-card-value ${porKm<0?'negative':''}">${fmt(porKm)}</div></div>
     </div>`);
 }
@@ -4729,7 +5618,7 @@ function deltaHTML(cur, prev){
   if(!prev) return '<span style="color:var(--text-muted);">sem base de comparação</span>';
   const pct = ((cur - prev) / Math.abs(prev)) * 100;
   const up = pct >= 0;
-  return `<span style="color:${up ? 'var(--vault-light)' : 'var(--terracotta)'};font-weight:700;">${up ? '▲' : '▼'} ${Math.abs(pct).toLocaleString('pt-BR', { maximumFractionDigits: 0 })}%</span>`;
+  return `<span style="color:${up ? 'var(--vault-light)' : 'var(--terracotta)'};font-weight:700;">${up ? '▲' : '▼'} ${Math.abs(pct).toLocaleString(LOCALE(), { maximumFractionDigits: 0 })}%</span>`;
 }
 // Número principal de cada ecrã (destaque único). Usa o mesmo estilo do cartão de lucro da aba Lucro.
 function heroValorHTML(rotulo, valor, sub, cor){
@@ -4901,7 +5790,7 @@ function renderStatsDay(){
   const isToday = dateIso === isoDate(new Date());
   const [dy,dm,dd] = dateIso.split('-').map(Number);
   const dateObj = new Date(dy,dm-1,dd);
-  const dayLabel  = isToday ? 'Hoje' : dateObj.toLocaleDateString('pt-BR',{weekday:'long',day:'2-digit',month:'long'});
+  const dayLabel  = isToday ? 'Hoje' : dateObj.toLocaleDateString(LOCALE(),{weekday:'long',day:'2-digit',month:'long'});
   const yearLabel = isToday ? String(dy) : String(dy);
   document.getElementById('statsLabel').textContent = dayLabel;
   const yearEl = document.getElementById('statsLabelYear');
@@ -4954,7 +5843,7 @@ function renderStatsWeek(){
   const startIso = isoDate(start), endIso = isoDate(end);
   const [sy,sm,sd] = startIso.split('-').map(Number);
   const [ey,em,ed] = endIso.split('-').map(Number);
-  const fmtD = d => new Date(...d).toLocaleDateString('pt-BR',{day:'2-digit',month:'short'});
+  const fmtD = d => new Date(...d).toLocaleDateString(LOCALE(),{day:'2-digit',month:'short'});
   const yearSuffix = sy !== ey ? `${sy}–${ey}` : String(sy);
   document.getElementById('statsLabel').textContent = `${fmtD([sy,sm-1,sd])} – ${fmtD([ey,em-1,ed])}`;
   const yearEl = document.getElementById('statsLabelYear');
@@ -5013,7 +5902,7 @@ function renderStatsWeek(){
     const dComb = expenses.filter(x=>(x.date||isoDateFromTs(x.ts))===dIso&&x.category==='combustivel').reduce((s,x)=>s+(x.amount||0),0);
     const dVar  = expenses.filter(x=>(x.date||isoDateFromTs(x.ts))===dIso&&x.category!=='combustivel').reduce((s,x)=>s+(x.amount||0),0);
     const dDesp = dComb + ivaAmount(dTVDE) + comissaoAmount(dTVDE) + dVar;
-    dayLabels.push(new Date(d.getFullYear(),d.getMonth(),d.getDate()).toLocaleDateString('pt-BR',{weekday:'narrow'}));
+    dayLabels.push(new Date(d.getFullYear(),d.getMonth(),d.getDate()).toLocaleDateString(LOCALE(),{weekday:'narrow'}));
     dayDespesas.push(Math.max(0, dDesp));
     dayGanhos.push(Math.max(0, dTVDE + dPart));
   }
@@ -5034,7 +5923,7 @@ function renderStatsWeek(){
 
 function renderStatsMonth(){
   const [curY, curM] = currentMonthKey.split('-').map(Number);
-  const monthNameYear = new Date(curY, curM-1, 1).toLocaleDateString('pt-BR', { month:'long', year:'numeric' });
+  const monthNameYear = new Date(curY, curM-1, 1).toLocaleDateString(LOCALE(), { month:'long', year:'numeric' });
   document.getElementById('statsLabelMes').textContent = monthNameYear;
   const box = document.getElementById('statsContent');
   const monthKeys = lastNMonthKeys(6);
@@ -5196,7 +6085,7 @@ function renderStatsMonth(){
     });
     const mLabels = monthKeys.map(k => {
       const [y,m] = k.split('-').map(Number);
-      const shortMonth = new Date(y,m-1,1).toLocaleDateString('pt-BR',{month:'short'}).replace('.','');
+      const shortMonth = new Date(y,m-1,1).toLocaleDateString(LOCALE(),{month:'short'}).replace('.','');
       return `${shortMonth} ${String(y).slice(2)}`;
     });
     html += chartBoxWrap('Ganhos vs. despesas — últimos meses', 'Verde = ganhos · Vermelho = despesas', groupedBarSVG(mLabels, [
@@ -5316,7 +6205,7 @@ function renderStatsYear(){
 
   const monthLabels = monthKeysInYear.map(k => {
     const [y,m] = k.split('-').map(Number);
-    return new Date(y,m-1,1).toLocaleDateString('pt-BR',{month:'short'}).replace('.','');
+    return new Date(y,m-1,1).toLocaleDateString(LOCALE(),{month:'short'}).replace('.','');
   });
   const monthGanhos = entries.map(e => e.earnings.reduce((s,x)=>s+(x.amount||0),0));
   const monthDespesas = entries.map(e => {
@@ -5354,7 +6243,7 @@ function renderStatsBasic(){
   document.getElementById('statsYearNav').style.display = 'none';
   document.getElementById('statsDayWeekNav').style.display = 'none';
   const [curY, curM] = currentMonthKey.split('-').map(Number);
-  document.getElementById('statsLabelMes').textContent = new Date(curY, curM - 1, 1).toLocaleDateString('pt-BR', { month:'long', year:'numeric' });
+  document.getElementById('statsLabelMes').textContent = new Date(curY, curM - 1, 1).toLocaleDateString(LOCALE(), { month:'long', year:'numeric' });
   const entry = ensureMonthEntry(currentMonthKey);
   const apps = entry.earnings.filter(e => isTvdePlatform(e.platform)).reduce((s,e) => s + (e.amount||0), 0);
   const part = entry.earnings.filter(e => !isTvdePlatform(e.platform)).reduce((s,e) => s + (e.amount||0), 0);
@@ -5456,7 +6345,7 @@ function renderLucroDay(){
   const isToday = dateIso === isoDate(new Date());
   const [dy,dm,dd] = dateIso.split('-').map(Number);
   const dateObj = new Date(dy,dm-1,dd);
-  document.getElementById('lucroLabel').textContent = isToday ? 'Hoje' : dateObj.toLocaleDateString('pt-BR',{weekday:'long',day:'2-digit',month:'long'});
+  document.getElementById('lucroLabel').textContent = isToday ? 'Hoje' : dateObj.toLocaleDateString(LOCALE(),{weekday:'long',day:'2-digit',month:'long'});
   const yearEl = document.getElementById('lucroLabelYear');
   if(yearEl) yearEl.textContent = String(dy);
   const items    = earningsInRange(dateIso, dateIso);
@@ -5488,7 +6377,7 @@ function renderLucroWeek(){
   const startIso = isoDate(start), endIso = isoDate(end);
   const [sy,sm,sd] = startIso.split('-').map(Number);
   const [ey,em,ed] = endIso.split('-').map(Number);
-  const fmtD = ([y,m,d]) => new Date(y,m-1,d).toLocaleDateString('pt-BR',{day:'2-digit',month:'short'});
+  const fmtD = ([y,m,d]) => new Date(y,m-1,d).toLocaleDateString(LOCALE(),{day:'2-digit',month:'short'});
   document.getElementById('lucroLabel').textContent = `${fmtD([sy,sm,sd])} – ${fmtD([ey,em,ed])}`;
   const yearEl = document.getElementById('lucroLabelYear');
   if(yearEl) yearEl.textContent = sy !== ey ? `${sy}–${ey}` : String(sy);
@@ -5528,7 +6417,7 @@ function renderLucroWeek(){
 
 function renderLucroMonth(){
   const [curY, curM] = currentMonthKey.split('-').map(Number);
-  const monthNameYear = new Date(curY, curM-1, 1).toLocaleDateString('pt-BR', { month:'long', year:'numeric' });
+  const monthNameYear = new Date(curY, curM-1, 1).toLocaleDateString(LOCALE(), { month:'long', year:'numeric' });
   document.getElementById('lucroLabelMes').textContent = monthNameYear;
   const box   = document.getElementById('lucroContent');
   const entry = ensureMonthEntry(currentMonthKey);
@@ -5589,11 +6478,65 @@ function renderLucro(){
 }
 
 // --- SHEETS ---
-function openSheet(html){ document.getElementById('sheet').innerHTML = html; document.getElementById('overlay').classList.add('show'); }
+let closeTimer = null;
+function openSheet(html){
+  clearTimeout(closeTimer);
+  const ov = document.getElementById('overlay');
+  const sh = document.getElementById('sheet');
+  ov.classList.remove('closing');
+  sh.style.transform = ''; sh.style.transition = '';
+  sh.innerHTML = html;
+  ov.classList.add('show');
+}
 function closeSheet(){
-  document.getElementById('overlay').classList.remove('show');
+  const ov = document.getElementById('overlay');
+  const sh = document.getElementById('sheet');
+  if(ov.classList.contains('show') && !ov.classList.contains('closing')){
+    ov.classList.add('closing');
+    clearTimeout(closeTimer);
+    closeTimer = setTimeout(() => {
+      ov.classList.remove('show', 'closing');
+      sh.style.transform = ''; sh.style.transition = '';
+    }, 270);
+  }
   if(window._conflictResolve){ const r = window._conflictResolve; window._conflictResolve = null; r(null); }
 }
+// Arrastar a alça para baixo fecha a folha (passa de ~90 px ou é um gesto rápido); senão volta ao lugar.
+(function setupSheetDrag(){
+  const sh = document.getElementById('sheet');
+  let d = null;
+  sh.addEventListener('pointerdown', e => {
+    const h = e.target.closest && e.target.closest('.sheet-handle');
+    if(!h) return;
+    d = { y: e.clientY, last: e.clientY, dy: 0, v: 0, lt: performance.now(), id: e.pointerId };
+    sh.style.transition = 'none';
+    try{ h.setPointerCapture(e.pointerId); }catch(_){}
+    e.preventDefault();
+  });
+  sh.addEventListener('pointermove', e => {
+    if(!d) return;
+    const now = performance.now();
+    const dt = Math.max(1, now - d.lt);
+    d.v = (e.clientY - d.last) / dt;
+    d.last = e.clientY; d.lt = now;
+    d.dy = Math.max(0, e.clientY - d.y);
+    sh.style.transform = 'translateY(' + d.dy + 'px)';
+  });
+  const fim = (cancelado) => {
+    if(!d) return;
+    const dy = d.dy, v = d.v;
+    d = null;
+    sh.style.transition = 'transform 0.26s cubic-bezier(.4,0,.2,1)';
+    if(!cancelado && (dy > 90 || v > 0.6)){
+      sh.style.transform = 'translateY(100%)';
+      closeSheet();
+    } else {
+      sh.style.transform = '';
+    }
+  };
+  sh.addEventListener('pointerup', () => fim(false));
+  sh.addEventListener('pointercancel', () => fim(true));
+})();
 function closeSheetOnBackdrop(e){ if(e.target.id === 'overlay') closeSheet(); }
 
 // --- MÊS navigation / picker ---
@@ -5620,7 +6563,7 @@ function openMonthPicker(){
 function changePickerYear(delta){ pickerYear += delta; renderMonthPicker(); }
 function renderMonthPicker(){
   const [curY, curM] = currentMonthKey.split('-').map(Number);
-  const monthNames = Array.from({length:12}, (_,i) => new Date(2000,i,1).toLocaleDateString('pt-BR',{month:'short'}));
+  const monthNames = Array.from({length:12}, (_,i) => new Date(2000,i,1).toLocaleDateString(LOCALE(),{month:'short'}));
   const cells = monthNames.map((label, i) => {
     const m = i+1;
     const isCurrent  = (pickerYear === curY && m === curM);
@@ -5648,8 +6591,8 @@ function pickMonth(key){
 function updateMonthHint(){
   const [y,m] = currentMonthKey.split('-').map(Number);
   let py = y, pm = m - 1; if(pm === 0){ pm = 12; py = y - 1; }
-  const prevLabel = new Date(py, pm-1, 1).toLocaleDateString('pt-BR', { month:'long' });
-  const currLabel = new Date(y, m-1, 1).toLocaleDateString('pt-BR', { month:'long' });
+  const prevLabel = new Date(py, pm-1, 1).toLocaleDateString(LOCALE(), { month:'long' });
+  const currLabel = new Date(y, m-1, 1).toLocaleDateString(LOCALE(), { month:'long' });
   document.getElementById('monthHintMes').textContent = `recebi em ${prevLabel} para usar em ${currLabel}`;
 }
 
@@ -5811,11 +6754,18 @@ function basicLimitBlocked(kind, adding){
 function showWelcomeSheet(){
   openSheet(`
     <div class="sheet-handle"></div>
-    <div class="sheet-title">Bem-vindo ao Corrida+ 👋</div>
-    <div class="sheet-sub">Controla os teus ganhos, despesas e lucro.</div>
-    <div style="font-size:13px;line-height:1.6;margin-bottom:14px;">Entra com a tua conta Google para sincronizar os teus dados e desbloquear todas as opções.<br><br>Sem login, podes usar o modo básico: até 5 ganhos, 5 despesas variáveis e 5 despesas fixas, com as configurações bloqueadas.</div>
-    <button class="btn btn-primary" onclick="welcomeChoice(true)">Entrar com Google</button>
-    <button class="btn btn-ghost" onclick="welcomeChoice(false)">Continuar em modo básico</button>
+    <div data-welcome="1">
+      <div class="sheet-title">${tr('welcome_titulo')}</div>
+      <div class="sheet-sub">${tr('welcome_sub')}</div>
+      <div class="seg" style="margin-bottom:14px;">
+        <div class="seg-opt ${LANG === 'pt' ? 'active' : ''}" onclick="setIdioma('pt')">🇵🇹 Português</div>
+        <div class="seg-opt ${LANG === 'en' ? 'active' : ''}" onclick="setIdioma('en')">🇬🇧 English</div>
+        <div class="seg-opt ${LANG === 'fr' ? 'active' : ''}" onclick="setIdioma('fr')">🇫🇷 Français</div>
+      </div>
+      <div style="font-size:13px;line-height:1.6;margin-bottom:14px;">${tr('welcome_corpo')}</div>
+      <button class="btn btn-primary" onclick="welcomeChoice(true)">${tr('welcome_entrar')}</button>
+      <button class="btn btn-ghost" onclick="welcomeChoice(false)">${tr('welcome_basico')}</button>
+    </div>
   `);
 }
 function showUpdateSheet(remoteVersion){
@@ -5935,8 +6885,8 @@ function platformLabel(platform){
   if(custom) return custom.label;
   return 'Outros';
 }
-function weekdayLabel(d){ return d.toLocaleDateString('pt-BR', { weekday:'short' }).replace('.',''); }
-function dayMonthLabel(d){ return d.toLocaleDateString('pt-BR', { day:'2-digit', month:'short' }).replace('.',''); }
+function weekdayLabel(d){ return d.toLocaleDateString(LOCALE(), { weekday:'short' }).replace('.',''); }
+function dayMonthLabel(d){ return d.toLocaleDateString(LOCALE(), { day:'2-digit', month:'short' }).replace('.',''); }
 
 // --- GANHOS SCREEN ---
 // Transição do conteúdo ao trocar de vista ou de período (mesmo deslize das abas).
@@ -6074,7 +7024,7 @@ function renderGanhosDay(){
   const dateIso = isoDate(ganhosRefDate);
   const isToday = dateIso === isoDate(new Date());
   document.getElementById('monthLabel').textContent = isToday ? 'Hoje' : `${weekdayLabel(ganhosRefDate)}, ${dayMonthLabel(ganhosRefDate)}`;
-  document.getElementById('monthHint').textContent = ganhosRefDate.toLocaleDateString('pt-BR', { day:'2-digit', month:'long', year:'numeric' });
+  document.getElementById('monthHint').textContent = ganhosRefDate.toLocaleDateString(LOCALE(), { day:'2-digit', month:'long', year:'numeric' });
   const t = document.getElementById('incomeSectionTitle'); if(t) t.textContent = 'Ganhos do dia';
   const btn = document.getElementById('noIncomeAddBtn'); if(btn) btn.textContent = '+ Adicionar ganho do dia';
   const items = earningsInRange(dateIso, dateIso).sort((a,b)=>b.ts-a.ts);
@@ -7031,7 +7981,7 @@ function renderSyncLog(){
   const colorFor = { success: 'var(--vault-light)', error: 'var(--terracotta)', timeout: '#C97259', info: 'var(--text-muted)' };
   box.innerHTML = syncLog.map(entry => {
     const d = new Date(entry.ts);
-    const time = d.toLocaleString('pt-BR', { day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit', second:'2-digit' });
+    const time = d.toLocaleString(LOCALE(), { day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit', second:'2-digit' });
     return `<div style="padding:9px 10px;border-bottom:1px solid var(--line);font-size:12px;">
       <div style="display:flex;justify-content:space-between;gap:8px;">
         <span style="color:${colorFor[entry.type]||'var(--ink)'};font-weight:700;">${iconFor[entry.type]||'•'} ${escapeHtml(entry.message)}</span>
@@ -7277,7 +8227,11 @@ function showToast(msg){
 
 // --- INIT ---
 window.addEventListener('resize', () => positionTabPill());
+aplicarIdioma();
 buildTabOverlay();
+if(LANG !== 'pt'){
+  carregarIdioma(LANG).then(ok => { if(!ok){ LANG = 'pt'; } aplicarIdioma(); rebuildTabOverlay(); });
+}
 if(window.matchMedia){
   window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
     if((localSettings.darkMode || 'system') === 'system') applyDarkModeClass();
