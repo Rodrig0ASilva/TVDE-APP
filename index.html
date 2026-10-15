@@ -913,8 +913,8 @@ body.dark #readOnlyBanner { background: #3A2520 !important; }
 body.glass #readOnlyBanner { background: #F7E6DF !important; }
 body.glass.dark #readOnlyBanner { background: #3A2520 !important; }
 /* Folhas: mais opacas com o efeito transparente; fecho animado (desce e desaparece); alça arrastável */
-body.glass .sheet { background: rgba(246,239,226, min(0.97, calc(0.96 * var(--gl-k)))); }
-body.glass.dark .sheet { background: rgba(26,26,33, min(0.97, calc(0.96 * var(--gl-k)))); }
+body.glass .sheet { background: rgba(246,239,226, 0.96); }
+body.glass.dark .sheet { background: rgba(26,26,33, 0.96); }
 .overlay.closing { opacity: 0; transition: opacity 0.26s ease; }
 .overlay.closing .sheet { transform: translateY(100%); transition: transform 0.26s cubic-bezier(.4,0,.2,1); }
 @media (min-width: 860px) {
@@ -1327,7 +1327,7 @@ body.glass.dark .sheet { background: rgba(26,26,33, min(0.97, calc(0.96 * var(--
         <div class="month-nav-btn" onclick="closeAparencia()" style="cursor:pointer;">
           <svg viewBox="0 0 24 24" width="16" height="16" fill="none"><path d="M15 18l-6-6 6-6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
         </div>
-        <div class="screen-title">Aparência</div>
+        <div class="screen-title" data-i18n="aparencia">Aparência</div>
       </div>
     </div>
     <div class="section-sub" style="margin-bottom:10px;"><span data-i18n="so_aparelho">Só neste aparelho. Não sincroniza com a conta.</span></div>
@@ -2108,7 +2108,57 @@ const I18N = {
     m_tvde:"TVDE",
     m_recebi_em:"recebi em",
     m_para_usar_em:"para usar em",
-    m_meta_ajuda:"Comparado com o lucro líquido do mês/semana em curso. Em branco (ou 0) usa as despesas fixas do período como mínimo. Na semana entram despesas fixas semanais (valor cheio) e diárias (só nos dias com registro) — as mensais não são divididas, ficam só na visão Mês."
+    m_meta_ajuda:"Comparado com o lucro líquido do mês/semana em curso. Em branco (ou 0) usa as despesas fixas do período como mínimo. Na semana entram despesas fixas semanais (valor cheio) e diárias (só nos dias com registro) — as mensais não são divididas, ficam só na visão Mês.",
+    m_se_escolheres:"Se escolheres um período, as Estatísticas mostram qual rende mais para ti.",
+    m_iva_auto:"IVA aplicado automaticamente. Combustível descontado nas Despesas.",
+    m_fixas_repetem:"Despesas que se repetem. Serão descontadas automaticamente do seu lucro.",
+    m_ph_fixa:"ex: Financiamento, Seguro, Segurança Social",
+    m_emoji:"Emoji",
+    m_nome:"Nome",
+    m_intensidade:"Intensidade",
+    m_mais_transp:"Mais transparente",
+    m_mais_opaco:"Mais opaco",
+    m_padrao:"Padrão",
+    m_opaco:"Opaco",
+    m_transparente:"Transparente",
+    m_imagem_fundo_desc:"Mostra a imagem atrás da app. Desligada, a imagem fica guardada neste aparelho.",
+    m_p1:"Os campos sensíveis (valores, notas e nomes) passam a ser cifrados antes de sair do teu aparelho e de chegarem à nuvem.",
+    m_p3:"Nesta versão, os dados guardados no próprio aparelho não ficam cifrados. A encriptação protege a nuvem.",
+    m_p4:"Se esqueceres a senha, as respostas e a chave de recuperação, os dados não se recuperam. A Corrida+ não tem forma de os recuperar.",
+    m_p5:"Quem tiver a chave de recuperação, ou souber as respostas, pode aceder aos dados. Guarda a chave com cuidado.",
+    m_p6:"As respostas funcionam como uma segunda chave. Escolhe respostas difíceis de adivinhar: respostas curtas ou comuns são fáceis de descobrir se os dados forem roubados.",
+    m_p7a:"Responsabilidade",
+    m_p7b:"a Corrida+ não se responsabiliza por perda de dados ou acessos indevidos decorrentes desta opção. És tu o responsável pela senha, pelas respostas e pela chave de recuperação.",
+    m_resp_perdas:"A Corrida+ não se responsabiliza por perdas ou acessos indevidos.",
+    m_conflito_texto:"A tua conta já tem dados na nuvem, e este aparelho tem dados que ainda não foram sincronizados com ela. Escolhe qual manter: o outro é substituído.",
+    m_sem_dados_suf:"Ainda não há dados suficientes. Use o app por um tempo e volte aqui 📊",
+    m_qr_aviso:"Ao entrar noutro aparelho, a app pede a senha ou esta chave, que pode ser lida pelo QR code. Quem tiver esta chave pode aceder aos dados. Guarda a imagem num sítio seguro.",
+    m_export_json:"Cópia completa de dados e configurações, para guardar ou transferir para outro aparelho.",
+    m_dados_enc_log:"Dados encriptados, senha guardada não bateu — a pedir desbloqueio",
+    m_registar_sem_limite:"Entra com a tua conta Google para registar sem limite e desbloquear as configurações.",
+    m_perguntas_texto:"Escolhe as perguntas e escreve as respostas. Sem limite de tamanho, mas quanto mais difíceis de adivinhar, mais segura fica a tua conta.",
+    m_espaco_quase:"Espaço na nuvem quase cheio: os meses antigos já estão compactados",
+    m_sem_chave_aparelho:"Este aparelho ainda não tem a chave. Escolhe uma forma de entrar.",
+    m_basico_graficos:"Modo básico. Entra com a tua conta Google para ver gráficos, turnos, km e metas.",
+    m_minimo_senha:"Mínimo 8 caracteres, com pelo menos uma letra maiúscula e um caractere especial (ex.: ! @ # $ %).",
+    m_nao_guardou_nuvem:"Não foi possível guardar na nuvem. Os dados ficam neste aparelho",
+    m_bio_erro:"Não foi possível usar a biometria. Confirme com a senha para continuar.",
+    m_sem_recuperar:"Não é possível recuperar os dados sem a senha, a chave ou as respostas.",
+    m_campos_cifrados:"Os campos sensíveis ficam cifrados antes de sair do teu aparelho. Cada aparelho novo pede a senha ou a chave de recuperação.",
+    m_meses_compactados:"Os meses com mais de 12 meses já são compactados na nuvem, por isso este limite só é atingido com muito histórico no ano corrente. Os dados continuam neste aparelho. Exporta uma cópia (Você → Exportação de dados → arquivo .json) antes de mais nada.",
+    m_export_irs:"Para a declaração de IRS: ganhos, despesas, despesas fixas e resumo mensal.",
+    m_confirmar_senha:"Para confirmar, escreve a senha. Quem tiver acesso à conta passa a ver os valores, notas e nomes. Os outros aparelhos deixam de usar a criptografia ao sincronizar.",
+    m_quem_tiver:"Quem a tiver pode aceder aos dados. Guarda-a num sítio seguro.",
+    m_remover_plataforma:"Remover esta plataforma? Ganhos já registados com ela continuam guardados, só deixa de aparecer como opção nova.",
+    m_sem_login_atualiza:"Sem login, a app pode demorar a atualizar neste aparelho. Entra com a tua conta Google para receberes as atualizações automaticamente.",
+    m_dividido_semanas:"dividido pelas semanas do mês",
+    m_reset_dados_desc:"ganhos, despesas variáveis, despesas fixas e o histórico, neste aparelho e na nuvem. As configurações, o nome e a foto são mantidos.",
+    m_reset_cfg_desc:"tema, IVA, comissão, metas, plataformas extra, opcionais, resumo de ontem, encriptação e biometria, neste aparelho e na nuvem. Os dados, o nome e a foto são mantidos.",
+    m_apagar_tudo_desc:"todos os dados, todas as configurações, o nome, a foto e o endereço da planilha de sincronização, neste aparelho e na nuvem. Também sai da conta Google neste aparelho. A assinatura não é afetada: continua ativa na conta e volta a aparecer ao entrar de novo.",
+    m_tudo_1a_semana2:"tudo na 1ª semana do mês",
+    m_migracao_enviada:"✅ URL de migração enviada — os dispositivos vão migrar ao sincronizar",
+    m_biblioteca_erro:"❌ Biblioteca de exportação não carregou — verifica a ligação à internet",
+    m_sub_limite:"Sem assinatura ativa: limite de 5 ganhos, 5 despesas variáveis e 5 despesas fixas, e as configurações ficam bloqueadas. Ativa a assinatura para desbloquear tudo."
   }
 };
 // Corrida+ — lógica do app.
@@ -2117,7 +2167,7 @@ const I18N = {
 // Esquema de versão: de volta ao pré-1.0 (0.x.x) — a v1.0.0 fica
 // reservada para o lançamento com assinatura paga completa. A numeração
 // 4.x.x usada temporariamente para a integração Firebase foi abandonada.
-const APP_VERSION = '0.172';
+const APP_VERSION = '0.174';
 
 // ---------------------------------------------------------------
 // IDIOMA — português (pt) e inglês (en). Escolha guardada neste aparelho (localSettings.lang).
@@ -2460,7 +2510,7 @@ async function _doCloudSync(attempt) {
           await finishCloudSync(decoded);
           return;
         }catch(e){
-          logSyncEvent('info', 'Dados encriptados, senha guardada não bateu — a pedir desbloqueio', `${elapsedMs}ms`);
+          logSyncEvent('info', tr('m_dados_enc_log'), `${elapsedMs}ms`);
           pendingEncryptedPayload = data;
           openUnlockSheet();
           return;
@@ -2722,13 +2772,13 @@ function cripGuardarRisco(){
     <div class="sheet-title">${tr('cripto_dados')}</div>
     <div class="sheet-sub">${tr('m_ler_atencao')}</div>
     <div style="font-size:13px;line-height:1.6;margin-bottom:14px;">
-      <p style="margin:0 0 10px;">Os campos sensíveis (valores, notas e nomes) passam a ser cifrados antes de sair do teu aparelho e de chegarem à nuvem.</p>
+      <p style="margin:0 0 10px;">${tr('m_p1')}</p>
       <p style="margin:0 0 10px;">${tr('m_cada_aparelho')}</p>
-      <p style="margin:0 0 10px;">Nesta versão, os dados guardados no próprio aparelho não ficam cifrados. A encriptação protege a nuvem.</p>
-      <p style="margin:0 0 10px;">Se esqueceres a senha, as respostas e a chave de recuperação, os dados não se recuperam. A Corrida+ não tem forma de os recuperar.</p>
-      <p style="margin:0 0 10px;">Quem tiver a chave de recuperação, ou souber as respostas, pode aceder aos dados. Guarda a chave com cuidado.</p>
-      <p style="margin:0 0 10px;">As respostas funcionam como uma segunda chave. Escolhe respostas difíceis de adivinhar: respostas curtas ou comuns são fáceis de descobrir se os dados forem roubados.</p>
-      <p style="margin:0;"><strong>Responsabilidade:</strong> a Corrida+ não se responsabiliza por perda de dados ou acessos indevidos decorrentes desta opção. És tu o responsável pela senha, pelas respostas e pela chave de recuperação.</p>
+      <p style="margin:0 0 10px;">${tr('m_p3')}</p>
+      <p style="margin:0 0 10px;">${tr('m_p4')}</p>
+      <p style="margin:0 0 10px;">${tr('m_p5')}</p>
+      <p style="margin:0 0 10px;">${tr('m_p6')}</p>
+      <p style="margin:0;"><strong>${tr('m_p7a')}:</strong> ${tr('m_p7b')}</p>
     </div>
     <label style="display:flex;gap:10px;align-items:flex-start;font-size:13px;line-height:1.5;margin-bottom:16px;cursor:pointer;">
       <input type="checkbox" id="cripAceito" onchange="document.getElementById('cripContinuar').disabled = !this.checked" style="margin-top:3px;" />
@@ -2747,7 +2797,7 @@ async function openCriptografiaSheet(){
       <div class="sheet-handle"></div>
       <div class="sheet-title">${tr('m_cripto_ativa')}</div>
       <div class="sheet-sub">${data ? 'Ativada em ' + escapeHtml(data) : tr('ativa_aparelho')}</div>
-      <div style="font-size:13px;line-height:1.6;margin-bottom:14px;">Os campos sensíveis ficam cifrados antes de sair do teu aparelho. Cada aparelho novo pede a senha ou a chave de recuperação.</div>
+      <div style="font-size:13px;line-height:1.6;margin-bottom:14px;">${tr('m_campos_cifrados')}</div>
       <button class="btn theme-card" onclick="cripEsquecerAqui()" style="border:1.5px solid var(--line);color:var(--ink);">${tr('m_esquecer_chave')}</button>
       <button class="btn theme-card" onclick="cripPedirRemocao()" style="border:1.5px solid var(--line);color:var(--terracotta);">${tr('m_remover_cripto')}</button>
       <button class="btn btn-ghost" onclick="closeSheet()">${tr('fechar')}</button>`);
@@ -2764,7 +2814,7 @@ function cripIrSenha(){
     <div class="sheet-sub">${tr('m_senha_abre')}</div>
     <div class="field"><label>Senha</label><input type="password" id="cripSenha1" autocomplete="new-password" /></div>
     <div class="field"><label>Confirma a senha</label><input type="password" id="cripSenha2" autocomplete="new-password" /></div>
-    <div class="section-sub" style="font-size:11px;margin-bottom:14px;">Mínimo 8 caracteres, com pelo menos uma letra maiúscula e um caractere especial (ex.: ! @ # $ %).</div>
+    <div class="section-sub" style="font-size:11px;margin-bottom:14px;">${tr('m_minimo_senha')}</div>
     <button class="btn btn-primary" onclick="cripValidarSenha()">Continuar</button>
     <button class="btn btn-ghost" onclick="openCriptografiaSheet()">Voltar</button>`);
 }
@@ -2792,7 +2842,7 @@ function cripIrPerguntas(){
   openSheet(`
     <div class="sheet-handle"></div>
     <div class="sheet-title">${tr('m_perguntas_recuperacao')}</div>
-    <div class="sheet-sub">Escolhe as perguntas e escreve as respostas. Sem limite de tamanho, mas quanto mais difíceis de adivinhar, mais segura fica a tua conta.</div>
+    <div class="sheet-sub">${tr('m_perguntas_texto')}</div>
     ${[0,1,2,3].map(bloco).join('')}
     <button class="btn btn-primary" onclick="cripCriarCofre()">${tr('m_criar_cripto')}</button>
     <button class="btn btn-ghost" onclick="cripIrSenha()">Voltar</button>`);
@@ -2842,7 +2892,7 @@ function cripMostrarChave(chave){
     <div class="sheet-sub">${tr('m_guarda_chave')}</div>
     <div id="cripQr" style="display:flex;justify-content:center;align-items:center;min-height:200px;margin-bottom:12px;background:#fff;border-radius:var(--r-md);padding:12px;"></div>
     <div style="font-family:'JetBrains Mono',monospace;font-weight:700;font-size:16px;text-align:center;letter-spacing:0.04em;word-break:break-all;padding:12px;background:var(--cream-2);border-radius:var(--r-md);margin-bottom:12px;user-select:all;">${escapeHtml(chave)}</div>
-    <div style="font-size:12px;line-height:1.6;margin-bottom:14px;">Ao entrar noutro aparelho, a app pede a senha ou esta chave, que pode ser lida pelo QR code. Quem tiver esta chave pode aceder aos dados. Guarda a imagem num sítio seguro.</div>
+    <div style="font-size:12px;line-height:1.6;margin-bottom:14px;">${tr('m_qr_aviso')}</div>
     <button class="btn btn-primary" onclick="cripGuardarImagem()">${tr('m_guardar_imagem')}</button>
     <button class="btn theme-card" onclick="cripPartilharImagem()" style="border:1.5px solid var(--line);color:var(--ink);">📤 Partilhar</button>
     <button class="btn btn-ghost" onclick="cripConcluir()">${tr('m_concluir_guardei')}</button>`);
@@ -2893,9 +2943,9 @@ async function cripGerarImagem(){
   g.font = '26px sans-serif'; g.textAlign = 'left';
   const linhas = [
     'Esta chave permite recuperar os teus dados.',
-    'Quem a tiver pode aceder aos dados. Guarda-a num sítio seguro.',
-    'Não é possível recuperar os dados sem a senha, a chave ou as respostas.',
-    'A Corrida+ não se responsabiliza por perdas ou acessos indevidos.',
+    tr('m_quem_tiver'),
+    tr('m_sem_recuperar'),
+    tr('m_resp_perdas'),
     tr('m_responsavel_chave')
   ];
   let y = 760;
@@ -2952,7 +3002,7 @@ function cripAbrirDesbloqueio(){
   openSheet(`
     <div class="sheet-handle"></div>
     <div class="sheet-title">${tr('m_desbloq_cripto')}</div>
-    <div class="sheet-sub">Este aparelho ainda não tem a chave. Escolhe uma forma de entrar.</div>
+    <div class="sheet-sub">${tr('m_sem_chave_aparelho')}</div>
     <div class="field"><label>Senha</label><input type="password" id="cripUSenha" autocomplete="current-password" /></div>
     <button class="btn btn-primary" onclick="cripDesbloquearSenha()">${tr('m_desbloq_senha')}</button>
     <div class="section-sub" style="text-align:center;margin:12px 0;">ou</div>
@@ -3355,7 +3405,7 @@ function cripPedirRemocao(){
     <div class="sheet-handle"></div>
     <div class="sheet-title">${tr('m_remover_cripto')}</div>
     <div class="sheet-sub">${tr('m_dados_claro')}</div>
-    <div style="font-size:13px;line-height:1.6;margin-bottom:14px;">Para confirmar, escreve a senha. Quem tiver acesso à conta passa a ver os valores, notas e nomes. Os outros aparelhos deixam de usar a criptografia ao sincronizar.</div>
+    <div style="font-size:13px;line-height:1.6;margin-bottom:14px;">${tr('m_confirmar_senha')}</div>
     <div class="field"><label>Senha</label><input type="password" id="cripRSenha" autocomplete="current-password" /></div>
     <button class="btn btn-danger-text" onclick="cripRemoverCriptografia()">${tr('m_remover_cripto')}</button>
     <button class="btn btn-ghost" onclick="closeSheet()">${tr('cancelar')}</button>`);
@@ -3436,7 +3486,7 @@ function openUnlockPasswordSheet(biometricFailed){
   openSheet(`
     <div class="sheet-handle"></div>
     <div class="sheet-title">${tr('m_dados_encriptados')}</div>
-    <div class="sheet-sub">${biometricFailed ? 'Não foi possível usar a biometria. Confirme com a senha para continuar.' : 'Confirme a senha para decifrar e sincronizar os seus dados.'}</div>
+    <div class="sheet-sub">${biometricFailed ? tr('m_bio_erro') : 'Confirme a senha para decifrar e sincronizar os seus dados.'}</div>
     <div class="field" style="margin-top:12px;">
       <label>${tr('m_senha_encriptacao')}</label>
       <input type="password" id="unlockPasswordInput" placeholder="Digite a senha" onkeydown="if(event.key==='Enter') unlockWithPassword()" />
@@ -3966,7 +4016,7 @@ function askCloudConflict(localSt, cloudSt, stamp){
     openSheet(`
       <div class="sheet-handle"></div>
       <div class="sheet-title">${tr('m_dados_diferentes')}</div>
-      <div class="sheet-sub">A tua conta já tem dados na nuvem, e este aparelho tem dados que ainda não foram sincronizados com ela. Escolhe qual manter: o outro é substituído.</div>
+      <div class="sheet-sub">${tr('m_conflito_texto')}</div>
       ${cartao('cloud', '☁️ Dados da nuvem', 'Guardados em ' + escapeHtml(when), escapeHtml(summarizeState(cloudSt)))}
       ${cartao('local', '📱 Este aparelho', 'Dados criados neste aparelho', escapeHtml(summarizeState(localSt)))}
       <button id="conflictConfirmBtn" class="btn btn-primary" onclick="confirmCloudConflict()" disabled style="opacity:0.4;">${tr('m_escolhe_opcao')}</button>
@@ -4075,7 +4125,7 @@ function avisoLimiteNuvem(){
     <div class="sheet-handle"></div>
     <div class="sheet-title">${tr('m_nao_guardados_titulo')}</div>
     <div class="sheet-sub">${tr('m_doc_limite')}</div>
-    <div style="font-size:13px;line-height:1.6;margin-bottom:14px;">Os meses com mais de 12 meses já são compactados na nuvem, por isso este limite só é atingido com muito histórico no ano corrente. Os dados continuam neste aparelho. Exporta uma cópia (Você → Exportação de dados → arquivo .json) antes de mais nada.</div>
+    <div style="font-size:13px;line-height:1.6;margin-bottom:14px;">${tr('m_meses_compactados')}</div>
     <button class="btn btn-primary" onclick="closeSheet()">Entendi</button>`);
 }
 // O Firestore não aceita undefined em nenhum campo. Lista onde existe, para registo no log.
@@ -4120,7 +4170,7 @@ async function pushToFirestore(overwrite){
     }
     if(tamanho > LIMITE_NUVEM_BYTES * 0.8 && !window._avisoEspacoMostrado){
       window._avisoEspacoMostrado = true;
-      showToast('Espaço na nuvem quase cheio: os meses antigos já estão compactados');
+      showToast(tr('m_espaco_quase'));
     }
     await window.fbSaveUserData(uid, limpo);
     const cofreAtual = await lerCofreLocal();
@@ -4135,7 +4185,7 @@ async function pushToFirestore(overwrite){
     console.warn('Falha ao gravar no Firestore:', e);
     logSyncEvent('error', tr('m_erro_guardar_nuvem'), e && (e.code || e.message) || '');
     setSyncStatus('nolink');
-    showToast('Não foi possível guardar na nuvem. Os dados ficam neste aparelho');
+    showToast(tr('m_nao_guardou_nuvem'));
   }
 }
 
@@ -4972,7 +5022,7 @@ function renderBgImageRow(){
     <div class="switch-row" style="margin-top:12px;">
       <div class="switch-row-text">
         <div class="switch-row-title">${tr('m_imagem_fundo')}</div>
-        <div class="switch-row-sub">Mostra a imagem atrás da app. Desligada, a imagem fica guardada neste aparelho.</div>
+        <div class="switch-row-sub">${tr('m_imagem_fundo_desc')}</div>
       </div>
       <div class="switch" id="swBg" onclick="toggleBgImage()"></div>
     </div>
@@ -5024,7 +5074,7 @@ function glassLevel(){
   const v = Number(localSettings.glassLevel);
   return isNaN(v) ? 50 : Math.max(0, Math.min(100, v));
 }
-function glassLevelLabel(L){ return L < 35 ? 'Mais transparente' : (L > 65 ? 'Mais opaco' : 'Padrão'); }
+function glassLevelLabel(L){ return L < 35 ? tr('m_mais_transp') : (L > 65 ? tr('m_mais_opaco') : tr('m_padrao')); }
 function applyGlassVars(){
   const L = glassLevel();
   document.body.style.setProperty('--gl-k', (0.4 + 1.2 * L / 100).toFixed(3));
@@ -5046,7 +5096,7 @@ async function setGlassLevel(v, live){
   if(inp){ inp.value = L; inp.style.setProperty('--fill', L + '%'); }
   applyGlassVars();
   const lab = document.getElementById('glassTitle');
-  if(lab) lab.textContent = 'Intensidade: ' + glassLevelLabel(L);
+  if(lab) lab.textContent = tr('m_intensidade') + ': ' + glassLevelLabel(L);
   if(!live) await persistLocalSettings();
 }
 function renderGlassControls(){
@@ -5060,7 +5110,7 @@ function renderGlassControls(){
       <div class="range-title" id="glassTitle">Intensidade: ${glassLevelLabel(L)}</div>
       <input id="glassRange" class="gl-range" type="range" min="0" max="100" step="1" value="${L}" style="--fill:${L}%;"
         oninput="setGlassLevel(this.value, true)" onchange="setGlassLevel(this.value, false)" />
-      <div class="range-ends range-3"><span>Transparente</span><span>Padrão</span><span>Opaco</span></div>
+      <div class="range-ends range-3"><span>${tr('m_transparente')}</span><span>${tr('m_padrao')}</span><span>${tr('m_opaco')}</span></div>
     </div>`;
 }
 async function toggleLiquidGlass(){
@@ -5189,7 +5239,7 @@ function renderSettings(){
   if(bb){
     bb.style.display = basicMode() ? 'block' : 'none';
     if(window.__fbUser && window.__fbSubscription === null){
-      bb.innerHTML = '🔒 <strong>' + tr('modo_basico_titulo') + '</strong> Sem assinatura ativa: limite de 5 ganhos, 5 despesas variáveis e 5 despesas fixas, e as configurações ficam bloqueadas. Ativa a assinatura para desbloquear tudo.';
+      bb.innerHTML = '🔒 <strong>' + tr('modo_basico_titulo') + '</strong> ' + tr('m_sub_limite') + '';
     }
   }
   const swCom = document.getElementById('swComissao');
@@ -5211,9 +5261,9 @@ function renderSettings(){
       const inputStyle = 'width:100%;padding:10px 12px;border:1.5px solid var(--line);border-radius:var(--r-md);font-size:14px;';
       const rowFor = (t) => `
         <div style="display:flex;gap:8px;align-items:flex-end;margin-bottom:10px;">
-          <div style="width:64px;"><label style="${lbl}">Emoji</label>
+          <div style="width:64px;"><label style="${lbl}">${tr('m_emoji')}</label>
             <input type="text" maxlength="4" value="${escapeHtml(t.emoji)}" onchange="updateTurnoField('${t.key}','emoji',this.value)" class="theme-input" style="${inputStyle}text-align:center;font-size:18px;padding:10px 4px;" /></div>
-          <div style="flex:1;min-width:0;"><label style="${lbl}">Nome</label>
+          <div style="flex:1;min-width:0;"><label style="${lbl}">${tr('m_nome')}</label>
             <input type="text" maxlength="14" value="${escapeHtml(t.label)}" onchange="updateTurnoField('${t.key}','name',this.value)" class="theme-input" style="${inputStyle}" /></div>
           <div class="bill-delete" onclick="${t.archived ? `restoreTurno('${t.key}')` : `removeTurno('${t.key}')`}" title="${t.archived ? 'Reativar' : 'Remover'}" style="padding:10px 4px;font-size:${t.archived ? '12px' : '16px'};font-weight:700;color:${t.archived ? 'var(--vault-2)' : 'var(--terracotta)'};white-space:nowrap;">${t.archived ? '↺ reativar' : '✕'}</div>
         </div>`;
@@ -5224,9 +5274,9 @@ function renderSettings(){
         `<div style="border-top:1.5px dashed var(--line);margin:12px 0 10px;padding-top:12px;">
           <div class="section-sub" style="margin-bottom:8px;font-weight:700;">${tr('adicionar_turno')}</div>
           <div style="display:flex;gap:8px;align-items:flex-end;">
-            <div style="width:64px;"><label style="${lbl}">Emoji</label>
+            <div style="width:64px;"><label style="${lbl}">${tr('m_emoji')}</label>
               <input type="text" id="newTurnoEmoji" maxlength="4" placeholder="🕒" class="theme-input" style="${inputStyle}text-align:center;font-size:18px;padding:10px 4px;" /></div>
-            <div style="flex:1;min-width:0;"><label style="${lbl}">Nome</label>
+            <div style="flex:1;min-width:0;"><label style="${lbl}">${tr('m_nome')}</label>
               <input type="text" id="newTurnoName" maxlength="14" placeholder="ex: Almoço" class="theme-input" style="${inputStyle}" /></div>
           </div>
           <button onclick="addTurno()" style="width:100%;margin-top:10px;padding:12px;border-radius:var(--r-md);border:none;background:var(--vault);color:#fff;font-weight:700;font-size:14px;cursor:pointer;">${tr('m_add_turno')}</button>
@@ -5459,7 +5509,7 @@ async function toggleCustomTaxed(key){
 }
 async function removeCustomPlatform(key){
   if(readOnlyGuard()) return;
-  if(!confirm('Remover esta plataforma? Ganhos já registados com ela continuam guardados, só deixa de aparecer como opção nova.')) return;
+  if(!confirm(tr('m_remover_plataforma'))) return;
   profile.customPlatforms = (profile.customPlatforms || []).map(cp => cp.key === key ? { ...cp, archived: true } : cp);
   await persistProfile();
   renderCustomPlatformsList();
@@ -5662,7 +5712,7 @@ async function scheduleMigrationUrl(){
   showToast(tr('m_enviar_migracao'));
   await pushToCloud(url);
   if(input) input.value = '';
-  showToast('✅ URL de migração enviada — os dispositivos vão migrar ao sincronizar');
+  showToast(tr('m_migracao_enviada'));
   renderSettings();
 }
 
@@ -5698,7 +5748,7 @@ async function importFromJson(){
 // ---------------------------------------------------------------
 function exportDataToExcel(){
   if(typeof XLSX === 'undefined'){
-    showToast('❌ Biblioteca de exportação não carregou — verifica a ligação à internet');
+    showToast(tr('m_biblioteca_erro'));
     return;
   }
   const btn = document.getElementById('exportExcelBtn');
@@ -5813,9 +5863,9 @@ function confirmResetAll(){
   `);
 }
 const RESET_TEXTS = {
-  data:     { title: 'Apagar os dados', what: 'ganhos, despesas variáveis, despesas fixas e o histórico, neste aparelho e na nuvem. As configurações, o nome e a foto são mantidos.' },
-  settings: { title: tr('m_redefinir_cfg'), what: 'tema, IVA, comissão, metas, plataformas extra, opcionais, resumo de ontem, encriptação e biometria, neste aparelho e na nuvem. Os dados, o nome e a foto são mantidos.' },
-  all:      { title: 'Apagar tudo', what: 'todos os dados, todas as configurações, o nome, a foto e o endereço da planilha de sincronização, neste aparelho e na nuvem. Também sai da conta Google neste aparelho. A assinatura não é afetada: continua ativa na conta e volta a aparecer ao entrar de novo.' }
+  data:     { title: 'Apagar os dados', what: tr('m_reset_dados_desc') },
+  settings: { title: tr('m_redefinir_cfg'), what: tr('m_reset_cfg_desc') },
+  all:      { title: 'Apagar tudo', what: tr('m_apagar_tudo_desc') }
 };
 function openResetCodeSheet(scope){
   const t = RESET_TEXTS[scope];
@@ -5921,11 +5971,11 @@ function openExportChoice(){
     <div class="sheet-sub">Escolhe o formato.</div>
     <button class="btn btn-primary" onclick="closeSheet(); exportDataToExcel()" style="text-align:left;margin-bottom:10px;">
       <div style="font-weight:800;">${tr('m_planilha_excel')}</div>
-      <div style="font-size:11px;font-weight:500;opacity:0.85;margin-top:3px;">Para a declaração de IRS: ganhos, despesas, despesas fixas e resumo mensal.</div>
+      <div style="font-size:11px;font-weight:500;opacity:0.85;margin-top:3px;">${tr('m_export_irs')}</div>
     </button>
     <button class="btn theme-card" onclick="closeSheet(); exportSettingsJson()" style="text-align:left;border:1.5px solid var(--line);color:var(--ink);">
       <div style="font-weight:800;">${tr('m_arquivo_json')}</div>
-      <div style="font-size:11px;font-weight:500;color:var(--text-muted);margin-top:3px;">Cópia completa de dados e configurações, para guardar ou transferir para outro aparelho.</div>
+      <div style="font-size:11px;font-weight:500;color:var(--text-muted);margin-top:3px;">${tr('m_export_json')}</div>
     </button>
     <button class="btn btn-ghost" onclick="closeSheet()">${tr('cancelar')}</button>
   `);
@@ -6393,7 +6443,7 @@ function renderStatsMonth(){
   const entry = ensureMonthEntry(currentMonthKey);
   const hasAnyData = monthKeys.length > 0 || entry.earnings.length > 0 || entry.variableExpenses.length > 0;
   if(!hasAnyData){
-    box.innerHTML = '<div class="stats-empty">Ainda não há dados suficientes. Use o app por um tempo e volte aqui 📊</div>';
+    box.innerHTML = '<div class="stats-empty">' + tr('m_sem_dados_suf') + '</div>';
     return;
   }
 
@@ -6724,7 +6774,7 @@ function renderStatsBasic(){
       <div class="stat-card"><div class="stat-card-label">${tr('outras_despesas')}</div><div class="stat-card-value negative">− ${fmt(varOther + fixas)}</div></div>
       <div class="stat-card" style="border-color:var(--vault);grid-column:1/-1;"><div class="stat-card-label">${tr('m_lucro_mes')}</div><div class="stat-card-value ${lucro < 0 ? 'negative' : ''}">${fmt(lucro)}</div></div>
     </div>
-    <div class="section-sub" style="font-size:11px;">Modo básico. Entra com a tua conta Google para ver gráficos, turnos, km e metas.</div>`;
+    <div class="section-sub" style="font-size:11px;">${tr('m_basico_graficos')}</div>`;
 }
 function renderStats(){
   if(basicMode()){ renderStatsBasic(); return; }
@@ -7208,7 +7258,7 @@ function basicLimitBlocked(kind, adding){
     <div class="sheet-handle"></div>
     <div class="sheet-title">${tr('m_limite_basico')}</div>
     <div class="sheet-sub">No modo básico podes ter até ${BASIC_LIMITS[kind]} ${BASIC_LABELS[kind]}.</div>
-    <div style="font-size:13px;line-height:1.6;margin-bottom:14px;">Entra com a tua conta Google para registar sem limite e desbloquear as configurações.</div>
+    <div style="font-size:13px;line-height:1.6;margin-bottom:14px;">${tr('m_registar_sem_limite')}</div>
     <button class="btn btn-primary" onclick="closeSheet(); handleGoogleSignIn();">${tr('m_entrar_google')}</button>
     <button class="btn btn-ghost" onclick="closeSheet()">${tr('fechar')}</button>
   `);
@@ -7239,7 +7289,7 @@ function showUpdateSheet(remoteVersion){
     <div class="sheet-handle"></div>
     <div class="sheet-title">${tr('m_nova_versao')}</div>
     <div class="sheet-sub">Versão ${v} (estás na ${APP_VERSION}).</div>
-    <div style="font-size:13px;line-height:1.6;margin-bottom:14px;">Sem login, a app pode demorar a atualizar neste aparelho. Entra com a tua conta Google para receberes as atualizações automaticamente.</div>
+    <div style="font-size:13px;line-height:1.6;margin-bottom:14px;">${tr('m_sem_login_atualiza')}</div>
     <button class="btn btn-primary" onclick="applyUpdateNow('${v}')">${tr('m_atualizar_agora')}</button>
     <button class="btn btn-ghost" onclick="closeSheet(); handleGoogleSignIn();">${tr('m_entrar_google')}</button>
     <button class="btn btn-ghost" onclick="closeSheet()">${tr('m_mais_tarde')}</button>
@@ -7585,7 +7635,7 @@ function openAddIncomeSheet(){
         <div class="seg-opt active" data-t="" onclick="pickIncomeTurno('')" style="flex:1 1 calc(50% - 4px);margin:2px;">${tr('nao_dizer')}</div>
         ${activeTurnos().map(t => `<div class="seg-opt" data-t="${t.key}" onclick="pickIncomeTurno('${t.key}')" style="flex:1 1 calc(50% - 4px);margin:2px;">${t.emoji} ${t.label}</div>`).join('')}
       </div>
-      <div class="section-sub" style="font-size:11px;margin-top:6px;">Se escolheres um período, as Estatísticas mostram qual rende mais para ti.</div>
+      <div class="section-sub" style="font-size:11px;margin-top:6px;">${tr('m_se_escolheres')}</div>
     </div>` : '';
   openSheet(`
     <div class="sheet-handle"></div>
@@ -7602,12 +7652,12 @@ function openAddIncomeSheet(){
     <div class="field" style="margin-bottom:10px;">
       <div class="section-sub" style="margin-bottom:8px;font-weight:700;">Uber</div>
       <div class="field-money"><input type="number" id="incUber" placeholder="0,00" inputmode="decimal"></div>
-      <div class="section-sub" style="font-size:11px;margin-top:4px;">IVA aplicado automaticamente. Combustível descontado nas Despesas.</div>
+      <div class="section-sub" style="font-size:11px;margin-top:4px;">${tr('m_iva_auto')}</div>
     </div>
     <div class="field" style="margin-bottom:10px;">
       <div class="section-sub" style="margin-bottom:8px;font-weight:700;">Bolt</div>
       <div class="field-money"><input type="number" id="incBolt" placeholder="0,00" inputmode="decimal"></div>
-      <div class="section-sub" style="font-size:11px;margin-top:4px;">IVA aplicado automaticamente. Combustível descontado nas Despesas.</div>
+      <div class="section-sub" style="font-size:11px;margin-top:4px;">${tr('m_iva_auto')}</div>
     </div>
     <div class="field" style="margin-bottom:10px;">
       <div class="section-sub" style="margin-bottom:8px;font-weight:700;">🚘 Particular</div>
@@ -7823,7 +7873,7 @@ function renderBills(entry){
       const freqLabel = freq === 'diaria' ? 'diária' : freq === 'semanal' ? 'semanal' : 'mensal';
       const split = b.weeklySplit || 'none';
       // Seletor de "como aparecer nas semanas" — só para despesas mensais.
-      const SPLIT_LABELS = { rateio: 'dividido pelas semanas do mês', firstWeek: 'tudo na 1ª semana do mês' };
+      const SPLIT_LABELS = { rateio: tr('m_dividido_semanas'), firstWeek: tr('m_tudo_1a_semana2') };
       // Só aparece quando a despesa mensal tem uma opção definida (padrão = nada aparece).
       const weeklySplitRow = (freq === 'mensal' && split !== 'none') ? `
         <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;padding:0 0 10px;font-size:12px;color:var(--text-muted);">
@@ -7927,14 +7977,14 @@ function openNewBillSheet(){
   openSheet(`
     <div class="sheet-handle"></div>
     <div class="sheet-title">${tr('nova_fixa')}</div>
-    <div class="sheet-sub">Despesas que se repetem. Serão descontadas automaticamente do seu lucro.</div>
-    <div class="field"><label>${tr('nome_despesa')}</label><input type="text" id="newBillName" placeholder="ex: Financiamento, Seguro, Segurança Social" maxlength="30" /></div>
+    <div class="sheet-sub">${tr('m_fixas_repetem')}</div>
+    <div class="field"><label>${tr('nome_despesa')}</label><input type="text" id="newBillName" placeholder="${tr('m_ph_fixa')}" maxlength="30" /></div>
     <div class="field">
       <label>${tr('frequencia')}</label>
       <div class="seg" id="newBillFreqSeg">
-        <div class="seg-opt active" data-f="diaria" onclick="pickBillFreq('diaria')">📅 Diária</div>
-        <div class="seg-opt" data-f="semanal" onclick="pickBillFreq('semanal')">🗓 Semanal</div>
-        <div class="seg-opt" data-f="mensal" onclick="pickBillFreq('mensal')">📆 Mensal</div>
+        <div class="seg-opt active" data-f="diaria" onclick="pickBillFreq('diaria')">📅 ${tr('diaria')}</div>
+        <div class="seg-opt" data-f="semanal" onclick="pickBillFreq('semanal')">🗓 ${tr('semanal')}</div>
+        <div class="seg-opt" data-f="mensal" onclick="pickBillFreq('mensal')">📆 ${tr('mensal')}</div>
       </div>
     </div>
     <div class="field"><label id="newBillAmountLabel">${tr('valor_dia')}</label><div class="field-money"><input type="number" id="newBillAmount" placeholder="0,00" inputmode="decimal" /></div></div>
