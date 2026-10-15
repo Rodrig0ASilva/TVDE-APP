@@ -2117,7 +2117,7 @@ const I18N = {
 // Esquema de versão: de volta ao pré-1.0 (0.x.x) — a v1.0.0 fica
 // reservada para o lançamento com assinatura paga completa. A numeração
 // 4.x.x usada temporariamente para a integração Firebase foi abandonada.
-const APP_VERSION = '0.170';
+const APP_VERSION = '0.172';
 
 // ---------------------------------------------------------------
 // IDIOMA — português (pt) e inglês (en). Escolha guardada neste aparelho (localSettings.lang).
@@ -2163,6 +2163,8 @@ async function setIdioma(lang){
   rebuildTabOverlay();
   refreshActiveScreen();
   renderSettings();
+  renderReadOnlyBanner();
+  renderSubscriptionCard();
   if(document.querySelector('#sheet [data-welcome]') && document.getElementById('overlay').classList.contains('show')) showWelcomeSheet();
 }
 
@@ -4076,6 +4078,18 @@ function avisoLimiteNuvem(){
     <div style="font-size:13px;line-height:1.6;margin-bottom:14px;">Os meses com mais de 12 meses já são compactados na nuvem, por isso este limite só é atingido com muito histórico no ano corrente. Os dados continuam neste aparelho. Exporta uma cópia (Você → Exportação de dados → arquivo .json) antes de mais nada.</div>
     <button class="btn btn-primary" onclick="closeSheet()">Entendi</button>`);
 }
+// O Firestore não aceita undefined em nenhum campo. Lista onde existe, para registo no log.
+function caminhosUndefined(obj, prefixo, saida){
+  saida = saida || [];
+  if(obj === undefined){ saida.push(prefixo || '(raiz)'); return saida; }
+  if(obj === null || typeof obj !== 'object') return saida;
+  Object.keys(obj).forEach(k => {
+    if(obj[k] === undefined) saida.push((prefixo ? prefixo + '.' : '') + k);
+    else caminhosUndefined(obj[k], (prefixo ? prefixo + '.' : '') + k, saida);
+  });
+  if(Array.isArray(obj)) obj.forEach((v, i) => { if(v === undefined) saida.push((prefixo || '') + '[' + i + ']'); });
+  return saida;
+}
 async function pushToFirestore(overwrite){
   if(!window.__fbUser || basicMode()) return;
   const uid = window.__fbUser.uid;
@@ -4092,7 +4106,12 @@ async function pushToFirestore(overwrite){
     const st = currentState();
     const payload = await prepararParaNuvem(normalizeToSchemaV1(st));
     if(payload === null) return; // com criptografia ativa e sem chave: não envia em claro
-    const tamanho = new Blob([JSON.stringify(payload)]).size;
+    const campos = caminhosUndefined(payload);
+    if(campos.length){
+      logSyncEvent('info', 'Campos vazios removidos antes de gravar', campos.slice(0, 5).join(', ') + (campos.length > 5 ? ' …' : ''));
+    }
+    const limpo = JSON.parse(JSON.stringify(payload)); // remove undefined; o resto fica igual
+    const tamanho = new Blob([JSON.stringify(limpo)]).size;
     if(tamanho > LIMITE_NUVEM_BYTES){
       logSyncEvent('error', tr('m_dados_limite'), `${tamanho} bytes`);
       setSyncStatus('nolink');
@@ -4103,7 +4122,7 @@ async function pushToFirestore(overwrite){
       window._avisoEspacoMostrado = true;
       showToast('Espaço na nuvem quase cheio: os meses antigos já estão compactados');
     }
-    await window.fbSaveUserData(uid, payload);
+    await window.fbSaveUserData(uid, limpo);
     const cofreAtual = await lerCofreLocal();
     if(cofreAtual && !cofreAtual.naNuvem){
       cofreAtual.naNuvem = true;
