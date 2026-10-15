@@ -2112,7 +2112,7 @@ const I18N = {
 // Esquema de versão: de volta ao pré-1.0 (0.x.x) — a v1.0.0 fica
 // reservada para o lançamento com assinatura paga completa. A numeração
 // 4.x.x usada temporariamente para a integração Firebase foi abandonada.
-const APP_VERSION = '0.168';
+const APP_VERSION = '0.169';
 
 // ---------------------------------------------------------------
 // IDIOMA — português (pt) e inglês (en). Escolha guardada neste aparelho (localSettings.lang).
@@ -3584,7 +3584,7 @@ function renderReadOnlyBanner(){
   if(!el){
     el = document.createElement('div');
     el.id = 'readOnlyBanner';
-    el.style.cssText = 'position:sticky;top:0;z-index:45;margin:8px 0 12px;padding:12px 14px;border-radius:var(--r-md);background:rgba(168,83,63,0.14);border:1px solid rgba(168,83,63,0.45);font-size:12px;line-height:1.5;color:var(--ink);';
+    el.style.cssText = 'grid-column:2;position:sticky;top:0;z-index:45;margin:8px 0 12px;padding:12px 14px;border-radius:var(--r-md);background:rgba(168,83,63,0.14);border:1px solid rgba(168,83,63,0.45);font-size:12px;line-height:1.5;color:var(--ink);';
     app.prepend(el);
   }
   const end = subscriptionEndDate();
