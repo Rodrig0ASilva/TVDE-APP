@@ -1230,7 +1230,7 @@ body.glass.dark .sheet { background: rgba(26,26,33, min(0.97, calc(0.96 * var(--
         <div class="field-money"><input type="number" id="weeklyGoalInput" placeholder="0,00" inputmode="decimal" onchange="updateWeeklyGoal(this.value)" /></div>
       </div>
       <div class="section-sub" style="margin-top:6px; font-size:11px; line-height:1.5;">
-        Comparado com o lucro líquido do mês/semana em curso. Em branco (ou 0) usa as despesas fixas do período como mínimo. Na semana entram despesas fixas semanais (valor cheio) e diárias (só nos dias com registro) — as mensais não são divididas, ficam só na visão Mês.
+        <span data-i18n="m_meta_ajuda">Comparado com o lucro líquido do mês/semana em curso. Em branco (ou 0) usa as despesas fixas do período como mínimo. Na semana entram despesas fixas semanais (valor cheio) e diárias (só nos dias com registro) — as mensais não são divididas, ficam só na visão Mês.</span>
       </div>
     </div>
 
@@ -2076,7 +2076,34 @@ const I18N = {
     wd_qui:"Qui",
     wd_sex:"Sex",
     wd_sab:"Sáb",
-    wd_dom:"Dom"
+    wd_dom:"Dom",
+    m_sub_expirada:"⛔ Assinatura expirada",
+    m_sub_sem:"🔓 Sem assinatura ativa",
+    m_sub_sem_desc:"Sem assinatura ativa: a conta tem os mesmos limites do modo básico. Ativa a assinatura para desbloquear tudo.",
+    m_sub_ativa:"✅ Assinatura ativa",
+    m_sub_terminou:"O período terminou em",
+    m_sub_renova:"Renova a assinatura para continuar com todas as funções.",
+    m_sub_termina:"Termina em",
+    m_sub_cancel:"cancelamento agendado",
+    m_teste_termina:"Teste termina",
+    m_faltam_pre:"faltam",
+    m_sub_sem_titulo:"⛔ Sem assinatura ativa.",
+    m_em:" em ",
+    m_readonly_corpo:"Estás em modo só leitura: podes ver os teus dados, mas não registar, editar nem apagar.",
+    m_readonly_toast:"Modo só leitura: sem assinatura ativa não é possível registar ou editar",
+    m_conectado:"Conectado com Google",
+    m_sem_conta_google:"Sem conta Google ligada. Liga uma para usar a tua foto e sincronizar na nuvem.",
+    m_sair:"Sair",
+    m_mostrar:"mostrar",
+    m_ocultar:"ocultar",
+    m_sair_confirma:"Sair da tua conta Google?",
+    m_assinatura:"Assinatura",
+    m_trocar:"trocar",
+    m_total_bruto:"Total bruto",
+    m_tvde:"TVDE",
+    m_recebi_em:"recebi em",
+    m_para_usar_em:"para usar em",
+    m_meta_ajuda:"Comparado com o lucro líquido do mês/semana em curso. Em branco (ou 0) usa as despesas fixas do período como mínimo. Na semana entram despesas fixas semanais (valor cheio) e diárias (só nos dias com registro) — as mensais não são divididas, ficam só na visão Mês."
   }
 };
 // Corrida+ — lógica do app.
@@ -2085,7 +2112,7 @@ const I18N = {
 // Esquema de versão: de volta ao pré-1.0 (0.x.x) — a v1.0.0 fica
 // reservada para o lançamento com assinatura paga completa. A numeração
 // 4.x.x usada temporariamente para a integração Firebase foi abandonada.
-const APP_VERSION = '0.167';
+const APP_VERSION = '0.168';
 
 // ---------------------------------------------------------------
 // IDIOMA — português (pt) e inglês (en). Escolha guardada neste aparelho (localSettings.lang).
@@ -3469,7 +3496,7 @@ async function handleGoogleSignIn(){
   }
 }
 async function fbDoSignOut(){
-  if(!confirm('Sair da tua conta Google?')) return;
+  if(!confirm(tr('m_sair_confirma'))) return;
   try{ if(window.fbSignOut) await window.fbSignOut(); }catch(e){}
   location.reload();
 }
@@ -3495,8 +3522,8 @@ function renderSubscriptionCard(){
     return;
   }
   if(!window.__fbSubscription){
-    statusEl.textContent = '🔓 Sem assinatura ativa';
-    if(detailEl) detailEl.textContent = 'Sem assinatura ativa: a conta tem os mesmos limites do modo básico. Ativa a assinatura para desbloquear tudo.';
+    statusEl.textContent = tr('m_sub_sem');
+    if(detailEl) detailEl.textContent = tr('m_sub_sem_desc');
     return;
   }
 
@@ -3512,19 +3539,19 @@ function renderSubscriptionCard(){
   const agora = Date.now();
   // O estado pode continuar "active" depois da data de fim (ex.: renovação não processada). Compara sempre com a data de hoje.
   if(endDate && endDate.getTime() <= agora){
-    statusEl.textContent = '⛔ Assinatura expirada';
-    if(detailEl) detailEl.textContent = `O período terminou em ${endStr}. Renova a assinatura para continuar com todas as funções.`;
+    statusEl.textContent = tr('m_sub_expirada');
+    if(detailEl) detailEl.textContent = `${tr('m_sub_terminou')} ${endStr}. ${tr('m_sub_renova')}`;
     return;
   }
   const diasRestantes = endDate ? Math.ceil((endDate.getTime() - agora) / 86400000) : null;
   const isTrial = sub.status === 'trialing';
-  statusEl.textContent = isTrial ? tr('m_periodo_teste') : '✅ Assinatura ativa';
+  statusEl.textContent = isTrial ? tr('m_periodo_teste') : tr('m_sub_ativa');
   if(detailEl){
     if(!endStr){ detailEl.textContent = ''; }
-    else if(sub.cancel_at_period_end){ detailEl.textContent = `Termina em ${endStr} (cancelamento agendado)`; }
-    else { detailEl.textContent = `${isTrial ? 'Teste termina' : tr('m_ativa_ate')} ${endStr}`; }
+    else if(sub.cancel_at_period_end){ detailEl.textContent = `${tr('m_sub_termina')} ${endStr} (${tr('m_sub_cancel')})`; }
+    else { detailEl.textContent = `${isTrial ? tr('m_teste_termina') : tr('m_ativa_ate')} ${endStr}`; }
     if(diasRestantes !== null && diasRestantes <= 7){
-      detailEl.textContent += ` · ⚠️ faltam ${diasRestantes} ${diasRestantes === 1 ? tr('dia') : tr('dias')}`;
+      detailEl.textContent += ` · ⚠️ ${tr('m_faltam_pre')} ${diasRestantes} ${diasRestantes === 1 ? tr('dia') : tr('dias')}`;
     }
   }
 }
@@ -3547,7 +3574,7 @@ function accessExpired(){
 }
 function readOnlyGuard(){
   if(!accessExpired()) return false;
-  showToast('Modo só leitura: sem assinatura ativa não é possível registar ou editar');
+  showToast(tr('m_readonly_toast'));
   return true;
 }
 function renderReadOnlyBanner(){
@@ -3563,8 +3590,8 @@ function renderReadOnlyBanner(){
   const end = subscriptionEndDate();
   const endStr = end ? end.toLocaleDateString(LOCALE(), { day:'2-digit', month:'long', year:'numeric' }) : '';
   const semAssinatura = window.__fbSubscription === null;
-  const titulo = semAssinatura ? '⛔ Sem assinatura ativa.' : `⛔ Assinatura expirada${endStr ? ' em ' + endStr : ''}.`;
-  el.innerHTML = `<div><strong>${titulo}</strong> Estás em modo só leitura: podes ver os teus dados, mas não registar, editar nem apagar.</div>
+  const titulo = semAssinatura ? tr('m_sub_sem_titulo') : `${tr('m_sub_expirada')}${endStr ? tr('m_em') + endStr : ''}.`;
+  el.innerHTML = `<div><strong>${titulo}</strong> ${tr('m_readonly_corpo')}</div>
     <button onclick="goSettings()" style="margin-top:8px;padding:8px 14px;border-radius:var(--r-full);border:none;background:var(--terracotta);color:#fff;font-weight:700;font-size:12px;cursor:pointer;">${tr('m_renovar')}</button>`;
 }
 // Manter o dedo em "Você" (cerca de 0,7 s) procura uma atualização e aplica-a, sem perguntar.
@@ -5057,23 +5084,23 @@ function renderSettings(){
   const showUid = !!localSettings.showUid;
   const accountBlock = u
     ? `<div style="margin-top:12px;">
-         <div style="font-size:11px;font-weight:700;color:var(--vault-text, var(--vault-2));margin-bottom:6px;">${googleG} Conectado com Google</div>
+         <div style="font-size:11px;font-weight:700;color:var(--vault-text, var(--vault-2));margin-bottom:6px;">${googleG} ${tr('m_conectado')}</div>
          <div style="display:flex;align-items:flex-end;justify-content:space-between;gap:10px;">
            <div style="font-size:11px;color:var(--text-muted);line-height:1.8;min-width:0;word-break:break-all;">
              <div>📧 ${escapeHtml(u.email || '—')}</div>
              <div style="font-family:'JetBrains Mono',monospace;display:flex;align-items:center;gap:6px;">🆔 <span>${showUid ? escapeHtml(u.uid) : '****'}</span>
-               <button onclick="toggleUidVisibility()" style="font-size:10px;padding:2px 8px;border-radius:var(--r-full);border:1px solid var(--line);background:#fff;color:var(--vault-2);font-weight:700;cursor:pointer;font-family:'Inter',sans-serif;">${showUid ? 'ocultar' : 'mostrar'}</button>
+               <button onclick="toggleUidVisibility()" style="font-size:10px;padding:2px 8px;border-radius:var(--r-full);border:1px solid var(--line);background:#fff;color:var(--vault-2);font-weight:700;cursor:pointer;font-family:'Inter',sans-serif;">${showUid ? tr('m_ocultar') : tr('m_mostrar')}</button>
              </div>
            </div>
-           <button onclick="fbDoSignOut()" style="flex-shrink:0;background:#fff;color:#C62828;border:1.5px solid var(--line);padding:8px 16px;border-radius:var(--r-full);font-weight:800;font-size:12px;cursor:pointer;">Sair</button>
+           <button onclick="fbDoSignOut()" style="flex-shrink:0;background:#fff;color:#C62828;border:1.5px solid var(--line);padding:8px 16px;border-radius:var(--r-full);font-weight:800;font-size:12px;cursor:pointer;">${tr('m_sair')}</button>
          </div>
        </div>`
-    : `<div style="font-size:11px;color:var(--text-muted);line-height:1.5;margin-top:12px;">Sem conta Google ligada. Liga uma para usar a tua foto e sincronizar na nuvem.</div>
+    : `<div style="font-size:11px;color:var(--text-muted);line-height:1.5;margin-top:12px;">${tr('m_sem_conta_google')}</div>
        <button id="settingsGoogleSignInBtn" onclick="handleGoogleSignIn()" style="display:flex;align-items:center;gap:8px;background:#fff;color:#2A2420;border:1.5px solid var(--line);padding:10px 18px;border-radius:100px;font-weight:700;font-size:13px;cursor:pointer;margin-top:10px;">${googleG} Continuar com Google</button>
        <div id="settingsGoogleSignInError" style="font-size:11px;color:var(--terracotta);margin-top:6px;"></div>`;
   const subBlock = `
       <div style="margin-top:14px;padding-top:12px;border-top:1px solid var(--line);">
-        <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;color:var(--text-muted);margin-bottom:4px;">Assinatura</div>
+        <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;color:var(--text-muted);margin-bottom:4px;">${tr('m_assinatura')}</div>
         <div id="subscriptionStatus" style="font-weight:700;font-size:var(--text-sm);">—</div>
         <div id="subscriptionDetail" style="font-size:11px;color:var(--text-muted);margin-top:3px;line-height:1.5;"></div>
       </div>`;
@@ -6715,7 +6742,7 @@ function lucroBreakdownHTML(apps, comb, part, fixas, varOther, km, hours, contex
   const comLabel = ivaVal > 0 && comVal > 0 ? ' ' + tr('apos_iva_comissao') : ivaVal > 0 ? ' ' + tr('apos_iva') : comVal > 0 ? ' ' + tr('apos_comissao') : '';
   let html = `
     <div style="background:${heroColor};border-radius:var(--r-xl);padding:22px 20px 18px;color:#fff;margin-bottom:18px;box-shadow:var(--shadow-md);">
-      <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;opacity:0.75;margin-bottom:6px;">${context} · Lucro líquido${comLabel}</div>
+      <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;opacity:0.75;margin-bottom:6px;">${context} · ${tr('lucro_liquido')}${comLabel}</div>
       <div style="font-family:'JetBrains Mono',monospace;font-weight:700;font-size:32px;letter-spacing:-0.02em;margin-bottom:2px;">${fmt(lucro)}</div>
       ${km > 0 ? `<div style="font-size:12px;opacity:0.8;margin-top:4px;">${lucroKm !== null ? fmt(lucroKm) + '/km' : ''} ${lucroHora !== null ? '· ' + fmt(lucroHora) + '/h' : ''}</div>` : ''}
     </div>`;
@@ -7005,7 +7032,7 @@ function updateMonthHint(){
   let py = y, pm = m - 1; if(pm === 0){ pm = 12; py = y - 1; }
   const prevLabel = new Date(py, pm-1, 1).toLocaleDateString(LOCALE(), { month:'long' });
   const currLabel = new Date(y, m-1, 1).toLocaleDateString(LOCALE(), { month:'long' });
-  document.getElementById('monthHintMes').textContent = `recebi em ${prevLabel} para usar em ${currLabel}`;
+  document.getElementById('monthHintMes').textContent = `${tr('m_recebi_em')} ${prevLabel} ${tr('m_para_usar_em')} ${currLabel}`;
 }
 
 // Só Uber/Bolt são consideradas apps TVDE (sujeitas a IVA/comissão); tudo
@@ -7409,8 +7436,8 @@ function renderEarningsCardsAndSummary(items, fixedTotal, expenses){
     cardsHtml += `<div class="stat-card"><div class="stat-card-label">${platformBadge(cp.key, 16)} ${escapeHtml(cp.label)}</div><div class="stat-card-value" style="font-size:22px;">${fmt(total)}</div></div>`;
   });
   const totalGeral = totalUber + totalBolt + totalPart + totalOut + totalCustomAll;
-  const subTotal = `TVDE ${fmt(apps)}${part > 0 ? ' · Pessoal ' + fmt(part) : ''}`;
-  cardsHtml += `<div style="grid-column:1/-1;">${heroValorHTML('Total bruto', totalGeral, subTotal)}</div>`;
+  const subTotal = `${tr('m_tvde')} ${fmt(apps)}${part > 0 ? ' · ' + tr('pessoal') + ' ' + fmt(part) : ''}`;
+  cardsHtml += `<div style="grid-column:1/-1;">${heroValorHTML(tr('m_total_bruto'), totalGeral, subTotal)}</div>`;
   document.getElementById('earningsPlatformCards').innerHTML = cardsHtml;
   document.getElementById('earningsKmHint').textContent = '';
 
