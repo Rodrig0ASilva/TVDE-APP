@@ -179,8 +179,8 @@ window.I18N_LANGS.en = {
     "comissao_plataforma_titulo": "Platform commission",
     "taxa_comissao": "Commission rate (%)",
     "ativar_metas": "Enable profit targets",
-    "meta_mensal_eur": "Monthly profit target (€)",
-    "meta_semanal_eur": "Weekly profit target (€)",
+    "meta_mensal_eur": "Target monthly profit (€)",
+    "meta_semanal_eur": "Target weekly profit (€)",
     "turnos": "Shifts",
     "turno_trabalho": "Work shift",
     "km_titulo": "Kilometres (km)",
@@ -531,5 +531,16 @@ window.I18N_LANGS.en = {
     "rn_assunto": "Corrida+ renewal",
     "rn_corpo": "I am sending the renewal payment receipt.",
     "rn_plano": "Plan",
-    "rn_valor": "Amount"
+    "rn_valor": "Amount",
+    "lucro_distrib": "Profit split by week",
+    "despesas_distrib": "Expenses by category as a pie",
+    "m_acima_min": "above the minimum ·",
+    "m_abaixo_min": "below the minimum ·",
+    "m_para_alvo": "to the target",
+    "m_para_min": "to the minimum",
+    "m_minimo": "minimum",
+    "m_alvo": "target",
+    "m_min_removida": "Minimum removed",
+    "m_meta_min_mensal": "Minimum monthly profit (€)",
+    "m_meta_min_semanal": "Minimum weekly profit (€)"
 };
