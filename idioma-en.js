@@ -542,5 +542,18 @@ window.I18N_LANGS.en = {
     "m_alvo": "target",
     "m_min_removida": "Minimum removed",
     "m_meta_min_mensal": "Minimum monthly profit (€)",
-    "m_meta_min_semanal": "Minimum weekly profit (€)"
+    "m_meta_min_semanal": "Minimum weekly profit (€)",
+    "ins_titulo": "Install the app",
+    "ins_banner": "Install Corrida+ on your home screen and open it as an app.",
+    "ins_btn_instalar": "Install",
+    "ins_btn_como": "How to install",
+    "ins_ios": "iPhone",
+    "ins_ios_1": "Open this site in Safari.",
+    "ins_ios_2": "Tap the Share button.",
+    "ins_ios_3": "Choose “Add to Home Screen”.",
+    "ins_ios_4": "Tap “Add”. The icon appears on the home screen.",
+    "ins_android": "Android",
+    "ins_and_1": "Open the Chrome menu (⋮).",
+    "ins_and_2": "Choose “Install app” or “Add to Home screen”.",
+    "ins_and_3": "Confirm. The app goes on your home screen."
 };
