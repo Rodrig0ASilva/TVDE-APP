@@ -67,6 +67,21 @@ window.aplicarFavicon = function(s){
     const c = computeSplash(s, escuro);
     r.setProperty('--splash-bg', c.bg);
     r.setProperty('--splash-fg', c.fg);
+    // A barra de estado do iPhone toma esta cor: fica igual à tela de carregamento desde o primeiro instante.
+    document.addEventListener('DOMContentLoaded', () => {
+      // A cor do fundo pode ser uma expressão CSS (color-mix); o navegador calcula-a e convertemos para hexadecimal.
+      const sonda = document.createElement('div');
+      sonda.style.background = 'var(--splash-bg)';
+      document.body.appendChild(sonda);
+      const cor = getComputedStyle(sonda).backgroundColor;
+      sonda.remove();
+      let canais;
+      if(cor.startsWith('color(')){ canais = (cor.match(/[\d.]+/g) || []).slice(0, 3).map(v => Math.round(parseFloat(v) * 255)); }
+      else { canais = (cor.match(/[\d.]+/g) || []).slice(0, 3).map(Number); }
+      if(canais.length < 3) return;
+      const hex = '#' + canais.map(v => Math.max(0, Math.min(255, v)).toString(16).padStart(2, '0')).join('');
+      document.querySelectorAll('meta[name="theme-color"]').forEach(m => m.setAttribute('content', hex));
+    });
   }catch(e){}
 })();
 window.applySplashAppearance = function(s, dark){
@@ -2213,7 +2228,7 @@ const I18N = {
 // Esquema de versão: de volta ao pré-1.0 (0.x.x) — a v1.0.0 fica
 // reservada para o lançamento com assinatura paga completa. A numeração
 // 4.x.x usada temporariamente para a integração Firebase foi abandonada.
-const APP_VERSION = '0.183';
+const APP_VERSION = '0.185';
 
 // ---------------------------------------------------------------
 // IDIOMA — português (pt) e inglês (en). Escolha guardada neste aparelho (localSettings.lang).
@@ -3793,7 +3808,7 @@ function abrirComoInstalar(tab){
       <div style="display:flex;gap:12px;align-items:center;margin-bottom:14px;">
         <div style="width:30px;height:30px;border-radius:50%;background:var(--vault);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;flex-shrink:0;">${i + 1}</div>
         <div style="flex:1;font-size:13px;line-height:1.5;">${tr(p[0])}</div>
-        <div style="width:48px;height:48px;border-radius:12px;background:var(--cream-2);display:flex;align-items:center;justify-content:center;color:var(--vault);flex-shrink:0;">${p[1] || ''}</div>
+        <div style="width:48px;height:48px;border-radius:12px;background:var(--cream-2);display:flex;align-items:center;justify-content:center;color:var(--ink);flex-shrink:0;">${p[1] || ''}</div>
       </div>`).join('')}
     <button class="btn btn-ghost" onclick="closeSheet()">${tr('fechar')}</button>`);
 }
