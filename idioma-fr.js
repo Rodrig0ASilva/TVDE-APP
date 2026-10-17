@@ -518,5 +518,18 @@ window.I18N_LANGS.fr = {
     "m_tudo_1a_semana2": "tout dans la 1re semaine du mois",
     "m_migracao_enviada": "✅ URL de migration envoyée — les appareils migreront lors de la synchronisation",
     "m_biblioteca_erro": "❌ La bibliothèque d’export ne s’est pas chargée — vérifie ta connexion internet",
-    "m_sub_limite": "Aucun abonnement actif : limite de 5 revenus, 5 dépenses variables et 5 dépenses fixes, et les paramètres sont verrouillés. Active l’abonnement pour tout débloquer."
+    "m_sub_limite": "Aucun abonnement actif : limite de 5 revenus, 5 dépenses variables et 5 dépenses fixes, et les paramètres sont verrouillés. Active l’abonnement pour tout débloquer.",
+    "rn_planos_sub": "Choisis un plan. Le paiement se fait par virement de personne à personne.",
+    "rn_mes": "mois",
+    "rn_meses": "mois",
+    "rn_por_mes": "/ mois",
+    "rn_transf": "Vire",
+    "rn_para": "à",
+    "rn_titular": "Titulaire",
+    "rn_comentario": "Dans le commentaire, indique ton email. Envoie ensuite le justificatif : l’abonnement est activé manuellement.",
+    "rn_enviar": "Envoyer le justificatif par email",
+    "rn_assunto": "Renouvellement Corrida+",
+    "rn_corpo": "J’envoie le justificatif de paiement du renouvellement.",
+    "rn_plano": "Plan",
+    "rn_valor": "Montant"
 };
