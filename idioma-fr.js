@@ -542,5 +542,18 @@ window.I18N_LANGS.fr = {
     "m_alvo": "cible",
     "m_min_removida": "Minimum supprimé",
     "m_meta_min_mensal": "Bénéfice mensuel minimum (€)",
-    "m_meta_min_semanal": "Bénéfice hebdomadaire minimum (€)"
+    "m_meta_min_semanal": "Bénéfice hebdomadaire minimum (€)",
+    "ins_titulo": "Installer l’app",
+    "ins_banner": "Installe Corrida+ sur ton écran d’accueil et ouvre-la comme une app.",
+    "ins_btn_instalar": "Installer",
+    "ins_btn_como": "Comment installer",
+    "ins_ios": "iPhone",
+    "ins_ios_1": "Ouvre ce site dans Safari.",
+    "ins_ios_2": "Touche le bouton Partager.",
+    "ins_ios_3": "Choisis « Sur l’écran d’accueil ».",
+    "ins_ios_4": "Touche « Ajouter ». L’icône apparaît sur l’écran d’accueil.",
+    "ins_android": "Android",
+    "ins_and_1": "Ouvre le menu de Chrome (⋮).",
+    "ins_and_2": "Choisis « Installer l’app » ou « Ajouter à l’écran d’accueil ».",
+    "ins_and_3": "Confirme. L’app se place sur l’écran d’accueil."
 };
