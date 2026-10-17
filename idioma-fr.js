@@ -179,8 +179,8 @@ window.I18N_LANGS.fr = {
     "comissao_plataforma_titulo": "Commission de la plateforme",
     "taxa_comissao": "Taux de commission (%)",
     "ativar_metas": "Activer les objectifs de bénéfice",
-    "meta_mensal_eur": "Objectif de bénéfice mensuel (€)",
-    "meta_semanal_eur": "Objectif de bénéfice hebdomadaire (€)",
+    "meta_mensal_eur": "Bénéfice mensuel cible (€)",
+    "meta_semanal_eur": "Bénéfice hebdomadaire cible (€)",
     "turnos": "Services",
     "turno_trabalho": "Service de travail",
     "km_titulo": "Kilomètres (km)",
@@ -531,5 +531,16 @@ window.I18N_LANGS.fr = {
     "rn_assunto": "Renouvellement Corrida+",
     "rn_corpo": "J’envoie le justificatif de paiement du renouvellement.",
     "rn_plano": "Plan",
-    "rn_valor": "Montant"
+    "rn_valor": "Montant",
+    "lucro_distrib": "Répartition du bénéfice par semaine",
+    "despesas_distrib": "Dépenses par catégorie en camembert",
+    "m_acima_min": "au-dessus du minimum ·",
+    "m_abaixo_min": "en dessous du minimum ·",
+    "m_para_alvo": "pour l’objectif cible",
+    "m_para_min": "pour le minimum",
+    "m_minimo": "minimum",
+    "m_alvo": "cible",
+    "m_min_removida": "Minimum supprimé",
+    "m_meta_min_mensal": "Bénéfice mensuel minimum (€)",
+    "m_meta_min_semanal": "Bénéfice hebdomadaire minimum (€)"
 };
