@@ -518,5 +518,18 @@ window.I18N_LANGS.en = {
     "m_tudo_1a_semana2": "all in the 1st week of the month",
     "m_migracao_enviada": "✅ Migration URL sent — devices will migrate when they sync",
     "m_biblioteca_erro": "❌ Export library did not load — check your internet connection",
-    "m_sub_limite": "No active subscription: limit of 5 earnings, 5 variable expenses and 5 fixed expenses, and settings are locked. Activate the subscription to unlock everything."
+    "m_sub_limite": "No active subscription: limit of 5 earnings, 5 variable expenses and 5 fixed expenses, and settings are locked. Activate the subscription to unlock everything.",
+    "rn_planos_sub": "Choose a plan. Payment is made by person-to-person transfer.",
+    "rn_mes": "month",
+    "rn_meses": "months",
+    "rn_por_mes": "/ month",
+    "rn_transf": "Transfer",
+    "rn_para": "to",
+    "rn_titular": "Account holder",
+    "rn_comentario": "In the comment, write your email. Then send the receipt: the subscription is activated manually.",
+    "rn_enviar": "Send receipt by email",
+    "rn_assunto": "Corrida+ renewal",
+    "rn_corpo": "I am sending the renewal payment receipt.",
+    "rn_plano": "Plan",
+    "rn_valor": "Amount"
 };
