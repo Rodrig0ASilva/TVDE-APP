@@ -1227,11 +1227,19 @@ body.glass.dark .sheet { background: rgba(26,26,33, 0.96); }
     </div>
     <div id="goalsFieldsRow" style="display:none;">
       <div class="field" style="margin-top:8px;">
-        <label><span data-i18n="meta_mensal_eur">Meta de lucro mensal (€)</span></label>
+        <label><span data-i18n="m_meta_min_mensal">Meta mínima mensal (€)</span></label>
+        <div class="field-money"><input type="number" id="monthlyMinInput" placeholder="0,00" inputmode="decimal" onchange="updateMonthlyMin(this.value)" /></div>
+      </div>
+      <div class="field">
+        <label><span data-i18n="meta_mensal_eur">Meta alvo mensal (€)</span></label>
         <div class="field-money"><input type="number" id="monthlyGoalInput" placeholder="0,00" inputmode="decimal" onchange="updateMonthlyGoal(this.value)" /></div>
       </div>
       <div class="field">
-        <label><span data-i18n="meta_semanal_eur">Meta de lucro semanal (€)</span></label>
+        <label><span data-i18n="m_meta_min_semanal">Meta mínima semanal (€)</span></label>
+        <div class="field-money"><input type="number" id="weeklyMinInput" placeholder="0,00" inputmode="decimal" onchange="updateWeeklyMin(this.value)" /></div>
+      </div>
+      <div class="field">
+        <label><span data-i18n="meta_semanal_eur">Meta alvo semanal (€)</span></label>
         <div class="field-money"><input type="number" id="weeklyGoalInput" placeholder="0,00" inputmode="decimal" onchange="updateWeeklyGoal(this.value)" /></div>
       </div>
       <div class="section-sub" style="margin-top:6px; font-size:11px; line-height:1.5;">
@@ -2171,7 +2179,18 @@ const I18N = {
     rn_assunto:"Renovação Corrida+",
     rn_corpo:"Envio o comprovativo de pagamento da renovação.",
     rn_plano:"Plano",
-    rn_valor:"Valor"
+    rn_valor:"Valor",
+    lucro_distrib:"Distribuição do lucro por semana",
+    despesas_distrib:"Despesas por categoria em pizza",
+    m_acima_min:"acima do mínimo ·",
+    m_abaixo_min:"abaixo do mínimo ·",
+    m_para_alvo:"para a meta alvo",
+    m_para_min:"para o mínimo",
+    m_minimo:"mínimo",
+    m_alvo:"alvo",
+    m_min_removida:"Mínimo removido",
+    m_meta_min_mensal:"Meta mínima mensal (€)",
+    m_meta_min_semanal:"Meta mínima semanal (€)"
   }
 };
 // Corrida+ — lógica do app.
@@ -2180,7 +2199,7 @@ const I18N = {
 // Esquema de versão: de volta ao pré-1.0 (0.x.x) — a v1.0.0 fica
 // reservada para o lançamento com assinatura paga completa. A numeração
 // 4.x.x usada temporariamente para a integração Firebase foi abandonada.
-const APP_VERSION = '0.176';
+const APP_VERSION = '0.178';
 
 // ---------------------------------------------------------------
 // IDIOMA — português (pt) e inglês (en). Escolha guardada neste aparelho (localSettings.lang).
@@ -5353,6 +5372,10 @@ function renderSettings(){
   if(monthlyGoalEl) monthlyGoalEl.value = profile.monthlyGoal || '';
   const weeklyGoalEl = document.getElementById('weeklyGoalInput');
   if(weeklyGoalEl) weeklyGoalEl.value = profile.weeklyGoal || '';
+  const monthlyMinEl = document.getElementById('monthlyMinInput');
+  if(monthlyMinEl) monthlyMinEl.value = profile.monthlyMin || '';
+  const weeklyMinEl = document.getElementById('weeklyMinInput');
+  if(weeklyMinEl) weeklyMinEl.value = profile.weeklyMin || '';
 
   const devPanel = document.getElementById('devPanel');
   if(devPanel){
@@ -5425,6 +5448,18 @@ async function updateMonthlyGoal(value){
   profile.monthlyGoal = parseFloat(value) || 0;
   await persistProfile();
   showToast(profile.monthlyGoal > 0 ? `Meta mensal: ${fmt(profile.monthlyGoal)}` : 'Meta mensal removida');
+}
+async function updateMonthlyMin(value){
+  if(readOnlyGuard()) return;
+  profile.monthlyMin = parseFloat(value) || 0;
+  await persistProfile();
+  showToast(profile.monthlyMin > 0 ? `${tr('m_minimo')} ${tr('meta_mensal')}: ${fmt(profile.monthlyMin)}` : tr('m_min_removida'));
+}
+async function updateWeeklyMin(value){
+  if(readOnlyGuard()) return;
+  profile.weeklyMin = parseFloat(value) || 0;
+  await persistProfile();
+  showToast(profile.weeklyMin > 0 ? `${tr('m_minimo')} ${tr('meta_semanal')}: ${fmt(profile.weeklyMin)}` : tr('m_min_removida'));
 }
 async function updateWeeklyGoal(value){
   if(readOnlyGuard()) return;
@@ -5573,24 +5608,34 @@ async function removeCustomPlatform(key){
 // Card de progresso reutilizável — usado em Estatísticas (visão Mês e
 // Semana) quando profile.goalsEnabled e a respetiva meta > 0. Compara o
 // lucro líquido do período em curso com a meta definida.
-function goalProgressHTML(current, goal, label){
-  if(!goal || goal <= 0) return '';
-  const pct = Math.max(0, Math.min(100, Math.round((current / goal) * 100)));
-  const reached = current >= goal;
-  const remaining = Math.max(0, goal - current);
-  const barColor = reached ? 'var(--vault-light)' : 'var(--brass)';
+function goalProgressHTML(current, minimo, alvo, label){
+  // alvo: meta de lucro (se não definida, usa o mínimo). minimo: meta mínima (por omissão, as despesas fixas).
+  const meta = alvo && alvo > 0 ? alvo : (minimo && minimo > 0 ? minimo : 0);
+  if(meta <= 0) return '';
+  const min = Math.min(minimo && minimo > 0 ? minimo : 0, meta);
+  const pct = Math.max(0, Math.min(100, Math.round((current / meta) * 100)));
+  const pctMin = Math.round((min / meta) * 100);
+  const atingiu = current >= meta;
+  const acimaMin = current >= min;
+  const cor = atingiu ? 'var(--vault-light)' : (acimaMin ? 'var(--brass)' : 'var(--terracotta)');
+  const estado = atingiu ? tr('meta_atingida')
+    : (acimaMin ? `${tr('m_acima_min')} ${tr('faltam')} ${fmt(meta - current)} ${tr('m_para_alvo')}`
+                : `${tr('m_abaixo_min')} ${tr('faltam')} ${fmt(min - current)} ${tr('m_para_min')}`);
   return `
   <div class="chart-box" style="margin-bottom:14px;">
     <div class="chart-box-title">🎯 ${escapeHtml(label)}</div>
-    <div class="chart-box-sub">${reached ? tr('meta_atingida') : `${tr('faltam')} ${fmt(remaining)} ${tr('para_meta')}`}</div>
+    <div class="chart-box-sub">${estado}</div>
     <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px;">
       <span style="font-family:'JetBrains Mono',monospace;font-weight:700;font-size:20px;">${fmt(current)}</span>
-      <span style="font-size:12px;color:var(--text-muted);">meta: ${fmt(goal)}</span>
+      <span style="font-size:12px;color:var(--text-muted);text-align:right;">${tr('m_minimo')}: ${fmt(min)}<br>${tr('m_alvo')}: ${fmt(meta)}</span>
     </div>
-    <div class="goal-bar-bg" style="background:var(--cream-2);border-radius:100px;height:14px;overflow:hidden;">
-      <div style="width:${pct}%;height:100%;border-radius:100px;background:${barColor};transition:width 0.3s ease;"></div>
+    <div style="position:relative;">
+      <div class="goal-bar-bg" style="background:var(--cream-2);border-radius:100px;height:14px;overflow:hidden;">
+        <div style="width:${pct}%;height:100%;border-radius:100px;background:${cor};transition:width 0.3s ease;"></div>
+      </div>
+      ${min > 0 && min < meta ? `<div style="position:absolute;top:-4px;bottom:-4px;left:${pctMin}%;width:2px;background:var(--ink);opacity:.6;"></div>` : ''}
     </div>
-    <div style="text-align:right;margin-top:6px;font-size:12px;font-weight:700;color:${reached?'var(--vault-light)':'var(--text-muted)'};">${pct}%</div>
+    <div style="text-align:right;margin-top:6px;font-size:12px;font-weight:700;color:${atingiu?'var(--vault-light)':'var(--text-muted)'};">${pct}%</div>
   </div>`;
 }
 
@@ -6121,6 +6166,27 @@ function stackedBarSVG(labels, despesasVals, lucroVals){
   </div>`;
   return `<svg viewBox="0 0 ${w} ${h}" style="width:100%; height:auto; display:block;">${bars}</svg>${legend}`;
 }
+const PALETA_PIZZA = ['#3E6650','#B8862B','#C97259','#5A6B8A','#8A6B5A','#6B5A8A','#2C4F3D','#D9A949'];
+function pieSVG(fatias){
+  const tot = fatias.reduce((s,f) => s + f.value, 0);
+  if(!tot || !fatias.length) return '';
+  const cx = 100, cy = 100, r = 90;
+  let ang = -Math.PI / 2, caminhos = '';
+  if(fatias.length === 1){
+    caminhos = `<circle cx="100" cy="100" r="90" fill="${fatias[0].color}"/>`;
+  } else {
+    fatias.forEach(f => {
+      const a = f.value / tot * 2 * Math.PI;
+      const x1 = cx + r * Math.cos(ang), y1 = cy + r * Math.sin(ang);
+      ang += a;
+      const x2 = cx + r * Math.cos(ang), y2 = cy + r * Math.sin(ang);
+      const grande = a > Math.PI ? 1 : 0;
+      caminhos += `<path d="M${cx},${cy} L${x1.toFixed(2)},${y1.toFixed(2)} A${r},${r} 0 ${grande} 1 ${x2.toFixed(2)},${y2.toFixed(2)} Z" fill="${f.color}"/>`;
+    });
+  }
+  const legenda = fatias.map(f => `<div class="chart-legend-item"><span class="chart-legend-dot" style="background:${f.color};"></span>${escapeHtml(f.label)} · ${(f.value / tot * 100).toFixed(0)}% · ${fmt(f.value)}</div>`).join('');
+  return `<svg viewBox="0 0 200 200" style="width:min(220px,70%);height:auto;display:block;margin:0 auto;">${caminhos}</svg><div class="chart-legend" style="justify-content:center;">${legenda}</div>`;
+}
 function horizontalBarsHTML(items){
   const maxVal = Math.max(1, ...items.map(it => Math.abs(it.value)));
   return items.map(it => {
@@ -6446,10 +6512,8 @@ function renderStatsWeek(){
     // Sem meta semanal definida, a meta mínima passa a ser as próprias
     // despesas fixas diárias/semanais da semana (mesmo valor já descontado
     // do lucro acima) — não há rateio de despesas mensais aqui.
-    const hasCustomGoal = profile.weeklyGoal && profile.weeklyGoal > 0;
-    const weeklyGoalValue = hasCustomGoal ? profile.weeklyGoal : fixasSemanaReal;
-    const weeklyGoalLabel = hasCustomGoal ? tr('meta_semanal') : tr('meta_semanal_min');
-    html += goalProgressHTML(lucro, weeklyGoalValue, weeklyGoalLabel);
+    const minSemanal = profile.weeklyMin > 0 ? profile.weeklyMin : fixasSemanaReal;
+    html += goalProgressHTML(lucro, minSemanal, profile.weeklyGoal, tr('meta_semanal'));
   }
   html += `<div class="stat-cards">
     ${brutoTVDE>0?`<div class="stat-card"><div class="stat-card-label">${tr('m_bruto_tvde_emoji')}</div><div class="stat-card-value">${fmt(brutoTVDE)}</div></div>`:''}
@@ -6538,10 +6602,8 @@ function renderStatsMonth(){
   if(profile.goalsEnabled){
     // Sem meta mensal definida, a meta mínima passa a ser as despesas fixas
     // do mês — cobrir os custos fixos é o objetivo mais básico possível.
-    const hasCustomGoal = profile.monthlyGoal && profile.monthlyGoal > 0;
-    const monthlyGoalValue = hasCustomGoal ? profile.monthlyGoal : fixasMes;
-    const monthlyGoalLabel = hasCustomGoal ? tr('meta_mensal') : tr('meta_mensal_min');
-    html += goalProgressHTML(lucroMes, monthlyGoalValue, monthlyGoalLabel);
+    const minMensal = profile.monthlyMin > 0 ? profile.monthlyMin : fixasMes;
+    html += goalProgressHTML(lucroMes, minMensal, profile.monthlyGoal, tr('meta_mensal'));
   }
   html += `
   <div class="chart-box" style="margin-bottom:14px;">
@@ -6673,7 +6735,12 @@ function renderStatsMonth(){
     const found = EXPENSE_CATEGORIES.find(c => c.key === cat);
     return { label: found ? `${found.emoji} ${found.label}` : cat, value: val, color:'#C97259' };
   });
-  if(categoryItems.length){ html += chartBoxWrap(tr('despesas_categoria'), tr('totais_acumulados'), horizontalBarsHTML(categoryItems)); }
+  if(categoryItems.length){ html += chartBoxWrap(tr('despesas_categoria'), tr('totais_acumulados'), horizontalBarsHTML(categoryItems)); html += chartBoxWrap(tr('despesas_distrib'), tr('totais_acumulados'), pieSVG(categoryItems)); }
+  const fatiasLucro = weekApps.map((a,i) => {
+    const liq = (a - ivaAmount(a) - comissaoAmount(a)) - weekComb[i] + weekPart[i];
+    return { label: weekLabels[i], value: Math.max(0, liq - weekFixed[i] - weekVar[i]) };
+  }).filter(f => f.value > 0).map((f,i) => ({ ...f, color: PALETA_PIZZA[i % PALETA_PIZZA.length] }));
+  if(fatiasLucro.length){ html += chartBoxWrap(tr('lucro_distrib'), tr('lucro_por_semana'), pieSVG(fatiasLucro)); }
   html += kmStatsHTML(entry.earnings, lucroMes) + turnoBreakdownHTML(entry.earnings) + topDaysHTML(entry.earnings);
 
   html += monthAnalysisHTML(entry.earnings, entry.variableExpenses, currentMonthKey, true);
@@ -6796,7 +6863,7 @@ function renderStatsYear(){
     const found = EXPENSE_CATEGORIES.find(c => c.key === cat);
     return { label: found ? `${found.emoji} ${found.label}` : cat, value: val, color:'#C97259' };
   });
-  if(categoryItems.length){ html += chartBoxWrap(tr('despesas_categoria'), tr('totais_ano'), horizontalBarsHTML(categoryItems)); }
+  if(categoryItems.length){ html += chartBoxWrap(tr('despesas_categoria'), tr('totais_ano'), horizontalBarsHTML(categoryItems)); html += chartBoxWrap(tr('despesas_distrib'), tr('totais_ano'), pieSVG(categoryItems)); }
   const allYearEarnings = entries.reduce((acc, e) => acc.concat(e.earnings), []);
   html += kmStatsHTML(allYearEarnings, lucroAno) + turnoBreakdownHTML(allYearEarnings) + topDaysHTML(allYearEarnings);
   html += monthAnalysisHTML(allYearEarnings, entries.reduce((acc, e) => acc.concat(e.variableExpenses), []), '', false);
