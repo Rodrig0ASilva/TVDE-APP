@@ -908,8 +908,6 @@ body.dark #glassRange::-moz-range-track { background: rgba(255,255,255,0.3); }
 /* Títulos (Corrida+ na barra lateral e títulos das telas) legíveis no modo escuro */
 body.dark .brand-name, body.dark .screen-title, body.dark .tabbar-inner::before { color: var(--vault-text, var(--vault-light)); }
 /* Faixa do topo (área da barra de estado do iPhone): cor sólida para o conteúdo não aparecer desfocado por baixo */
-body::after { content: ''; position: fixed; top: 0; left: 0; right: 0; height: env(safe-area-inset-top, 0px); background: var(--cream); z-index: 44; pointer-events: none; }
-body.glass::after { background: var(--cream); }
 /* Aviso de assinatura (modo só leitura): fundo sólido, com ou sem o efeito transparente */
 #readOnlyBanner { background: #F7E6DF !important; }
 body.dark #readOnlyBanner { background: #3A2520 !important; }
@@ -2193,7 +2191,20 @@ const I18N = {
     m_alvo:"alvo",
     m_min_removida:"Mínimo removido",
     m_meta_min_mensal:"Meta mínima mensal (€)",
-    m_meta_min_semanal:"Meta mínima semanal (€)"
+    m_meta_min_semanal:"Meta mínima semanal (€)",
+    ins_titulo:"Instalar a app",
+    ins_banner:"Instala a Corrida+ no ecrã inicial e abre-a como app.",
+    ins_btn_instalar:"Instalar",
+    ins_btn_como:"Como instalar",
+    ins_ios:"iPhone",
+    ins_ios_1:"Abre este site no Safari.",
+    ins_ios_2:"Toca no botão Partilhar.",
+    ins_ios_3:"Escolhe «Adicionar ao ecrã principal».",
+    ins_ios_4:"Toca em «Adicionar». O ícone aparece no ecrã principal.",
+    ins_android:"Android",
+    ins_and_1:"Abre o menu do Chrome (⋮).",
+    ins_and_2:"Escolhe «Instalar app» ou «Adicionar ao ecrã inicial».",
+    ins_and_3:"Confirma. A app fica no ecrã inicial."
   }
 };
 // Corrida+ — lógica do app.
@@ -2202,7 +2213,7 @@ const I18N = {
 // Esquema de versão: de volta ao pré-1.0 (0.x.x) — a v1.0.0 fica
 // reservada para o lançamento com assinatura paga completa. A numeração
 // 4.x.x usada temporariamente para a integração Firebase foi abandonada.
-const APP_VERSION = '0.181';
+const APP_VERSION = '0.183';
 
 // ---------------------------------------------------------------
 // IDIOMA — português (pt) e inglês (en). Escolha guardada neste aparelho (localSettings.lang).
@@ -2250,6 +2261,7 @@ async function setIdioma(lang){
   renderSettings();
   renderReadOnlyBanner();
   renderSubscriptionCard();
+  renderInstalarBanner();
   if(document.querySelector('#sheet [data-welcome]') && document.getElementById('overlay').classList.contains('show')) showWelcomeSheet();
 }
 
@@ -3708,6 +3720,83 @@ function escolherPlanoRenovacao(meses){
     </div>
     <a href="mailto:rodrigo_almeida1410@proton.me?subject=${assunto}&body=${corpo}" class="btn btn-primary" style="display:block;text-decoration:none;text-align:center;">${tr('rn_enviar')}</a>`;
 }
+
+// ---------------------------------------------------------------
+// BANNER PARA INSTALAR A APP (modo web → ecrã inicial).
+// Android: botão direto (pedido de instalação do navegador). iPhone: passo a passo com ícones.
+// Ícones são desenhos simples, não capturas de ecrã. Dispensado por 14 dias.
+// ---------------------------------------------------------------
+let eventoInstalar = null;
+window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); eventoInstalar = e; renderInstalarBanner(); });
+window.addEventListener('appinstalled', () => { eventoInstalar = null; renderInstalarBanner(); });
+const ICONE_PARTILHAR = `<svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="M8 7l4-4 4 4"/><path d="M6 11H5v9h14v-9h-1"/></svg>`;
+const ICONE_ADICIONAR = `<svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="3" width="18" height="18" rx="4"/><path d="M12 8v8M8 12h8"/></svg>`;
+const ICONE_MENU = `<svg viewBox="0 0 24 24" width="26" height="26" fill="currentColor"><circle cx="12" cy="5" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="12" cy="19" r="2"/></svg>`;
+const ICONE_OK = `<svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l4 4 10-10"/></svg>`;
+function appInstalada(){
+  return (window.matchMedia && matchMedia('(display-mode: standalone)').matches) || window.navigator.standalone === true;
+}
+function plataformaInstalar(){
+  const ua = navigator.userAgent || '';
+  if(/iPhone|iPad|iPod/.test(ua)) return 'ios';
+  if(/Android/.test(ua)) return 'android';
+  return 'outra';
+}
+function instalarDispensadoRecente(){
+  const d = Number(localSettings.instalarDispensadoEm) || 0;
+  return d > 0 && (Date.now() - d) < 14 * 86400000;
+}
+async function dispensarInstalar(){
+  localSettings.instalarDispensadoEm = Date.now();
+  await persistLocalSettings();
+  renderInstalarBanner();
+}
+function renderInstalarBanner(){
+  const app = document.getElementById('app');
+  let el = document.getElementById('instalarBanner');
+  if(!app || appInstalada() || instalarDispensadoRecente()){ if(el) el.remove(); return; }
+  if(!el){
+    el = document.createElement('div');
+    el.id = 'instalarBanner';
+    el.style.cssText = 'grid-column:2;margin:calc(env(safe-area-inset-top, 0px) + 14px) 0 12px;padding:12px 14px;border-radius:var(--r-md);background:var(--vault);color:#F6EFE2;font-size:13px;line-height:1.5;';
+    app.prepend(el);
+  }
+  const android = eventoInstalar !== null;
+  el.innerHTML = `
+    <div style="font-weight:700;margin-bottom:4px;">📲 ${tr('ins_titulo')}</div>
+    <div style="opacity:.9;margin-bottom:10px;">${tr('ins_banner')}</div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;">
+      <button onclick="${android ? 'instalarAgora()' : 'abrirComoInstalar()'}" style="padding:8px 14px;border-radius:var(--r-full);border:none;background:#F6EFE2;color:var(--vault);font-weight:800;font-size:12px;cursor:pointer;">${android ? tr('ins_btn_instalar') : tr('ins_btn_como')}</button>
+      <button onclick="dispensarInstalar()" style="padding:8px 14px;border-radius:var(--r-full);border:1px solid rgba(246,239,226,.5);background:transparent;color:#F6EFE2;font-weight:600;font-size:12px;cursor:pointer;">${tr('m_mais_tarde')}</button>
+    </div>`;
+}
+async function instalarAgora(){
+  if(!eventoInstalar) return;
+  const ev = eventoInstalar;
+  eventoInstalar = null;
+  try{ ev.prompt(); await ev.userChoice; }catch(e){}
+  renderInstalarBanner();
+}
+function abrirComoInstalar(tab){
+  const sel = tab || (plataformaInstalar() === 'android' ? 'android' : 'ios');
+  const passos = sel === 'ios'
+    ? [['ins_ios_1', null], ['ins_ios_2', ICONE_PARTILHAR], ['ins_ios_3', ICONE_ADICIONAR], ['ins_ios_4', ICONE_OK]]
+    : [['ins_and_1', ICONE_MENU], ['ins_and_2', ICONE_ADICIONAR], ['ins_and_3', ICONE_OK]];
+  openSheet(`
+    <div class="sheet-handle"></div>
+    <div class="sheet-title">${tr('ins_titulo')}</div>
+    <div class="seg" style="margin:10px 0 16px;">
+      <div class="seg-opt ${sel === 'ios' ? 'active' : ''}" onclick="abrirComoInstalar('ios')">${tr('ins_ios')}</div>
+      <div class="seg-opt ${sel === 'android' ? 'active' : ''}" onclick="abrirComoInstalar('android')">${tr('ins_android')}</div>
+    </div>
+    ${passos.map((p, i) => `
+      <div style="display:flex;gap:12px;align-items:center;margin-bottom:14px;">
+        <div style="width:30px;height:30px;border-radius:50%;background:var(--vault);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;flex-shrink:0;">${i + 1}</div>
+        <div style="flex:1;font-size:13px;line-height:1.5;">${tr(p[0])}</div>
+        <div style="width:48px;height:48px;border-radius:12px;background:var(--cream-2);display:flex;align-items:center;justify-content:center;color:var(--vault);flex-shrink:0;">${p[1] || ''}</div>
+      </div>`).join('')}
+    <button class="btn btn-ghost" onclick="closeSheet()">${tr('fechar')}</button>`);
+}
 function renderReadOnlyBanner(){
   if(accessExpired() && window._sheetKind === 'resumo' && document.getElementById('overlay').classList.contains('show')) closeSheet();
   const app = document.getElementById('app');
@@ -3843,6 +3932,7 @@ async function loadAll(){
   applyTabVisibility();
   if(repairTurnoList()){ persistLocalOnlySilently(); scheduleCloudPush(); }
   applyAllAppearance();
+  renderInstalarBanner();
   hideLoadingState();
   renderLucro();
 
