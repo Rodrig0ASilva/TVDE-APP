@@ -907,6 +907,9 @@ body.dark #glassRange::-moz-range-track { background: rgba(255,255,255,0.3); }
 .stat-card-label .plat-badge { margin-right: 4px; }
 /* Títulos (Corrida+ na barra lateral e títulos das telas) legíveis no modo escuro */
 body.dark .brand-name, body.dark .screen-title, body.dark .tabbar-inner::before { color: var(--vault-text, var(--vault-light)); }
+/* Faixa do topo (área da barra de estado do iPhone): cor sólida para o conteúdo não aparecer desfocado por baixo */
+body::after { content: ''; position: fixed; top: 0; left: 0; right: 0; height: env(safe-area-inset-top, 0px); background: var(--cream); z-index: 44; pointer-events: none; }
+body.glass::after { background: var(--cream); }
 /* Aviso de assinatura (modo só leitura): fundo sólido, com ou sem o efeito transparente */
 #readOnlyBanner { background: #F7E6DF !important; }
 body.dark #readOnlyBanner { background: #3A2520 !important; }
@@ -2199,7 +2202,7 @@ const I18N = {
 // Esquema de versão: de volta ao pré-1.0 (0.x.x) — a v1.0.0 fica
 // reservada para o lançamento com assinatura paga completa. A numeração
 // 4.x.x usada temporariamente para a integração Firebase foi abandonada.
-const APP_VERSION = '0.178';
+const APP_VERSION = '0.180';
 
 // ---------------------------------------------------------------
 // IDIOMA — português (pt) e inglês (en). Escolha guardada neste aparelho (localSettings.lang).
@@ -3713,7 +3716,7 @@ function renderReadOnlyBanner(){
   if(!el){
     el = document.createElement('div');
     el.id = 'readOnlyBanner';
-    el.style.cssText = 'grid-column:2;position:sticky;top:0;z-index:45;margin:8px 0 12px;padding:12px 14px;border-radius:var(--r-md);background:rgba(168,83,63,0.14);border:1px solid rgba(168,83,63,0.45);font-size:12px;line-height:1.5;color:var(--ink);';
+    el.style.cssText = 'grid-column:2;position:sticky;top:env(safe-area-inset-top, 0px);z-index:45;margin:8px 0 12px;padding:12px 14px;border-radius:var(--r-md);background:rgba(168,83,63,0.14);border:1px solid rgba(168,83,63,0.45);font-size:12px;line-height:1.5;color:var(--ink);';
     app.prepend(el);
   }
   const end = subscriptionEndDate();
@@ -6167,6 +6170,11 @@ function stackedBarSVG(labels, despesasVals, lucroVals){
   return `<svg viewBox="0 0 ${w} ${h}" style="width:100%; height:auto; display:block;">${bars}</svg>${legend}`;
 }
 const PALETA_PIZZA = ['#3E6650','#B8862B','#C97259','#5A6B8A','#8A6B5A','#6B5A8A','#2C4F3D','#D9A949'];
+// Cada categoria de despesa tem sempre a mesma cor (pela ordem em EXPENSE_CATEGORIES), nas barras e na pizza.
+function corCategoria(key){
+  const idx = EXPENSE_CATEGORIES.findIndex(c => c.key === key);
+  return PALETA_PIZZA[(idx >= 0 ? idx : EXPENSE_CATEGORIES.length) % PALETA_PIZZA.length];
+}
 function pieSVG(fatias){
   const tot = fatias.reduce((s,f) => s + f.value, 0);
   if(!tot || !fatias.length) return '';
@@ -6733,7 +6741,7 @@ function renderStatsMonth(){
   entry.variableExpenses.forEach(exp => { categoryTotals[exp.category] = (categoryTotals[exp.category]||0) + (exp.amount||0); });
   const categoryItems = Object.entries(categoryTotals).filter(([,v])=>v>0).map(([cat,val]) => {
     const found = EXPENSE_CATEGORIES.find(c => c.key === cat);
-    return { label: found ? `${found.emoji} ${found.label}` : cat, value: val, color:'#C97259' };
+    return { label: found ? `${found.emoji} ${found.label}` : cat, value: val, color: corCategoria(cat) };
   });
   if(categoryItems.length){ html += chartBoxWrap(tr('despesas_categoria'), tr('totais_acumulados'), horizontalBarsHTML(categoryItems)); html += chartBoxWrap(tr('despesas_distrib'), tr('totais_acumulados'), pieSVG(categoryItems)); }
   const fatiasLucro = weekApps.map((a,i) => {
@@ -6861,7 +6869,7 @@ function renderStatsYear(){
   });
   const categoryItems = Object.entries(categoryTotals).filter(([,v])=>v>0).map(([cat,val]) => {
     const found = EXPENSE_CATEGORIES.find(c => c.key === cat);
-    return { label: found ? `${found.emoji} ${found.label}` : cat, value: val, color:'#C97259' };
+    return { label: found ? `${found.emoji} ${found.label}` : cat, value: val, color: corCategoria(cat) };
   });
   if(categoryItems.length){ html += chartBoxWrap(tr('despesas_categoria'), tr('totais_ano'), horizontalBarsHTML(categoryItems)); html += chartBoxWrap(tr('despesas_distrib'), tr('totais_ano'), pieSVG(categoryItems)); }
   const allYearEarnings = entries.reduce((acc, e) => acc.concat(e.earnings), []);
