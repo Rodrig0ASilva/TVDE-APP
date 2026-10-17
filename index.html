@@ -2158,7 +2158,20 @@ const I18N = {
     m_tudo_1a_semana2:"tudo na 1ª semana do mês",
     m_migracao_enviada:"✅ URL de migração enviada — os dispositivos vão migrar ao sincronizar",
     m_biblioteca_erro:"❌ Biblioteca de exportação não carregou — verifica a ligação à internet",
-    m_sub_limite:"Sem assinatura ativa: limite de 5 ganhos, 5 despesas variáveis e 5 despesas fixas, e as configurações ficam bloqueadas. Ativa a assinatura para desbloquear tudo."
+    m_sub_limite:"Sem assinatura ativa: limite de 5 ganhos, 5 despesas variáveis e 5 despesas fixas, e as configurações ficam bloqueadas. Ativa a assinatura para desbloquear tudo.",
+    rn_planos_sub:"Escolhe um plano. O pagamento é feito por transferência pessoa a pessoa.",
+    rn_mes:"mês",
+    rn_meses:"meses",
+    rn_por_mes:"/ mês",
+    rn_transf:"Transfere",
+    rn_para:"para",
+    rn_titular:"Titular",
+    rn_comentario:"No comentário, indica o teu email. Depois envia o comprovativo: a assinatura é ativada manualmente.",
+    rn_enviar:"Enviar comprovativo por email",
+    rn_assunto:"Renovação Corrida+",
+    rn_corpo:"Envio o comprovativo de pagamento da renovação.",
+    rn_plano:"Plano",
+    rn_valor:"Valor"
   }
 };
 // Corrida+ — lógica do app.
@@ -2167,7 +2180,7 @@ const I18N = {
 // Esquema de versão: de volta ao pré-1.0 (0.x.x) — a v1.0.0 fica
 // reservada para o lançamento com assinatura paga completa. A numeração
 // 4.x.x usada temporariamente para a integração Firebase foi abandonada.
-const APP_VERSION = '0.174';
+const APP_VERSION = '0.176';
 
 // ---------------------------------------------------------------
 // IDIOMA — português (pt) e inglês (en). Escolha guardada neste aparelho (localSettings.lang).
@@ -3634,7 +3647,47 @@ function readOnlyGuard(){
   showToast(tr('m_readonly_toast'));
   return true;
 }
+
+// ---------------------------------------------------------------
+// RENOVAÇÃO P2P (provisório, até ao plano Blaze). O pagamento é feito por transferência ou MB WAY;
+// a ativação é manual. Preenche os dados de PAGAMENTO_P2P antes de publicar.
+// ---------------------------------------------------------------
+const PAGAMENTO_P2P = { mbway: '(número MB WAY)', iban: '(IBAN)', titular: '(nome do titular)' };
+const PLANOS_RENOVACAO = [ { meses: 1, preco: 10 }, { meses: 3, preco: 25 }, { meses: 6, preco: 50 } ];
+function openRenovarSheet(){
+  const botoes = PLANOS_RENOVACAO.map(pl => `
+    <button class="btn theme-card" onclick="escolherPlanoRenovacao(${pl.meses})" style="border:1.5px solid var(--line);color:var(--ink);margin-bottom:10px;text-align:left;">
+      <div style="font-weight:800;">${pl.meses} ${pl.meses === 1 ? tr('rn_mes') : tr('rn_meses')}</div>
+      <div style="font-size:12px;opacity:.8;">${pl.preco} € · ${(pl.preco / pl.meses).toFixed(2)} € ${tr('rn_por_mes')}</div>
+    </button>`).join('');
+  openSheet(`
+    <div class="sheet-handle"></div>
+    <div class="sheet-title">${tr('m_renovar')}</div>
+    <div class="sheet-sub">${tr('rn_planos_sub')}</div>
+    ${botoes}
+    <div id="renovarDetalhe"></div>
+    <button class="btn btn-ghost" onclick="closeSheet()">${tr('fechar')}</button>`);
+}
+function escolherPlanoRenovacao(meses){
+  const pl = PLANOS_RENOVACAO.find(p => p.meses === meses);
+  if(!pl) return;
+  const email = (window.__fbUser && window.__fbUser.email) || '';
+  const uid = (window.__fbUser && window.__fbUser.uid) || '';
+  const resumo = `${tr('rn_plano')}: ${pl.meses} ${pl.meses === 1 ? tr('rn_mes') : tr('rn_meses')}\n${tr('rn_valor')}: ${pl.preco} €\nEmail: ${email}\nUID: ${uid}`;
+  const assunto = encodeURIComponent(tr('rn_assunto'));
+  const corpo = encodeURIComponent(tr('rn_corpo') + '\n\n' + resumo);
+  document.getElementById('renovarDetalhe').innerHTML = `
+    <div style="font-size:13px;line-height:1.6;margin:8px 0 12px;">
+      ${tr('rn_transf')} <strong>${pl.preco} €</strong> ${tr('rn_para')}:<br>
+      MB WAY: ${PAGAMENTO_P2P.mbway}<br>
+      IBAN: ${PAGAMENTO_P2P.iban}<br>
+      ${tr('rn_titular')}: ${PAGAMENTO_P2P.titular}<br><br>
+      ${tr('rn_comentario')}
+    </div>
+    <a href="mailto:rodrigo_almeida1410@proton.me?subject=${assunto}&body=${corpo}" class="btn btn-primary" style="display:block;text-decoration:none;text-align:center;">${tr('rn_enviar')}</a>`;
+}
 function renderReadOnlyBanner(){
+  if(accessExpired() && window._sheetKind === 'resumo' && document.getElementById('overlay').classList.contains('show')) closeSheet();
   const app = document.getElementById('app');
   let el = document.getElementById('readOnlyBanner');
   if(!accessExpired()){ if(el) el.remove(); return; }
@@ -3649,7 +3702,7 @@ function renderReadOnlyBanner(){
   const semAssinatura = window.__fbSubscription === null;
   const titulo = semAssinatura ? tr('m_sub_sem_titulo') : `${tr('m_sub_expirada')}${endStr ? tr('m_em') + endStr : ''}.`;
   el.innerHTML = `<div><strong>${titulo}</strong> ${tr('m_readonly_corpo')}</div>
-    <button onclick="goSettings()" style="margin-top:8px;padding:8px 14px;border-radius:var(--r-full);border:none;background:var(--terracotta);color:#fff;font-weight:700;font-size:12px;cursor:pointer;">${tr('m_renovar')}</button>`;
+    <button onclick="openRenovarSheet()" style="margin-top:8px;padding:8px 14px;border-radius:var(--r-full);border:none;background:var(--terracotta);color:#fff;font-weight:700;font-size:12px;cursor:pointer;">${tr('m_renovar')}</button>`;
 }
 // Manter o dedo em "Você" (cerca de 0,7 s) procura uma atualização e aplica-a, sem perguntar.
 // Pode ser desligado no Modo Dev (localSettings.holdUpdateEnabled, só neste aparelho).
@@ -5424,6 +5477,8 @@ function pickNewCustomTaxed(v){
 // para cada aparelho mostrar um resumo por dia.
 async function runDailySummaryCheck(){
   const forced = devForceDailySummary;
+  // Com a assinatura expirada, o aviso de modo só leitura fica por baixo desta folha: não a abre sozinha.
+  if(!forced && accessExpired()) return;
   const today = isoDate(new Date());
   if(!forced){
     if(!featureOn('dailySummaryEnabled')) return;
@@ -5492,6 +5547,7 @@ function showDailySummary(y, items, expenses){
     <div class="section-sub" style="font-size:11px;margin-bottom:14px;">${tr('m_nao_inclui_fixas')}</div>
     <button class="btn btn-primary" onclick="closeSheet()">${tr('fechar')}</button>
   `);
+  window._sheetKind = 'resumo';
 }
 function toggleForceDailySummary(){
   devForceDailySummary = !devForceDailySummary;
@@ -7002,6 +7058,7 @@ function openSheet(html){
   ov.classList.add('show');
 }
 function closeSheet(){
+  window._sheetKind = null;
   const ov = document.getElementById('overlay');
   const sh = document.getElementById('sheet');
   if(ov.classList.contains('show') && !ov.classList.contains('closing')){
