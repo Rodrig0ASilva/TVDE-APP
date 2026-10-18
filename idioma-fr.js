@@ -558,7 +558,7 @@ window.I18N_LANGS.fr = {
     "ins_and_3": "Confirme. L’app se place sur l’écran d’accueil.",
     "rn_envia_para": "Envoie le justificatif à",
     "m_da_assinatura": "de ton abonnement.",
-    "rn_revolut": "Payer avec Revolut",
+    "rn_revolut": "Payer",
     "rn_ativacao": "L’activation peut prendre entre 1 heure et 24 heures après réception du paiement.",
     "rn_cobranca": "Vous serez facturé du montant correspondant à la période d’utilisation",
     "cond_titulo": "Conditions de renouvellement",
@@ -570,11 +570,13 @@ window.I18N_LANGS.fr = {
     "cond_3_t": "Droit de rétractation (14 jours)",
     "cond_3": "Conformément au décret-loi n.º 24/2014, vous pouvez vous rétracter du contrat dans un délai de 14 jours à compter de sa conclusion, sans motif, par email à rodrigo_almeida1410@proton.me.",
     "cond_4_t": "Début avant la fin du délai",
-    "cond_4": "Si vous demandez que l’accès commence avant la fin de ce délai, vous devez le demander expressément. Si vous vous rétractez après le début, vous ne payez que la partie proportionnelle au temps utilisé : par exemple, après 7 jours d’accès (sur 30), vous payez 7/30 du montant, soit 2,33 €. Le droit de rétractation ne s’applique plus une fois la période entièrement utilisée. (À vérifier avec un juriste.)",
+    "cond_4": "Si vous demandez que l’accès commence avant la fin de ce délai, vous devez le demander expressément. Si vous vous rétractez après le début, vous ne payez que la partie proportionnelle au temps utilisé : par exemple, après 7 jours d’accès (sur 30), vous payez 7/30 du montant, soit 2,33 €. Le droit de rétractation ne s’applique plus une fois la période entièrement utilisée.",
     "cond_5_t": "Remboursement",
-    "cond_5": "En cas de rétractation valable, le remboursement est effectué dans les 14 jours suivant la notification, par le même moyen de paiement ou un autre convenu. (À vérifier avec un juriste.)",
+    "cond_5": "En cas de rétractation valable, le remboursement est effectué dans les 14 jours suivant la notification, par le même moyen de paiement ou un autre convenu.",
     "cond_6_t": "Annulation",
     "cond_6": "Rien à annuler : sans renouvellement automatique, il suffit de ne pas renouveler. L’accès prend fin à la date indiquée.",
     "cond_7_t": "Réclamations",
-    "cond_7": "Vous pouvez vous adresser à la Direction-Générale du Consommateur (Portal do Consumidor). Ces informations sont générales et ne remplacent pas un conseil juridique."
+    "cond_7": "Vous pouvez vous adresser à la Direction-Générale du Consommateur (Portal do Consumidor).",
+    "comprar_acesso": "Acheter l’accès",
+    "rn_qualquer_banco": "Vous pouvez payer avec n’importe quelle carte ou banque. Pas besoin d’avoir un compte Revolut."
 };
