@@ -2251,7 +2251,7 @@ const I18N = {
 // Esquema de versão: de volta ao pré-1.0 (0.x.x) — a v1.0.0 fica
 // reservada para o lançamento com assinatura paga completa. A numeração
 // 4.x.x usada temporariamente para a integração Firebase foi abandonada.
-const APP_VERSION = '0.194';
+const APP_VERSION = '0.195';
 
 // ---------------------------------------------------------------
 // IDIOMA — português (pt) e inglês (en). Escolha guardada neste aparelho (localSettings.lang).
@@ -3822,6 +3822,19 @@ async function dispensarInstalar(){
   await persistLocalSettings();
   renderInstalarBanner();
 }
+// Avisos (renovação, só leitura, instalação, modo básico) ficam no ecrã Você, logo abaixo do cartão da conta.
+function contaAvisos(){
+  let c = document.getElementById('avisosConta');
+  if(!c){
+    c = document.createElement('div');
+    c.id = 'avisosConta';
+    const pl = document.getElementById('profileCardsList');
+    if(pl) pl.parentNode.insertBefore(c, pl.nextSibling);
+  }
+  const bb = document.getElementById('basicBanner');
+  if(bb && bb.parentNode !== c) c.appendChild(bb);
+  return c;
+}
 function renderInstalarBanner(){
   const app = document.getElementById('app');
   let el = document.getElementById('instalarBanner');
@@ -3829,8 +3842,8 @@ function renderInstalarBanner(){
   if(!el){
     el = document.createElement('div');
     el.id = 'instalarBanner';
-    el.style.cssText = 'grid-column:2;margin:calc(env(safe-area-inset-top, 0px) + 14px) 0 12px;padding:12px 14px;border-radius:var(--r-md);background:var(--vault);color:#F6EFE2;font-size:13px;line-height:1.5;';
-    app.prepend(el);
+    el.style.cssText = 'margin:0 0 12px;padding:12px 14px;border-radius:var(--r-md);background:var(--vault);color:#F6EFE2;font-size:13px;line-height:1.5;';
+    contaAvisos().appendChild(el);
   }
   const android = eventoInstalar !== null;
   el.innerHTML = `
@@ -3885,8 +3898,8 @@ function renderRenovarAviso(){
   if(!el){
     el = document.createElement('div');
     el.id = 'renovarAviso';
-    el.style.cssText = 'grid-column:2;margin:calc(env(safe-area-inset-top, 0px) + 14px) 0 12px;padding:12px 14px;border-radius:var(--r-md);background:var(--vault);color:#F6EFE2;font-size:13px;line-height:1.5;';
-    app.prepend(el);
+    el.style.cssText = 'margin:0 0 12px;padding:12px 14px;border-radius:var(--r-md);background:var(--vault);color:#F6EFE2;font-size:13px;line-height:1.5;';
+    contaAvisos().appendChild(el);
   }
   el.innerHTML = `
     <div style="margin-bottom:10px;">⏳ ${tr('m_faltam_pre')} <strong>${n} ${n === 1 ? tr('dia') : tr('dias')}</strong> ${tr('m_da_assinatura')}</div>
@@ -3901,8 +3914,8 @@ function renderReadOnlyBanner(){
   if(!el){
     el = document.createElement('div');
     el.id = 'readOnlyBanner';
-    el.style.cssText = 'grid-column:2;position:sticky;top:calc(env(safe-area-inset-top, 0px) + 14px);z-index:45;margin:calc(env(safe-area-inset-top, 0px) + 14px) 0 12px;padding:12px 14px;border-radius:var(--r-md);background:rgba(168,83,63,0.14);border:1px solid rgba(168,83,63,0.45);font-size:12px;line-height:1.5;color:var(--ink);';
-    app.prepend(el);
+    el.style.cssText = 'margin:0 0 12px;padding:12px 14px;border-radius:var(--r-md);background:rgba(168,83,63,0.14);border:1px solid rgba(168,83,63,0.45);font-size:12px;line-height:1.5;color:var(--ink);';
+    contaAvisos().appendChild(el);
   }
   const end = subscriptionEndDate();
   const endStr = end ? end.toLocaleDateString(LOCALE(), { day:'2-digit', month:'long', year:'numeric' }) : '';
