@@ -558,7 +558,7 @@ window.I18N_LANGS.en = {
     "ins_and_3": "Confirm. The app goes on your home screen.",
     "rn_envia_para": "Send the receipt to",
     "m_da_assinatura": "of your subscription.",
-    "rn_revolut": "Pay with Revolut",
+    "rn_revolut": "Pay",
     "rn_ativacao": "Activation can take between 1 hour and 24 hours after we receive the payment.",
     "rn_cobranca": "You will be charged the amount for the period of use",
     "cond_titulo": "Renewal terms",
@@ -570,11 +570,13 @@ window.I18N_LANGS.en = {
     "cond_3_t": "Right of withdrawal (14 days)",
     "cond_3": "Under Decree-Law no. 24/2014, you may withdraw from the contract within 14 days of conclusion, without giving a reason, by email to rodrigo_almeida1410@proton.me.",
     "cond_4_t": "Start before the withdrawal period ends",
-    "cond_4": "If you ask for access to start before this period ends, you must do so expressly. If you withdraw after it starts, you pay only the part proportional to the time used: for example, after 7 days of access (out of 30), you pay 7/30 of the amount, i.e. €2.33. The right of withdrawal no longer applies once the period has been fully used. (To be verified with a lawyer.)",
+    "cond_4": "If you ask for access to start before this period ends, you must do so expressly. If you withdraw after it starts, you pay only the part proportional to the time used: for example, after 7 days of access (out of 30), you pay 7/30 of the amount, i.e. €2.33. The right of withdrawal no longer applies once the period has been fully used.",
     "cond_5_t": "Refund",
-    "cond_5": "In case of valid withdrawal, the refund is made within 14 days of notice, by the same payment method or another agreed method. (To be verified with a lawyer.)",
+    "cond_5": "In case of valid withdrawal, the refund is made within 14 days of notice, by the same payment method or another agreed method.",
     "cond_6_t": "Cancellation",
     "cond_6": "There is nothing to cancel: with no automatic renewal, you simply do not renew. Access ends on the date shown.",
     "cond_7_t": "Complaints",
-    "cond_7": "You may contact the Portuguese Directorate-General for Consumers (Portal do Consumidor). This information is general and does not replace legal advice."
+    "cond_7": "You may contact the Portuguese Directorate-General for Consumers (Portal do Consumidor).",
+    "comprar_acesso": "Buy access",
+    "rn_qualquer_banco": "You can pay with any card or bank. You don’t need a Revolut account."
 };
