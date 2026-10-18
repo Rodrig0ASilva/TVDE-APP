@@ -578,5 +578,8 @@ window.I18N_LANGS.en = {
     "cond_7_t": "Complaints",
     "cond_7": "You may contact the Portuguese Directorate-General for Consumers (Portal do Consumidor).",
     "comprar_acesso": "Buy access",
-    "rn_qualquer_banco": "You can pay with any card or bank. You don’t need a Revolut account."
+    "rn_qualquer_banco": "You can pay with any card or bank.",
+    "rn_nota1": "You can pay with any card or bank, using the button below or by bank transfer.",
+    "rn_nota2": "Then send the receipt to the email below. In the payment comment, write your email.",
+    "m_voltar": "Back"
 };
