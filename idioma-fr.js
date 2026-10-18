@@ -578,5 +578,8 @@ window.I18N_LANGS.fr = {
     "cond_7_t": "Réclamations",
     "cond_7": "Vous pouvez vous adresser à la Direction-Générale du Consommateur (Portal do Consumidor).",
     "comprar_acesso": "Acheter l’accès",
-    "rn_qualquer_banco": "Vous pouvez payer avec n’importe quelle carte ou banque. Pas besoin d’avoir un compte Revolut."
+    "rn_qualquer_banco": "Vous pouvez payer avec n’importe quelle carte ou banque.",
+    "rn_nota1": "Vous pouvez payer avec n’importe quelle carte ou banque, avec le bouton ci-dessous ou par virement.",
+    "rn_nota2": "Envoyez ensuite le justificatif à l’adresse ci-dessous. Dans le commentaire du paiement, indiquez votre email.",
+    "m_voltar": "Retour"
 };
