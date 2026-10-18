@@ -2222,7 +2222,7 @@ const I18N = {
     ins_and_3:"Confirma. A app fica no ecrã inicial.",
     rn_envia_para:"Envia o comprovativo para",
     m_da_assinatura:"da assinatura.",
-    rn_revolut:"Pagar com Revolut",
+    rn_revolut:"Pagar",
     rn_ativacao:"A ativação pode levar entre 1 hora e 24 horas após recebermos o pagamento.",
     rn_cobranca:"Será cobrado o valor referente ao período de utilização",
     cond_titulo:"Condições de renovação",
@@ -2240,7 +2240,9 @@ const I18N = {
     cond_6_t:"Cancelamento",
     cond_6:"Não é preciso cancelar: não havendo renovação automática, basta não renovar. O acesso termina na data indicada.",
     cond_7_t:"Reclamações",
-    cond_7:"Pode dirigir-se à Direção-Geral do Consumidor (Portal do Consumidor)."
+    cond_7:"Pode dirigir-se à Direção-Geral do Consumidor (Portal do Consumidor).",
+    comprar_acesso:"Comprar acesso",
+    rn_qualquer_banco:"Pode pagar com qualquer cartão ou banco. Não é preciso ter conta Revolut."
   }
 };
 // Corrida+ — lógica do app.
@@ -2249,7 +2251,7 @@ const I18N = {
 // Esquema de versão: de volta ao pré-1.0 (0.x.x) — a v1.0.0 fica
 // reservada para o lançamento com assinatura paga completa. A numeração
 // 4.x.x usada temporariamente para a integração Firebase foi abandonada.
-const APP_VERSION = '0.193';
+const APP_VERSION = '0.194';
 
 // ---------------------------------------------------------------
 // IDIOMA — português (pt) e inglês (en). Escolha guardada neste aparelho (localSettings.lang).
@@ -3646,10 +3648,27 @@ async function fbDoSignOut(){
 // estados: undefined (login feito, ainda a verificar), null (verificado,
 // sem assinatura ativa/em teste — normal enquanto o Stripe não estiver
 // configurado), ou o documento da assinatura (ver fbListenSubscription).
+// Botão "Comprar acesso" para quem não tem assinatura (cartão, modo básico e folha de limite).
+function mostrarBotaoComprar(ancora){
+  let b = document.getElementById('subBuyBtn');
+  if(!b && ancora){
+    b = document.createElement('button');
+    b.id = 'subBuyBtn';
+    b.onclick = () => openRenovarSheet();
+    b.style.cssText = 'margin-top:10px;padding:10px 16px;border-radius:var(--r-full);border:none;background:var(--vault);color:#fff;font-weight:700;font-size:13px;cursor:pointer;';
+    ancora.parentNode.insertBefore(b, ancora.nextSibling);
+  }
+  if(b){ b.textContent = tr('comprar_acesso'); b.style.display = ''; }
+}
+function esconderBotaoComprar(){
+  const b = document.getElementById('subBuyBtn');
+  if(b) b.style.display = 'none';
+}
 function renderSubscriptionCard(){
   const statusEl = document.getElementById('subscriptionStatus');
   const detailEl = document.getElementById('subscriptionDetail');
   if(!statusEl) return;
+  esconderBotaoComprar();
 
   if(!window.__fbUser){
     statusEl.textContent = tr('liga_conta');
@@ -3664,6 +3683,7 @@ function renderSubscriptionCard(){
   if(!window.__fbSubscription){
     statusEl.textContent = tr('m_sub_sem');
     if(detailEl) detailEl.textContent = tr('m_sub_sem_desc');
+    mostrarBotaoComprar(detailEl);
     return;
   }
 
@@ -3766,7 +3786,7 @@ function escolherPlanoRenovacao(meses){
     </div>
     <div style="font-size:12px;line-height:1.5;opacity:.85;margin-bottom:6px;">${tr('rn_cobranca')}: <strong>${pl.preco} €</strong> (${pl.meses} ${pl.meses === 1 ? tr('rn_mes') : tr('rn_meses')}).</div>
     <div style="font-size:12px;line-height:1.5;opacity:.85;margin-bottom:10px;">${tr('rn_ativacao')}</div>
-    ${pagamentoPreenchido(PAGAMENTO_P2P.revolut) ? `<a href="${PAGAMENTO_P2P.revolut}" target="_blank" rel="noopener" class="btn btn-primary" style="display:block;text-decoration:none;text-align:center;margin-bottom:10px;background:#0666EB;">${tr('rn_revolut')} · ${pl.preco} €</a>` : ''}
+    ${pagamentoPreenchido(PAGAMENTO_P2P.revolut) ? `<div style="font-size:12px;opacity:.85;margin-bottom:8px;">${tr('rn_qualquer_banco')}</div><a href="${PAGAMENTO_P2P.revolut}" target="_blank" rel="noopener" class="btn btn-primary" style="display:block;text-decoration:none;text-align:center;margin-bottom:10px;">${tr('rn_revolut')} · ${pl.preco} €</a>` : ''}
     <div style="font-size:12px;opacity:.85;margin-bottom:8px;">${tr('rn_envia_para')}: <strong>${EMAIL_COMPROVATIVO}</strong></div>
     <a href="mailto:${EMAIL_COMPROVATIVO}?subject=${assunto}&body=${corpo}" class="btn btn-primary" style="display:block;text-decoration:none;text-align:center;margin-bottom:10px;">${tr('rn_enviar')}</a>
     <button onclick="openCondicoesSheet()" class="btn theme-card" style="border:1.5px solid var(--line);color:var(--ink);">${tr('rn_ler_condicoes')}</button>`;
@@ -5481,6 +5501,11 @@ function renderSettings(){
     bb.style.display = basicMode() ? 'block' : 'none';
     if(window.__fbUser && window.__fbSubscription === null){
       bb.innerHTML = '🔒 <strong>' + tr('modo_basico_titulo') + '</strong> ' + tr('m_sub_limite') + '';
+    }
+    if(bb){
+      const antigo = document.getElementById('bbBuy');
+      if(antigo) antigo.remove();
+      if(basicMode()) bb.insertAdjacentHTML('beforeend', `<div id="bbBuy"><button onclick="openRenovarSheet()" style="margin-top:8px;padding:8px 14px;border-radius:var(--r-full);border:none;background:var(--vault);color:#fff;font-weight:700;font-size:12px;cursor:pointer;">${tr('comprar_acesso')}</button></div>`);
     }
   }
   const swCom = document.getElementById('swComissao');
@@ -7557,7 +7582,8 @@ function basicLimitBlocked(kind, adding){
     <div class="sheet-title">${tr('m_limite_basico')}</div>
     <div class="sheet-sub">No modo básico podes ter até ${BASIC_LIMITS[kind]} ${BASIC_LABELS[kind]}.</div>
     <div style="font-size:13px;line-height:1.6;margin-bottom:14px;">${tr('m_registar_sem_limite')}</div>
-    <button class="btn btn-primary" onclick="closeSheet(); handleGoogleSignIn();">${tr('m_entrar_google')}</button>
+    <button class="btn btn-primary" onclick="closeSheet(); openRenovarSheet();">${tr('comprar_acesso')}</button>
+    <button class="btn btn-ghost" onclick="closeSheet(); handleGoogleSignIn();">${tr('m_entrar_google')}</button>
     <button class="btn btn-ghost" onclick="closeSheet()">${tr('fechar')}</button>
   `);
   return true;
