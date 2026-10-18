@@ -2242,7 +2242,10 @@ const I18N = {
     cond_7_t:"Reclamações",
     cond_7:"Pode dirigir-se à Direção-Geral do Consumidor (Portal do Consumidor).",
     comprar_acesso:"Comprar acesso",
-    rn_qualquer_banco:"Pode pagar com qualquer cartão ou banco. Não é preciso ter conta Revolut."
+    rn_qualquer_banco:"Pode pagar com qualquer cartão ou banco.",
+    rn_nota1:"Pode pagar com qualquer cartão ou banco, pelo botão abaixo ou por transferência.",
+    rn_nota2:"Depois, envie o comprovativo para o email indicado. No comentário do pagamento, indique o seu email.",
+    m_voltar:"Voltar"
   }
 };
 // Corrida+ — lógica do app.
@@ -2251,7 +2254,7 @@ const I18N = {
 // Esquema de versão: de volta ao pré-1.0 (0.x.x) — a v1.0.0 fica
 // reservada para o lançamento com assinatura paga completa. A numeração
 // 4.x.x usada temporariamente para a integração Firebase foi abandonada.
-const APP_VERSION = '0.195';
+const APP_VERSION = '0.198';
 
 // ---------------------------------------------------------------
 // IDIOMA — português (pt) e inglês (en). Escolha guardada neste aparelho (localSettings.lang).
@@ -3777,16 +3780,13 @@ function escolherPlanoRenovacao(meses){
   const assunto = encodeURIComponent(tr('rn_assunto'));
   const corpo = encodeURIComponent(tr('rn_corpo') + '\n\n' + resumo);
   document.getElementById('renovarDetalhe').innerHTML = `
-    <div style="font-size:13px;line-height:1.6;margin:8px 0 12px;">
-      ${tr('rn_transf')} <strong>${pl.preco} €</strong> ${tr('rn_para')}:<br>
-      ${pagamentoPreenchido(PAGAMENTO_P2P.mbway) ? 'MB WAY: ' + PAGAMENTO_P2P.mbway + '<br>' : ''}
-      ${pagamentoPreenchido(PAGAMENTO_P2P.iban) ? 'IBAN: ' + PAGAMENTO_P2P.iban + '<br>' : ''}
-      ${pagamentoPreenchido(PAGAMENTO_P2P.titular) ? tr('rn_titular') + ': ' + PAGAMENTO_P2P.titular + '<br>' : ''}
-      ${tr('rn_comentario')}
+    <div style="font-size:13px;line-height:1.6;margin:8px 0 10px;">
+      ${pagamentoPreenchido(PAGAMENTO_P2P.mbway) || pagamentoPreenchido(PAGAMENTO_P2P.iban) ? tr('rn_transf') + ' <strong>' + pl.preco + ' €</strong> ' + tr('rn_para') + ':<br>' + (pagamentoPreenchido(PAGAMENTO_P2P.mbway) ? 'MB WAY: ' + PAGAMENTO_P2P.mbway + '<br>' : '') + (pagamentoPreenchido(PAGAMENTO_P2P.iban) ? 'IBAN: ' + PAGAMENTO_P2P.iban + '<br>' : '') + (pagamentoPreenchido(PAGAMENTO_P2P.titular) ? tr('rn_titular') + ': ' + PAGAMENTO_P2P.titular + '<br>' : '') + '<br>' : ''}
+      <div style="margin-bottom:8px;">${tr('rn_nota1')}</div>
+      <div>${tr('rn_nota2')}</div>
     </div>
-    <div style="font-size:12px;line-height:1.5;opacity:.85;margin-bottom:6px;">${tr('rn_cobranca')}: <strong>${pl.preco} €</strong> (${pl.meses} ${pl.meses === 1 ? tr('rn_mes') : tr('rn_meses')}).</div>
-    <div style="font-size:12px;line-height:1.5;opacity:.85;margin-bottom:10px;">${tr('rn_ativacao')}</div>
-    ${pagamentoPreenchido(PAGAMENTO_P2P.revolut) ? `<div style="font-size:12px;opacity:.85;margin-bottom:8px;">${tr('rn_qualquer_banco')}</div><a href="${PAGAMENTO_P2P.revolut}" target="_blank" rel="noopener" class="btn btn-primary" style="display:block;text-decoration:none;text-align:center;margin-bottom:10px;">${tr('rn_revolut')} · ${pl.preco} €</a>` : ''}
+    <div style="font-size:12px;line-height:1.6;opacity:.85;margin-bottom:10px;">${tr('rn_cobranca')}: <strong>${pl.preco} €</strong> (${pl.meses} ${pl.meses === 1 ? tr('rn_mes') : tr('rn_meses')}). ${tr('rn_ativacao')}</div>
+    ${pagamentoPreenchido(PAGAMENTO_P2P.revolut) ? `<a href="${PAGAMENTO_P2P.revolut}" target="_blank" rel="noopener" class="btn btn-primary" style="display:block;text-decoration:none;text-align:center;margin-bottom:10px;">${tr('rn_revolut')} · ${pl.preco} €</a>` : ''}
     <div style="font-size:12px;opacity:.85;margin-bottom:8px;">${tr('rn_envia_para')}: <strong>${EMAIL_COMPROVATIVO}</strong></div>
     <a href="mailto:${EMAIL_COMPROVATIVO}?subject=${assunto}&body=${corpo}" class="btn btn-primary" style="display:block;text-decoration:none;text-align:center;margin-bottom:10px;">${tr('rn_enviar')}</a>
     <button onclick="openCondicoesSheet()" class="btn theme-card" style="border:1.5px solid var(--line);color:var(--ink);">${tr('rn_ler_condicoes')}</button>`;
