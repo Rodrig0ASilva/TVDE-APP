@@ -2219,7 +2219,28 @@ const I18N = {
     ins_android:"Android",
     ins_and_1:"Abre o menu do Chrome (⋮).",
     ins_and_2:"Escolhe «Instalar app» ou «Adicionar ao ecrã inicial».",
-    ins_and_3:"Confirma. A app fica no ecrã inicial."
+    ins_and_3:"Confirma. A app fica no ecrã inicial.",
+    rn_envia_para:"Envia o comprovativo para",
+    m_da_assinatura:"da assinatura.",
+    rn_revolut:"Pagar com Revolut",
+    rn_ativacao:"A ativação pode levar entre 1 hora e 24 horas após recebermos o pagamento.",
+    rn_cobranca:"Será cobrado o valor referente ao período de utilização",
+    cond_titulo:"Condições de renovação",
+    rn_ler_condicoes:"Ler condições de renovação",
+    cond_1_t:"Compra pontual",
+    cond_1:"A renovação é a compra de 1 mês de acesso (10 €). Não há renovação automática nem cobrança recorrente: só paga quem quiser continuar.",
+    cond_2_t:"Ativação",
+    cond_2:"O acesso é ativado depois de recebermos o pagamento, em até 24 horas (normalmente em 1 hora). Indique o seu email da conta no comentário do pagamento para acelerar a ativação.",
+    cond_3_t:"Direito de desistência (14 dias)",
+    cond_3:"Nos termos do Decreto-Lei n.º 24/2014, pode desistir do contrato no prazo de 14 dias a contar da celebração, sem indicar o motivo, por email para rodrigo_almeida1410@proton.me.",
+    cond_4_t:"Início antes do fim do prazo",
+    cond_4:"Se pedir que o acesso comece antes do fim desse prazo, deve fazê-lo expressamente. Se desistir depois do início, paga apenas a parte proporcional ao tempo já utilizado: por exemplo, após 7 dias de acesso (de um período de 30), paga 7/30 do valor, ou seja, 2,33 €. O direito de desistência deixa de se aplicar quando o período estiver totalmente utilizado. (Verificar com um jurista.)",
+    cond_5_t:"Reembolso",
+    cond_5:"Em caso de desistência válida, o reembolso é feito no prazo de 14 dias após a comunicação, pelo mesmo meio de pagamento ou por outro acordado. (Verificar com um jurista.)",
+    cond_6_t:"Cancelamento",
+    cond_6:"Não é preciso cancelar: não havendo renovação automática, basta não renovar. O acesso termina na data indicada.",
+    cond_7_t:"Reclamações",
+    cond_7:"Pode dirigir-se à Direção-Geral do Consumidor (Portal do Consumidor). Esta informação é geral e não substitui aconselhamento jurídico."
   }
 };
 // Corrida+ — lógica do app.
@@ -2228,7 +2249,7 @@ const I18N = {
 // Esquema de versão: de volta ao pré-1.0 (0.x.x) — a v1.0.0 fica
 // reservada para o lançamento com assinatura paga completa. A numeração
 // 4.x.x usada temporariamente para a integração Firebase foi abandonada.
-const APP_VERSION = '0.185';
+const APP_VERSION = '0.192';
 
 // ---------------------------------------------------------------
 // IDIOMA — português (pt) e inglês (en). Escolha guardada neste aparelho (localSettings.lang).
@@ -3701,21 +3722,31 @@ function readOnlyGuard(){
 // RENOVAÇÃO P2P (provisório, até ao plano Blaze). O pagamento é feito por transferência ou MB WAY;
 // a ativação é manual. Preenche os dados de PAGAMENTO_P2P antes de publicar.
 // ---------------------------------------------------------------
-const PAGAMENTO_P2P = { mbway: '(número MB WAY)', iban: '(IBAN)', titular: '(nome do titular)' };
-const PLANOS_RENOVACAO = [ { meses: 1, preco: 10 }, { meses: 3, preco: 25 }, { meses: 6, preco: 50 } ];
+const PAGAMENTO_P2P = { revolut: 'https://revolut.me/rodrig0almeida', mbway: '(número MB WAY)', iban: '(IBAN)', titular: '(nome do titular)' };
+const pagamentoPreenchido = v => v && !/^\(/.test(v);
+const PLANOS_RENOVACAO = [ { meses: 1, preco: 10 } ];
+const EMAIL_COMPROVATIVO = 'rodrigo_almeida1410@proton.me';
+
+// Condições de renovação (texto informativo, baseado no DL 24/2014 e na Lei 24/96; a validar por jurista).
+function openCondicoesSheet(){
+  const secoes = [1,2,3,4,5,6,7].map(n => `
+    <div style="font-weight:800;margin:14px 0 4px;">${tr('cond_' + n + '_t')}</div>
+    <div style="font-size:13px;line-height:1.6;">${tr('cond_' + n)}</div>`).join('');
+  openSheet(`
+    <div class="sheet-handle"></div>
+    <div class="sheet-title">${tr('cond_titulo')}</div>
+    ${secoes}
+    <button class="btn btn-ghost" onclick="openRenovarSheet()" style="margin-top:14px;">${tr('m_voltar')}</button>`);
+}
 function openRenovarSheet(){
-  const botoes = PLANOS_RENOVACAO.map(pl => `
-    <button class="btn theme-card" onclick="escolherPlanoRenovacao(${pl.meses})" style="border:1.5px solid var(--line);color:var(--ink);margin-bottom:10px;text-align:left;">
-      <div style="font-weight:800;">${pl.meses} ${pl.meses === 1 ? tr('rn_mes') : tr('rn_meses')}</div>
-      <div style="font-size:12px;opacity:.8;">${pl.preco} € · ${(pl.preco / pl.meses).toFixed(2)} € ${tr('rn_por_mes')}</div>
-    </button>`).join('');
+  // Só existe o plano de 1 mês: a folha mostra logo os dados de pagamento e o envio do comprovativo.
   openSheet(`
     <div class="sheet-handle"></div>
     <div class="sheet-title">${tr('m_renovar')}</div>
     <div class="sheet-sub">${tr('rn_planos_sub')}</div>
-    ${botoes}
     <div id="renovarDetalhe"></div>
     <button class="btn btn-ghost" onclick="closeSheet()">${tr('fechar')}</button>`);
+  escolherPlanoRenovacao(PLANOS_RENOVACAO[0].meses);
 }
 function escolherPlanoRenovacao(meses){
   const pl = PLANOS_RENOVACAO.find(p => p.meses === meses);
@@ -3728,12 +3759,17 @@ function escolherPlanoRenovacao(meses){
   document.getElementById('renovarDetalhe').innerHTML = `
     <div style="font-size:13px;line-height:1.6;margin:8px 0 12px;">
       ${tr('rn_transf')} <strong>${pl.preco} €</strong> ${tr('rn_para')}:<br>
-      MB WAY: ${PAGAMENTO_P2P.mbway}<br>
-      IBAN: ${PAGAMENTO_P2P.iban}<br>
-      ${tr('rn_titular')}: ${PAGAMENTO_P2P.titular}<br><br>
+      ${pagamentoPreenchido(PAGAMENTO_P2P.mbway) ? 'MB WAY: ' + PAGAMENTO_P2P.mbway + '<br>' : ''}
+      ${pagamentoPreenchido(PAGAMENTO_P2P.iban) ? 'IBAN: ' + PAGAMENTO_P2P.iban + '<br>' : ''}
+      ${pagamentoPreenchido(PAGAMENTO_P2P.titular) ? tr('rn_titular') + ': ' + PAGAMENTO_P2P.titular + '<br>' : ''}
       ${tr('rn_comentario')}
     </div>
-    <a href="mailto:rodrigo_almeida1410@proton.me?subject=${assunto}&body=${corpo}" class="btn btn-primary" style="display:block;text-decoration:none;text-align:center;">${tr('rn_enviar')}</a>`;
+    <div style="font-size:12px;line-height:1.5;opacity:.85;margin-bottom:6px;">${tr('rn_cobranca')}: <strong>${pl.preco} €</strong> (${pl.meses} ${pl.meses === 1 ? tr('rn_mes') : tr('rn_meses')}).</div>
+    <div style="font-size:12px;line-height:1.5;opacity:.85;margin-bottom:10px;">${tr('rn_ativacao')}</div>
+    ${pagamentoPreenchido(PAGAMENTO_P2P.revolut) ? `<a href="${PAGAMENTO_P2P.revolut}" target="_blank" rel="noopener" class="btn btn-primary" style="display:block;text-decoration:none;text-align:center;margin-bottom:10px;background:#0666EB;">${tr('rn_revolut')} · ${pl.preco} €</a>` : ''}
+    <div style="font-size:12px;opacity:.85;margin-bottom:8px;">${tr('rn_envia_para')}: <strong>${EMAIL_COMPROVATIVO}</strong></div>
+    <a href="mailto:${EMAIL_COMPROVATIVO}?subject=${assunto}&body=${corpo}" class="btn btn-primary" style="display:block;text-decoration:none;text-align:center;margin-bottom:10px;">${tr('rn_enviar')}</a>
+    <button onclick="openCondicoesSheet()" class="btn theme-card" style="border:1.5px solid var(--line);color:var(--ink);">${tr('rn_ler_condicoes')}</button>`;
 }
 
 // ---------------------------------------------------------------
@@ -3812,7 +3848,32 @@ function abrirComoInstalar(tab){
       </div>`).join('')}
     <button class="btn btn-ghost" onclick="closeSheet()">${tr('fechar')}</button>`);
 }
+
+// Aviso de renovação antecipada: aparece quando faltam 5 dias ou menos para o fim da assinatura.
+function diasAteFimAssinatura(){
+  const fim = subscriptionEndDate();
+  if(!fim || !window.__fbUser || !window.__fbSubscription) return null;
+  return (fim.getTime() - Date.now()) / 86400000;
+}
+function renderRenovarAviso(){
+  const app = document.getElementById('app');
+  let el = document.getElementById('renovarAviso');
+  const dias = diasAteFimAssinatura();
+  const mostrar = app && dias !== null && dias > 0 && dias <= 5;
+  if(!mostrar){ if(el) el.remove(); return; }
+  const n = Math.ceil(dias);
+  if(!el){
+    el = document.createElement('div');
+    el.id = 'renovarAviso';
+    el.style.cssText = 'grid-column:2;margin:calc(env(safe-area-inset-top, 0px) + 14px) 0 12px;padding:12px 14px;border-radius:var(--r-md);background:var(--vault);color:#F6EFE2;font-size:13px;line-height:1.5;';
+    app.prepend(el);
+  }
+  el.innerHTML = `
+    <div style="margin-bottom:10px;">⏳ ${tr('m_faltam_pre')} <strong>${n} ${n === 1 ? tr('dia') : tr('dias')}</strong> ${tr('m_da_assinatura')}</div>
+    <button onclick="openRenovarSheet()" style="padding:8px 14px;border-radius:var(--r-full);border:none;background:#F6EFE2;color:var(--vault);font-weight:800;font-size:12px;cursor:pointer;">${tr('m_renovar')}</button>`;
+}
 function renderReadOnlyBanner(){
+  renderRenovarAviso();
   if(accessExpired() && window._sheetKind === 'resumo' && document.getElementById('overlay').classList.contains('show')) closeSheet();
   const app = document.getElementById('app');
   let el = document.getElementById('readOnlyBanner');
