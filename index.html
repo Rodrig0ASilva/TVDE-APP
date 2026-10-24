@@ -1503,6 +1503,13 @@ body.glass.dark .sheet { background: rgba(26,26,33, 0.96); }
         <div class="switch" id="holdUpdateSwitch" onclick="toggleHoldUpdate()"></div>
       </div>
       <div class="section-sub" style="margin-bottom:10px;">Versão atual: <strong id="devVersionLabel"></strong></div>
+      <div class="switch-row" style="margin-bottom:8px;">
+        <div class="switch-row-text">
+          <div class="switch-row-title">Atualizações betas</div>
+          <div class="switch-row-sub">Usa a versão de teste (indexb.html) deste mesmo servidor. Só neste aparelho. Desligado, volta à versão estável (index.html).</div>
+        </div>
+        <div class="switch" id="betaSwitch" onclick="toggleBetaUpdates()"></div>
+      </div>
       <button onclick="checkForUpdates()" id="checkUpdateBtn" style="width:100%;padding:13px;border-radius:var(--r-md);border:1.5px solid var(--line);background:transparent;color:var(--ink);font-weight:700;font-size:14px;cursor:pointer;">🔍 Procurar atualização</button>
       <div id="updateResult" style="margin-top:10px;font-size:13px;text-align:center;color:var(--text-muted);"></div>
 
@@ -2254,7 +2261,7 @@ const I18N = {
 // Esquema de versão: de volta ao pré-1.0 (0.x.x) — a v1.0.0 fica
 // reservada para o lançamento com assinatura paga completa. A numeração
 // 4.x.x usada temporariamente para a integração Firebase foi abandonada.
-const APP_VERSION = '0.198';
+const APP_VERSION = '1.0.0';
 
 // ---------------------------------------------------------------
 // IDIOMA — português (pt) e inglês (en). Escolha guardada neste aparelho (localSettings.lang).
@@ -4000,6 +4007,27 @@ function trocarTextoSplash(msg){
 }
 let unsubUserData = null;
 let unsubSubscription = null;
+// Atualizações betas (Modo Dev): com a opção ligada, a app usa indexb.html no mesmo servidor.
+// O index.html continua a ser a versão estável. Cada página só muda quando a opção não bate com a página atual.
+const PAGINA_BETA = 'indexb.html';
+const PAGINA_ESTAVEL = 'index.html';
+function paginaAtualNome(){ return location.pathname.split('/').pop() || PAGINA_ESTAVEL; }
+function urlDaPagina(nome){ return location.href.split('?')[0].replace(/[^\/]*$/, '') + nome; }
+// Devolve true se vai mudar de página (nesse caso o carregamento atual para aqui).
+function redirecionarBeta(){
+  const beta = localSettings.betaUpdates === true;
+  const estaBeta = paginaAtualNome() === PAGINA_BETA;
+  if(beta && !estaBeta){ location.replace(urlDaPagina(PAGINA_BETA) + '?v=' + Date.now()); return true; }
+  if(!beta && estaBeta){ location.replace(urlDaPagina(PAGINA_ESTAVEL) + '?v=' + Date.now()); return true; }
+  return false;
+}
+async function toggleBetaUpdates(){
+  const ligar = localSettings.betaUpdates !== true;
+  localSettings.betaUpdates = ligar;
+  await persistLocalSettings();
+  showToast(ligar ? 'Atualizações betas ativadas' : 'Atualizações betas desativadas');
+  setTimeout(() => redirecionarBeta(), 600);
+}
 async function loadAll(){
   const splashMsg = document.getElementById('splashMsg');
   const splash    = document.getElementById('splashScreen');
@@ -4023,6 +4051,10 @@ async function loadAll(){
   const isFirstLoad = !window.__appStarted;
   window.__appStarted = true;
   window.__fbUser = await (window.fbAuthReadyPromise || Promise.resolve(null));
+  if(isFirstLoad){
+    await loadLocalOnlySettings();
+    if(redirecionarBeta()) return;
+  }
   // Verificação de atualização antes de mostrar o conteúdo: se houver versão nova, recarrega uma única vez.
   if(isFirstLoad){
     setSplash(tr('m_verificar_atual'));
@@ -5593,6 +5625,8 @@ function renderSettings(){
     if(sw) sw.className = 'switch' + (showHiddenData ? ' on' : '');
     const hu = document.getElementById('holdUpdateSwitch');
     if(hu) hu.className = 'switch' + (localSettings.holdUpdateEnabled !== false ? ' on' : '');
+    const bs = document.getElementById('betaSwitch');
+    if(bs) bs.className = 'switch' + (localSettings.betaUpdates === true ? ' on' : '');
     const container = document.getElementById('hiddenDataContainer');
     if(container) container.innerHTML = showHiddenData ? renderHiddenDataList() : '';
     const encSw = document.getElementById('encryptionSwitch');
