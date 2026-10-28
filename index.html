@@ -5,6 +5,41 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
 <title>Corrida+</title>
 <script>
+// Chaves do localStorage com prefixo "corrida:" (o domínio github.io é partilhado com outras páginas).
+// Migração única: copia (nunca apaga) os valores antigos sem prefixo que são claramente do Corrida+.
+(function migrarChavesCorrida(){
+  const P = 'corrida:';
+  try{
+    if(localStorage.getItem(P + 'ns') !== null) return;
+    const objeto = v => v !== null && typeof v === 'object' && !Array.isArray(v);
+    const valida = {
+      bills:                  v => Array.isArray(v),
+      monthData:              objeto,
+      profile:                v => objeto(v) && ('name' in v || 'photo' in v),
+      localSettings:          v => objeto(v) && ('themeColor' in v || 'darkMode' in v || 'lang' in v || 'welcomeDone' in v),
+      syncUrl:                v => typeof v === 'string' && v.indexOf('https://') === 0,
+      syncLog:                v => Array.isArray(v),
+      syncBase:               objeto,
+      deletedIds:             v => Array.isArray(v),
+      cofreCripto:            v => objeto(v) && v.v === 1,
+      dekAparelho:            v => typeof v === 'string',
+      stateV1:                v => objeto(v) && v.schemaVersion === 1,
+      encryptionEnabled:      v => typeof v === 'boolean',
+      encryptionPassword:     v => typeof v === 'string',
+      biometricCredentialId:  v => typeof v === 'string',
+      biometricUnlockEnabled: v => typeof v === 'boolean',
+      requireUnlockEachSync:  v => typeof v === 'boolean',
+      pendingUpdateNotice:    v => typeof v === 'string'
+    };
+    Object.keys(valida).forEach(k => {
+      const raw = localStorage.getItem(k);
+      if(raw === null || localStorage.getItem(P + k) !== null) return;
+      let v; try{ v = JSON.parse(raw); }catch(e){ v = raw; }
+      if(valida[k](v)) localStorage.setItem(P + k, raw);
+    });
+    localStorage.setItem(P + 'ns', String(Date.now()));
+  }catch(e){}
+})();
 // Aplica já, antes da primeira pintura, o tema, o ícone e o fundo da tela de carregamento guardados neste aparelho.
 const TEMAS_CORES = {
   green:      { vault:'#1F3A2E', vault2:'#2C4F3D', vaultLight:'#3E6650', brassLight:'#D9A949' },
@@ -48,7 +83,7 @@ window.aplicarFavicon = function(s){
 };
 (function(){
   try{
-    const s = JSON.parse(localStorage.getItem('localSettings') || 'null') || {};
+    const s = JSON.parse(localStorage.getItem('corrida:localSettings') || 'null') || {};
     document.addEventListener('DOMContentLoaded', () => window.aplicarFavicon(s));
     const tema = TEMAS_CORES[s.themeColor || 'green'] || TEMAS_CORES.green;
     const r = document.documentElement.style;
@@ -2261,7 +2296,7 @@ const I18N = {
 // Esquema de versão: de volta ao pré-1.0 (0.x.x) — a v1.0.0 fica
 // reservada para o lançamento com assinatura paga completa. A numeração
 // 4.x.x usada temporariamente para a integração Firebase foi abandonada.
-const APP_VERSION = '1.0.0';
+const APP_VERSION = '1.0.1';
 
 // ---------------------------------------------------------------
 // IDIOMA — português (pt) e inglês (en). Escolha guardada neste aparelho (localSettings.lang).
@@ -2269,7 +2304,7 @@ const APP_VERSION = '1.0.0';
 // Datas e números seguem LOCALE(). Ainda em português: folhas, mensagens e ecrãs de detalhe.
 // ---------------------------------------------------------------
 let LANG = (() => {
-  try{ const s = JSON.parse(localStorage.getItem('localSettings') || 'null') || {}; return ['en','fr'].includes(s.lang) ? s.lang : 'pt'; }
+  try{ const s = JSON.parse(localStorage.getItem('corrida:localSettings') || 'null') || {}; return ['en','fr'].includes(s.lang) ? s.lang : 'pt'; }
   catch(e){ return 'pt'; }
 })();
 function tr(chave){ return (I18N[LANG] && I18N[LANG][chave]) || I18N.pt[chave] || chave; }
@@ -2322,23 +2357,26 @@ async function setIdioma(lang){
   if(el) el.textContent = `v${APP_VERSION}`;
 })();
 
+const CHAVE_PREFIXO = 'corrida:';
 if (!window.storage) {
   window.storage = {
     get: async (key) => {
-      const val = localStorage.getItem(key);
+      const val = localStorage.getItem(CHAVE_PREFIXO + key);
       if(val === null) throw new Error('Key not found: ' + key);
       return { key, value: val, shared: false };
     },
     set: async (key, value) => {
-      localStorage.setItem(key, value);
+      localStorage.setItem(CHAVE_PREFIXO + key, value);
       return { key, value, shared: false };
     },
     delete: async (key) => {
-      localStorage.removeItem(key);
+      localStorage.removeItem(CHAVE_PREFIXO + key);
       return { key, deleted: true, shared: false };
     },
     list: async (prefix) => {
-      const keys = Object.keys(localStorage).filter(k => !prefix || k.startsWith(prefix));
+      const keys = Object.keys(localStorage)
+        .filter(k => k.indexOf(CHAVE_PREFIXO) === 0 && (!prefix || k.slice(CHAVE_PREFIXO.length).indexOf(prefix) === 0))
+        .map(k => k.slice(CHAVE_PREFIXO.length));
       return { keys, shared: false };
     }
   };
