@@ -2304,7 +2304,7 @@ const I18N = {
 // Esquema de versão: de volta ao pré-1.0 (0.x.x) — a v1.0.0 fica
 // reservada para o lançamento com assinatura paga completa. A numeração
 // 4.x.x usada temporariamente para a integração Firebase foi abandonada.
-const APP_VERSION = '1.0.3';
+const APP_VERSION = '1.0.5';
 
 // ---------------------------------------------------------------
 // IDIOMA — português (pt) e inglês (en). Escolha guardada neste aparelho (localSettings.lang).
@@ -4097,7 +4097,7 @@ async function toggleBetaUpdates(){
 // Usa um armazenamento separado (corrida-demo:) e uma conta de demonstração.
 // Não lê nem escreve na nuvem, nem nos dados reais. Ativar/desativar recarrega a página.
 // ---------------------------------------------------------------
-const DEMO_USER = { uid: 'demo', email: 'demo@corridaplus.app', displayName: 'Demonstração', photoURL: null };
+const DEMO_USER = { uid: 'demo', email: 'corridaplus@corridaplus.app', displayName: 'Demonstração', photoURL: null };
 function demoOn(){ return localStorage.getItem('corrida:demoMode') === '1'; }
 function demoSubscription(){
   return { status: 'active', current_period_end: new Date(Date.now() + 365 * 86400000).toISOString() };
@@ -4111,17 +4111,6 @@ function limparDemo(){
   if(!confirm('Apagar todos os dados da demonstração? Os dados reais não são afetados.')) return;
   Object.keys(localStorage).forEach(k => { if(k.indexOf('corrida-demo:') === 0) localStorage.removeItem(k); });
   location.reload();
-}
-function renderDemoBanner(){
-  let el = document.getElementById('demoBanner');
-  if(!demoOn()){ if(el) el.remove(); return; }
-  if(!el){
-    el = document.createElement('div');
-    el.id = 'demoBanner';
-    el.style.cssText = 'margin:0 0 12px;padding:12px 14px;border-radius:var(--r-md);background:#2A4A6B;color:#fff;font-size:13px;line-height:1.5;';
-    contaAvisos().appendChild(el);
-  }
-  el.innerHTML = '🧪 <strong>Modo demonstração.</strong> Os dados ficam só neste aparelho e não vão para a conta nem para a nuvem.';
 }
 async function loadAll(){
   const splashMsg = document.getElementById('splashMsg');
@@ -5563,7 +5552,7 @@ function renderSettings(){
   const showUid = !!localSettings.showUid;
   const accountBlock = u
     ? `<div style="margin-top:12px;">
-         <div style="font-size:11px;font-weight:700;color:var(--vault-text, var(--vault-2));margin-bottom:6px;">${demoOn() ? '🧪 Conta de demonstração' : googleG + ' ' + tr('m_conectado')}</div>
+         <div style="font-size:11px;font-weight:700;color:var(--vault-text, var(--vault-2));margin-bottom:6px;">${googleG} ${tr('m_conectado')}</div>
          <div style="display:flex;align-items:flex-end;justify-content:space-between;gap:10px;">
            <div style="font-size:11px;color:var(--text-muted);line-height:1.8;min-width:0;word-break:break-all;">
              <div>📧 ${escapeHtml(u.email || '—')}</div>
@@ -5610,7 +5599,6 @@ function renderSettings(){
     avEl.style.backgroundRepeat = 'no-repeat';
   }
   renderSubscriptionCard();
-  renderDemoBanner();
 
   document.querySelectorAll('#langSeg .seg-opt').forEach(el => el.classList.toggle('active', el.dataset.l === LANG));
   const currentDark = localSettings.darkMode || 'system';
