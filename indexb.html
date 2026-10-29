@@ -2304,7 +2304,7 @@ const I18N = {
 // Esquema de versão: de volta ao pré-1.0 (0.x.x) — a v1.0.0 fica
 // reservada para o lançamento com assinatura paga completa. A numeração
 // 4.x.x usada temporariamente para a integração Firebase foi abandonada.
-const APP_VERSION = '1.0.2';
+const APP_VERSION = '1.0.3';
 
 // ---------------------------------------------------------------
 // IDIOMA — português (pt) e inglês (en). Escolha guardada neste aparelho (localSettings.lang).
@@ -4060,18 +4060,35 @@ const PAGINA_BETA = 'indexb.html';
 const PAGINA_ESTAVEL = 'index.html';
 function paginaAtualNome(){ return location.pathname.split('/').pop() || PAGINA_ESTAVEL; }
 function urlDaPagina(nome){ return location.href.split('?')[0].replace(/[^\/]*$/, '') + nome; }
+// A opção de betas é do aparelho: lê-se e grava-se sempre na área real, nunca na de demonstração.
+function betaLigada(){
+  try{ const s = JSON.parse(localStorage.getItem('corrida:localSettings') || 'null') || {}; return s.betaUpdates === true; }
+  catch(e){ return false; }
+}
+function setBetaLigada(v){
+  let s = {};
+  try{ s = JSON.parse(localStorage.getItem('corrida:localSettings') || 'null') || {}; }catch(e){}
+  s.betaUpdates = !!v;
+  localStorage.setItem('corrida:localSettings', JSON.stringify(s));
+}
 // Devolve true se vai mudar de página (nesse caso o carregamento atual para aqui).
+// Proteção contra ciclos: não redireciona outra vez nos 20 s seguintes.
 function redirecionarBeta(){
-  const beta = localSettings.betaUpdates === true;
+  const beta = betaLigada();
   const estaBeta = paginaAtualNome() === PAGINA_BETA;
-  if(beta && !estaBeta){ location.replace(urlDaPagina(PAGINA_BETA) + '?v=' + Date.now()); return true; }
-  if(!beta && estaBeta){ location.replace(urlDaPagina(PAGINA_ESTAVEL) + '?v=' + Date.now()); return true; }
-  return false;
+  let destino = null;
+  if(beta && !estaBeta) destino = PAGINA_BETA;
+  else if(!beta && estaBeta) destino = PAGINA_ESTAVEL;
+  if(!destino) return false;
+  const ultimo = Number(sessionStorage.getItem('corrida:redir') || 0);
+  if(Date.now() - ultimo < 20000) return false;
+  sessionStorage.setItem('corrida:redir', String(Date.now()));
+  location.replace(urlDaPagina(destino) + '?v=' + Date.now());
+  return true;
 }
 async function toggleBetaUpdates(){
-  const ligar = localSettings.betaUpdates !== true;
-  localSettings.betaUpdates = ligar;
-  await persistLocalSettings();
+  const ligar = !betaLigada();
+  setBetaLigada(ligar);
   showToast(ligar ? 'Atualizações betas ativadas' : 'Atualizações betas desativadas');
   setTimeout(() => redirecionarBeta(), 600);
 }
@@ -5709,7 +5726,7 @@ function renderSettings(){
     const hu = document.getElementById('holdUpdateSwitch');
     if(hu) hu.className = 'switch' + (localSettings.holdUpdateEnabled !== false ? ' on' : '');
     const bs = document.getElementById('betaSwitch');
-    if(bs) bs.className = 'switch' + (localSettings.betaUpdates === true ? ' on' : '');
+    if(bs) bs.className = 'switch' + (betaLigada() ? ' on' : '');
     const ds = document.getElementById('demoSwitch');
     if(ds) ds.className = 'switch' + (demoOn() ? ' on' : '');
     const dc = document.getElementById('demoClearBtn');
