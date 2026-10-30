@@ -130,7 +130,7 @@ window.applySplashAppearance = function(s, dark){
 <link rel="manifest" href="data:application/manifest+json;base64,eyJuYW1lIjogIkNvcnJpZGErIiwgInNob3J0X25hbWUiOiAiQ29ycmlkYSsiLCAiZGVzY3JpcHRpb24iOiAiR2VzdMOjbyBmaW5hbmNlaXJhIHBhcmEgbW90b3Jpc3RhIGRlIGFwcCIsICJzdGFydF91cmwiOiAiLi8iLCAic2NvcGUiOiAiLi8iLCAiZGlzcGxheSI6ICJzdGFuZGFsb25lIiwgIm9yaWVudGF0aW9uIjogInBvcnRyYWl0IiwgImJhY2tncm91bmRfY29sb3IiOiAiI0Y2RUZFMiIsICJ0aGVtZV9jb2xvciI6ICIjMUYzQTJFIiwgImljb25zIjogW3sic3JjIjogImRhdGE6aW1hZ2Uvc3ZnK3htbCwlM0NzdmcgeG1sbnM9J2h0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnJyB2aWV3Qm94PScwIDAgNjQgNjQnJTNFJTNDcmVjdCB3aWR0aD0nNjQnIGhlaWdodD0nNjQnIHJ4PScxNCcgZmlsbD0nJTIzMkM0RjNEJy8lM0UlM0NnIHRyYW5zZm9ybT0ndHJhbnNsYXRlKDEyLjgsOS4yKSBzY2FsZSgwLjYpJyUzRSUzQ2cgdHJhbnNmb3JtPSd0cmFuc2xhdGUoOCwxOCknJTNFJTNDcGF0aCBkPSdNNiAxNiBMMTAgNiBRMTIgMyAxNiAzIEwzMiAzIFEzNiAzIDM4IDYgTDQyIDE2JyBmaWxsPSdub25lJyBzdHJva2U9JyUyM0Q5QTk0OScgc3Ryb2tlLXdpZHRoPSczJyBzdHJva2UtbGluZWNhcD0ncm91bmQnLyUzRSUzQ3JlY3QgeD0nMicgeT0nMTUnIHdpZHRoPSc0NCcgaGVpZ2h0PScxNCcgcng9JzUnIGZpbGw9JyUyM0Q5QTk0OScvJTNFJTNDY2lyY2xlIGN4PScxMicgY3k9JzMxJyByPSc2JyBmaWxsPSclMjMyQzRGM0QnIHN0cm9rZT0nJTIzRDlBOTQ5JyBzdHJva2Utd2lkdGg9JzIuNScvJTNFJTNDY2lyY2xlIGN4PSczNicgY3k9JzMxJyByPSc2JyBmaWxsPSclMjMyQzRGM0QnIHN0cm9rZT0nJTIzRDlBOTQ5JyBzdHJva2Utd2lkdGg9JzIuNScvJTNFJTNDcmVjdCB4PScyJyB5PScyMCcgd2lkdGg9JzExJyBoZWlnaHQ9JzYnIHJ4PScyJyBmaWxsPSclMjMyQzRGM0QnIG9wYWNpdHk9JzAuNScvJTNFJTNDcmVjdCB4PSczNScgeT0nMjAnIHdpZHRoPScxMScgaGVpZ2h0PSc2JyByeD0nMicgZmlsbD0nJTIzMkM0RjNEJyBvcGFjaXR5PScwLjUnLyUzRSUzQy9nJTNFJTNDL2clM0UlM0Mvc3ZnJTNFIiwgInNpemVzIjogImFueSIsICJ0eXBlIjogImltYWdlL3N2Zyt4bWwiLCAicHVycG9zZSI6ICJhbnkifV19" />
 <link rel="apple-touch-icon" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAALQAAAC0CAIAAACyr5FlAAAEsUlEQVR4nO3dMW7bQBCFYToIXPko8RFyhhQqDPiABlL4NLmKqlQpFhAUSY9ekcuZN+L/9VF2J7+WlCPJTz9+/ZyAW75lLwC+iAMScUAiDkjEAYk4IBEHJOKARByQiAMScUAiDkjEAYk4IBEHJOKARByQiAMScUAiDkjEAYk4IBEHJOKARByQiAMScUAiDkjEAYk4IBEHJOKARByQiAMScUAiDkjEAYk4IBEHJOKARByQiAPS9+wFDPP5/nL4OH6+vySuoS3g8HFMXMNAhePI7WDGxcLqtvJU8YvxbbO4cH6SVUyk0j1HG3SVMqb/l1pu8VOhk6PWWK9VPEUKxFE9C8U/kUqXFQSzjqOdGf7PsAXapswPRfeXsveOL7ek/tWaZ9H43nN0js/5XKm+BdM4vhyr7UBvmtmO8w9Vre85FM9RzphZsPP1xTGO+XmVK6OZX7ZnIo5xzChaRlNu8XZxzF+eI1eyhVrXF7s44KNMHA9wbDSFNuIVh+HRGslt+15xwIpRHI99K3quym2pURxwUyCOBzs2mhKbconD6jjN5TMKlzhgyCKO/dyKnvO/LbWIA56s43jgY6Mx32B+HCZHqBuHseTHAVvJcezzVvSc820pJwck0zh2cmw0tpvNjCP92PSXOyLTkwMO0j63wrHRL+u6w8kBiTgKyDplEy4rXFAWC76+RJ8clLFG8PS4rEAKjYNjY73IGcbFQRmjhE2Sywok4oAUFAfXlLFi5snJAYk4IEV/1eTvP39XPsLb6/OQlcQrt/fQk2P9dNqDDHmcYBX3HhfH2F3V6qPo3oPi2GI/Vfqou3duSCERByTigEQckIgDkvvvW2nq/uBrEosv8VLLOo7STcw7bc25EtM4HjiLC22nnokE3XPc9Y+9nzJO7t1yzIjsbkh3WEZjuPGgOA4fx57NGw4oUuf2316fYz7AEnpyzG9+52U0X44ockrRN6Rr9nb9dPF/9+GCNfs8SUI/Drns37LnCHWrZNM1h30oMvSysmBXnX/E6stxNl1z5E7tXq2cu2sQJn1suuYH/yB1//a2O2a2s+ma43dn+s0+awaRdf+x6ZpTuk+7rMzsduUgUua46Zr3+LVP6VcBf4ePY+KUMv/jLfj8HzXlyGV/vr8kxmH3amXILIIHWnHNPezigA/igEQckIgDEnFAsotjyAvF4BfJFdfcYy8/BBv4dxVd9gJ2Jwd8OMax8oBNOZ8rrvlLyXGoY3PxsG7+weGH880HHLtm9bdEcjw5mgWzTn/+VVzzjPw4Rv3uzODn35Azz/w3p+bHMa9z1lbPv4prvintnWAXeia14G3+Wz//Fixg2U5TuMQxbfBMihlx0WX3MLqsjB1K2IiLLruHURzTuNFUfLPPwMcZxSuOacSAKr7BeMgjDGcXx7RuTIkjLrrsGUY3pNfuutfzmW/RZV+zjuPE/IdFStFln9SIAykc7zlggjggEQck4oBEHJCIAxJxQCIOSMQBiTggEQck4oBEHJCIAxJxQCIOSMQBiTggEQck4oBEHJCIAxJxQCIOSMQBiTggEQck4oBEHJCIAxJxQCIOSMQBiTggEQck4oBEHJCIAxJxQCIOSMQBiTgg/QOgGJzwxM5lzQAAAABJRU5ErkJggg==" />
 <meta name="apple-mobile-web-app-capable" content="yes" />
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black" />
 <meta name="apple-mobile-web-app-title" content="Corrida+" />
 <meta name="mobile-web-app-capable" content="yes" />
 <meta name="theme-color" content="#1F3A2E" id="themeColorMeta" media="(prefers-color-scheme: light)" />
@@ -1449,6 +1449,14 @@ body.glass.dark .sheet { background: rgba(26,26,33, 0.96); }
         <div class="switch on" onclick="toggleDevMode()"></div>
       </div>
 
+      <div class="switch-row" style="margin-bottom:8px;">
+        <div class="switch-row-text">
+          <div class="switch-row-title">Modo demonstração</div>
+          <div class="switch-row-sub">Espaço limpo para testar valores, com uma conta de demonstração. Os dados ficam separados e não vão para a nuvem. Ao ativar, a página recarrega.</div>
+        </div>
+        <div class="switch" id="demoSwitch" onclick="toggleDemoMode()"></div>
+      </div>
+      <button id="demoClearBtn" onclick="limparDemo()" style="display:none;width:100%;padding:12px;border-radius:var(--r-md);border:1.5px solid var(--line);background:transparent;color:var(--terracotta);font-weight:700;font-size:13px;cursor:pointer;margin-bottom:14px;">🧹 Limpar dados da demonstração</button>
       <div class="section-head" style="margin-top:0;"><div class="section-title">🔗 Sincronização</div></div>
     <div id="syncUrlLockedView" style="background:rgba(31,58,46,0.06);border-radius:var(--r-md);padding:14px;margin-top:8px;display:flex;align-items:center;gap:12px;">
       <div style="font-size:22px;">🔒</div>
@@ -2296,7 +2304,7 @@ const I18N = {
 // Esquema de versão: de volta ao pré-1.0 (0.x.x) — a v1.0.0 fica
 // reservada para o lançamento com assinatura paga completa. A numeração
 // 4.x.x usada temporariamente para a integração Firebase foi abandonada.
-const APP_VERSION = '1.0.1';
+const APP_VERSION = '1.0.2';
 
 // ---------------------------------------------------------------
 // IDIOMA — português (pt) e inglês (en). Escolha guardada neste aparelho (localSettings.lang).
@@ -2357,7 +2365,7 @@ async function setIdioma(lang){
   if(el) el.textContent = `v${APP_VERSION}`;
 })();
 
-const CHAVE_PREFIXO = 'corrida:';
+const CHAVE_PREFIXO = localStorage.getItem('corrida:demoMode') === '1' ? 'corrida-demo:' : 'corrida:';
 if (!window.storage) {
   window.storage = {
     get: async (key) => {
@@ -2614,7 +2622,7 @@ const PRE_PUSH_PULL_TIMEOUT_MS = 6000;
 
 async function _doCloudSync(attempt) {
   attempt = attempt || 1;
-  if (!syncUrl || basicMode()) { setSyncStatus('nolink'); return; }
+  if (demoOn() || !syncUrl || basicMode()) { setSyncStatus('nolink'); return; }
   const startTime = Date.now();
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), SYNC_TIMEOUT_MS);
@@ -3686,6 +3694,7 @@ async function handleGoogleSignIn(){
   }
 }
 async function fbDoSignOut(){
+  if(demoOn()){ toggleDemoMode(); return; }
   if(!confirm(tr('m_sair_confirma'))) return;
   try{ if(window.fbSignOut) await window.fbSignOut(); }catch(e){}
   location.reload();
@@ -4051,20 +4060,57 @@ const PAGINA_BETA = 'indexb.html';
 const PAGINA_ESTAVEL = 'index.html';
 function paginaAtualNome(){ return location.pathname.split('/').pop() || PAGINA_ESTAVEL; }
 function urlDaPagina(nome){ return location.href.split('?')[0].replace(/[^\/]*$/, '') + nome; }
+// A opção de betas é do aparelho: lê-se e grava-se sempre na área real, nunca na de demonstração.
+function betaLigada(){
+  try{ const s = JSON.parse(localStorage.getItem('corrida:localSettings') || 'null') || {}; return s.betaUpdates === true; }
+  catch(e){ return false; }
+}
+function setBetaLigada(v){
+  let s = {};
+  try{ s = JSON.parse(localStorage.getItem('corrida:localSettings') || 'null') || {}; }catch(e){}
+  s.betaUpdates = !!v;
+  localStorage.setItem('corrida:localSettings', JSON.stringify(s));
+}
 // Devolve true se vai mudar de página (nesse caso o carregamento atual para aqui).
+// Proteção contra ciclos: não redireciona outra vez nos 20 s seguintes.
 function redirecionarBeta(){
-  const beta = localSettings.betaUpdates === true;
+  const beta = betaLigada();
   const estaBeta = paginaAtualNome() === PAGINA_BETA;
-  if(beta && !estaBeta){ location.replace(urlDaPagina(PAGINA_BETA) + '?v=' + Date.now()); return true; }
-  if(!beta && estaBeta){ location.replace(urlDaPagina(PAGINA_ESTAVEL) + '?v=' + Date.now()); return true; }
-  return false;
+  let destino = null;
+  if(beta && !estaBeta) destino = PAGINA_BETA;
+  else if(!beta && estaBeta) destino = PAGINA_ESTAVEL;
+  if(!destino) return false;
+  const ultimo = Number(sessionStorage.getItem('corrida:redir') || 0);
+  if(Date.now() - ultimo < 20000) return false;
+  sessionStorage.setItem('corrida:redir', String(Date.now()));
+  location.replace(urlDaPagina(destino) + '?v=' + Date.now());
+  return true;
 }
 async function toggleBetaUpdates(){
-  const ligar = localSettings.betaUpdates !== true;
-  localSettings.betaUpdates = ligar;
-  await persistLocalSettings();
+  const ligar = !betaLigada();
+  setBetaLigada(ligar);
   showToast(ligar ? 'Atualizações betas ativadas' : 'Atualizações betas desativadas');
   setTimeout(() => redirecionarBeta(), 600);
+}
+// ---------------------------------------------------------------
+// MODO DEMONSTRAÇÃO (Modo Dev) — espaço limpo para testar valores.
+// Usa um armazenamento separado (corrida-demo:) e uma conta de demonstração.
+// Não lê nem escreve na nuvem, nem nos dados reais. Ativar/desativar recarrega a página.
+// ---------------------------------------------------------------
+const DEMO_USER = { uid: 'demo', email: 'corridaplus@corridaplus.app', displayName: 'Demonstração', photoURL: null };
+function demoOn(){ return localStorage.getItem('corrida:demoMode') === '1'; }
+function demoSubscription(){
+  return { status: 'active', current_period_end: new Date(Date.now() + 365 * 86400000).toISOString() };
+}
+async function toggleDemoMode(){
+  if(demoOn()){ localStorage.removeItem('corrida:demoMode'); }
+  else { localStorage.setItem('corrida:demoMode', '1'); }
+  location.reload();
+}
+function limparDemo(){
+  if(!confirm('Apagar todos os dados da demonstração? Os dados reais não são afetados.')) return;
+  Object.keys(localStorage).forEach(k => { if(k.indexOf('corrida-demo:') === 0) localStorage.removeItem(k); });
+  location.reload();
 }
 async function loadAll(){
   const splashMsg = document.getElementById('splashMsg');
@@ -4089,6 +4135,7 @@ async function loadAll(){
   const isFirstLoad = !window.__appStarted;
   window.__appStarted = true;
   window.__fbUser = await (window.fbAuthReadyPromise || Promise.resolve(null));
+  if(demoOn()){ window.__fbUser = DEMO_USER; window.__fbSubscription = demoSubscription(); }
   if(isFirstLoad){
     await loadLocalOnlySettings();
     if(redirecionarBeta()) return;
@@ -4115,7 +4162,7 @@ async function loadAll(){
   hideLoadingState();
   renderLucro();
 
-  if(window.__fbUser){
+  if(window.__fbUser && !demoOn()){
     setSplash('A sincronizar…');
     setSyncStatus('saving');
     const uid = window.__fbUser.uid;
@@ -4196,6 +4243,7 @@ async function safeSet(key, value){
 }
 
 function scheduleCloudPush(){
+  if(demoOn()){ setSyncStatus('synced'); return; }
   if(basicMode()){ setSyncStatus('nolink'); return; }
   if(window.__fbUser){ scheduleFirestorePush(); return; }
   if(!syncUrl){ setSyncStatus('nolink'); return; }
@@ -4485,6 +4533,7 @@ function caminhosUndefined(obj, prefixo, saida){
   return saida;
 }
 async function pushToFirestore(overwrite){
+  if(demoOn()) return;
   if(!window.__fbUser || basicMode()) return;
   const uid = window.__fbUser.uid;
   try{
@@ -4612,6 +4661,7 @@ async function pullLatestAndMergeBeforePush(){
 }
 
 async function pushToCloud(migrationUrl, skipMerge){
+  if(demoOn()) return;
   if(!syncUrl || basicMode()) return;
 
   // Busca e mescla a versão mais recente da nuvem ANTES de montar o payload
@@ -5664,7 +5714,11 @@ function renderSettings(){
     const hu = document.getElementById('holdUpdateSwitch');
     if(hu) hu.className = 'switch' + (localSettings.holdUpdateEnabled !== false ? ' on' : '');
     const bs = document.getElementById('betaSwitch');
-    if(bs) bs.className = 'switch' + (localSettings.betaUpdates === true ? ' on' : '');
+    if(bs) bs.className = 'switch' + (betaLigada() ? ' on' : '');
+    const ds = document.getElementById('demoSwitch');
+    if(ds) ds.className = 'switch' + (demoOn() ? ' on' : '');
+    const dc = document.getElementById('demoClearBtn');
+    if(dc) dc.style.display = demoOn() ? 'block' : 'none';
     const container = document.getElementById('hiddenDataContainer');
     if(container) container.innerHTML = showHiddenData ? renderHiddenDataList() : '';
     const encSw = document.getElementById('encryptionSwitch');
