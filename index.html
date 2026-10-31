@@ -2,6 +2,7 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8" />
+<meta name="app-version" content="1.0.2a" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
 <title>Corrida+</title>
 <script>
@@ -137,8 +138,6 @@ window.applySplashAppearance = function(s, dark){
 <meta name="theme-color" content="#16161B" id="themeColorMetaDark" media="(prefers-color-scheme: dark)" />
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
-<!-- SheetJS — usada só para gerar o ficheiro .xlsx de "Exportar dados" (Configurações → Exportação). -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script type="module">
   // Firebase (Auth + Firestore) — SDK modular via CDN, sem bundler/npm.
   // Este bloco corre num escopo de módulo próprio (import/export), por
@@ -2304,7 +2303,7 @@ const I18N = {
 // Esquema de versão: de volta ao pré-1.0 (0.x.x) — a v1.0.0 fica
 // reservada para o lançamento com assinatura paga completa. A numeração
 // 4.x.x usada temporariamente para a integração Firebase foi abandonada.
-const APP_VERSION = '1.0.2';
+const APP_VERSION = '1.0.8';
 
 // ---------------------------------------------------------------
 // IDIOMA — português (pt) e inglês (en). Escolha guardada neste aparelho (localSettings.lang).
@@ -3696,6 +3695,7 @@ async function handleGoogleSignIn(){
 async function fbDoSignOut(){
   if(demoOn()){ toggleDemoMode(); return; }
   if(!confirm(tr('m_sair_confirma'))) return;
+  localStorage.removeItem('corrida:contaLigada');
   try{ if(window.fbSignOut) await window.fbSignOut(); }catch(e){}
   location.reload();
 }
@@ -4017,11 +4017,7 @@ async function checkUpdateNow(){
   showToast(tr('a_procurar'));
   try{
     const url  = location.href.split('?')[0] + '?v=' + Date.now();
-    const resp = await fetch(url, { cache: 'no-store' });
-    if(!resp.ok) throw new Error('http');
-    const html = await resp.text();
-    const match = html.match(/const APP_VERSION\s*=\s*'([^']+)'/);
-    const remoteVersion = match ? match[1] : null;
+    const remoteVersion = await lerVersaoRemota(url);
     if(!remoteVersion){ showToast(tr('versao_nao_verificada')); return; }
     if(remoteVersion === APP_VERSION){ showToast(`✅ Já estás na versão mais recente (v${APP_VERSION})`); return; }
     try{ await window.storage.set('pendingUpdateNotice', remoteVersion); }catch(e){}
@@ -4112,49 +4108,87 @@ function limparDemo(){
   Object.keys(localStorage).forEach(k => { if(k.indexOf('corrida-demo:') === 0) localStorage.removeItem(k); });
   location.reload();
 }
+// Estado da pastilha durante a ligação à conta (em segundo plano).
+function setSyncBusy(){
+  SYNC_PILL_SCREENS.forEach(screen => {
+    const dot = document.getElementById('syncDot-' + screen);
+    const txt = document.getElementById('syncStatus-' + screen);
+    if(dot) dot.className = 'sync-dot';
+    if(txt) txt.textContent = tr('sync_sincronizando');
+  });
+}
+// Liga a conta confirmada: listeners do Firestore e primeira sincronização. Não bloqueia a app.
+async function ligarConta(user){
+  if(!user || demoOn()) return;
+  window.__fbUser = user;
+  localStorage.setItem('corrida:contaLigada', '1');
+  renderSettings();
+  const uid = user.uid;
+  if(unsubUserData) unsubUserData();
+  unsubUserData = window.fbListenUserData(uid, (remoteData) => {
+    if(window._suppressRemote) return;
+    prepararNuvem(remoteData).then(remote => {
+      if(remote === null) return;
+      return syncWithCloud(remote, { ask: false, stamp: remoteData.updatedAt })
+        .then(r => { if(r === 'ok') refreshActiveScreen(); });
+    });
+  });
+  if(window.fbListenSubscription){
+    if(unsubSubscription) unsubSubscription();
+    unsubSubscription = window.fbListenSubscription(uid, (sub) => {
+      window.__fbSubscription = sub;
+      renderSettings();
+      renderReadOnlyBanner();
+    });
+  }
+  setSyncBusy();
+  try{
+    await initialCloudSync(uid);
+    if(syncUrl && !profile.syncUrl) persistSyncUrl();
+    backupToSheetIfDue();
+  }catch(e){ setSyncStatus('nolink'); }
+}
+// Espera até 5 s pela confirmação da conta. Se não chegar a tempo, a app já está aberta e a ligação continua em segundo plano.
+async function arrancarConta(){
+  // O Firebase pode ainda não ter carregado: espera pelo evento "firebase-ready" (ou pelo limite de 5 s).
+  const auth = window.fbAuthReadyPromise || new Promise(res => window.addEventListener('firebase-ready', () => res(window.fbAuthReadyPromise || null), { once: true }));
+  setSyncBusy();
+  const resultado = await Promise.race([auth, new Promise(r => setTimeout(() => r('timeout'), 5000))]);
+  if(resultado && resultado !== 'timeout'){ await ligarConta(resultado); return; }
+  if(resultado === 'timeout'){
+    auth.then(u => { if(u) ligarConta(u); else setSyncStatus('nolink'); });
+    return;
+  }
+  setSyncStatus('nolink');
+  runDailySummaryCheck();
+}
 async function loadAll(){
-  const splashMsg = document.getElementById('splashMsg');
-  const splash    = document.getElementById('splashScreen');
+  const splash = document.getElementById('splashScreen');
   const splashStart = Date.now();
   function setSplash(msg){ trocarTextoSplash(msg); }
-  // Mantém a tela de carregamento visível pelo menos 1,2 s, para o ícone ser visto.
+  // Mantém a tela de carregamento visível pelo menos 0,4 s.
   function hideSplash(){
-    const resta = Math.max(0, 1200 - (Date.now() - splashStart));
+    const resta = Math.max(0, 400 - (Date.now() - splashStart));
     setTimeout(() => {
       if(splash){ splash.style.opacity = '0'; setTimeout(()=>{ splash.style.display='none'; const b=document.getElementById('splashBar'); if(b) b.style.display='none'; }, 400); }
     }, resta);
   }
 
-  // Login Google OPCIONAL por agora (enquanto em teste) — só verifica se
-  // há sessão guardada, sem bloquear o carregamento da app. Sem sessão,
-  // a app segue normalmente com Apps Script/local, como sempre; o botão
-  // "Continuar com Google" fica disponível em Configurações → Conta,
-  // para quem quiser ligar a conta sem que isso seja obrigatório.
-  // Só o primeiro carregamento da sessão corre a brincadeira e a verificação de
-  // atualização; tocar em "sincronizar" não as repete.
+  // Só o primeiro carregamento da sessão corre a brincadeira e a verificação de atualização.
   const isFirstLoad = !window.__appStarted;
   window.__appStarted = true;
-  window.__fbUser = await (window.fbAuthReadyPromise || Promise.resolve(null));
-  if(demoOn()){ window.__fbUser = DEMO_USER; window.__fbSubscription = demoSubscription(); }
   if(isFirstLoad){
     await loadLocalOnlySettings();
     if(redirecionarBeta()) return;
   }
-  // Verificação de atualização antes de mostrar o conteúdo: se houver versão nova, recarrega uma única vez.
-  if(isFirstLoad){
-    setSplash(tr('m_verificar_atual'));
-    const bar = document.getElementById('splashBar'); if(bar) bar.style.display = 'block';
-    const atualizou = await checkForUpdatesOnStartup();
-    if(atualizou) return;
-    setSplash('A carregar…');
-  }
+  if(demoOn()){ window.__fbUser = DEMO_USER; window.__fbSubscription = demoSubscription(); }
 
+  // 1) Dados guardados neste aparelho: desenhados já, sem esperar pela rede.
   await loadLocalOnlySettings();
   devMode = localSettings.devMode === true;
   await loadDeletedIdsFromStorage();
   try{ await migrarLocalParaV1(); }catch(e){ console.warn('Migração v1 falhou:', e); }
   await loadFromLocalStorage();
-
   applyTabVisibility();
   if(repairTurnoList()){ persistLocalOnlySilently(); scheduleCloudPush(); }
   applyAllAppearance();
@@ -4162,66 +4196,33 @@ async function loadAll(){
   hideLoadingState();
   renderLucro();
 
-  if(window.__fbUser && !demoOn()){
-    setSplash('A sincronizar…');
-    setSyncStatus('saving');
-    const uid = window.__fbUser.uid;
-    if(unsubUserData) unsubUserData();
-    unsubUserData = window.fbListenUserData(uid, (remoteData) => {
-      if(window._suppressRemote) return;
-      prepararNuvem(remoteData).then(remote => {
-        if(remote === null) return;
-        return syncWithCloud(remote, { ask: false, stamp: remoteData.updatedAt })
-          .then(r => { if(r === 'ok') refreshActiveScreen(); });
-      });
-    });
-    if(window.fbListenSubscription){
-      if(unsubSubscription) unsubSubscription();
-      unsubSubscription = window.fbListenSubscription(uid, (sub) => {
-        window.__fbSubscription = sub;
-        renderSettings();
-        renderReadOnlyBanner();
-      });
-    }
-    const syncDone = initialCloudSync(uid).then(() => {
-      if(syncUrl && !profile.syncUrl) persistSyncUrl();
-      backupToSheetIfDue();
-    });
-    // Espera até 6 s pela sincronização, para o ícone mudar de cinzento para cor no fim dela.
-    await Promise.race([syncDone, new Promise(r => setTimeout(r, 6000))]);
-  } else if(syncUrl){
-    // Sem sessão Google (modo básico): a planilha só existe para contas com login.
-    // Nada é lido nem enviado.
-    setSyncStatus('nolink');
-  } else {
-    setSyncStatus('nolink');
+  // 2) Verificação de atualização, com limite de 1,2 s. Se houver versão nova, recarrega antes de mostrar o conteúdo.
+  if(isFirstLoad){
+    setSplash(tr('m_verificar_atual'));
+    const bar = document.getElementById('splashBar'); if(bar) bar.style.display = 'block';
+    const atualizou = await checkForUpdatesOnStartup(1200);
+    if(atualizou) return;
+    setSplash('A carregar…');
   }
 
-  // Se a última abertura disparou um auto-update, este é o primeiro
-  // carregamento já com a versão nova. O aviso é mostrado na PRÓPRIA tela
-  // de carregamento (splash), em vez de um toast separado por cima dela —
-  // um toast nesse momento ficava tapado pela splash (z-index mais alto),
-  // então na prática nunca era visto. Unificando os dois na mesma tela,
-  // o aviso aparece garantidamente antes dela desaparecer.
+  // 3) Conta Google e Firebase em segundo plano. A app não espera pela sincronização.
+  if(demoOn()){ setSyncStatus('synced'); }
+  else { arrancarConta(); }
+
+  // Aviso de atualização aplicada, mostrado na própria tela de carregamento.
   const updateApplied = await consumePendingUpdateNotice();
   if(updateApplied){
     setSplash(`✅ Atualizado para v${APP_VERSION}`);
     await new Promise(r => setTimeout(r, 1100));
   }
-  // Ícone passa de cinzento para a cor (transição de 0,9 s) antes de a tela desaparecer.
+  // Ícone passa de cinzento para a cor, com uma pausa de 0,35 s antes de a tela desaparecer.
   document.getElementById('splashIcon')?.classList.remove('icon-gray');
-  await new Promise(r => setTimeout(r, 900));
+  await new Promise(r => setTimeout(r, 350));
   hideSplash();
   if(pendingUpdateSheet){ showUpdateSheet(pendingUpdateSheet); pendingUpdateSheet = null; }
 
   if(isFirstLoad) await maybeRunEasterEgg();
   if(isFirstLoad && basicMode() && !localSettings.welcomeDone) showWelcomeSheet();
-  if(isFirstLoad && !window.__fbUser) await runDailySummaryCheck();
-
-  // Verificação silenciosa de atualização: se houver uma versão mais nova
-  // publicada, atualiza sozinho (recarrega a página), sem perguntar nada
-  // ao utilizador. O aviso de "atualizado" só aparece na abertura seguinte,
-  // já com a versão nova (ver consumePendingUpdateNotice acima).
 }
 
 async function persistProfile()   { await safeSet('profile',   profile);   }
@@ -6180,10 +6181,21 @@ async function importFromJson(){
 // biblioteca SheetJS (carregada via CDN no <head>) — só gera o ficheiro
 // no próprio dispositivo, nada é enviado para fora.
 // ---------------------------------------------------------------
-function exportDataToExcel(){
+// SheetJS só é carregada ao exportar (fora do arranque, para a app abrir mais depressa).
+function carregarXlsx(){
+  if(typeof XLSX !== 'undefined') return Promise.resolve(true);
+  return new Promise(resolve => {
+    const s = document.createElement('script');
+    s.src = 'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js';
+    s.onload = () => resolve(typeof XLSX !== 'undefined');
+    s.onerror = () => resolve(false);
+    document.head.appendChild(s);
+  });
+}
+async function exportDataToExcel(){
   if(typeof XLSX === 'undefined'){
-    showToast(tr('m_biblioteca_erro'));
-    return;
+    const ok = await carregarXlsx();
+    if(!ok){ showToast(tr('m_biblioteca_erro')); return; }
   }
   const btn = document.getElementById('exportExcelBtn');
   if(btn) btn.disabled = true;
@@ -9036,10 +9048,7 @@ async function checkForUpdates(){
   showToast(tr('m_buscando_versao'));
   try{
     const url  = location.href.split('?')[0] + '?v=' + Date.now();
-    const resp = await fetch(url, { cache: 'no-store' });
-    const html = await resp.text();
-    const match = html.match(/const APP_VERSION\s*=\s*'([^']+)'/);
-    const remoteVersion = match ? match[1] : null;
+    const remoteVersion = await lerVersaoRemota(url);
     if(!remoteVersion){
       showToast(tr('m_erro_versao_remota'));
       if(res) res.textContent = tr('m_erro_versao_remota');
@@ -9083,21 +9092,30 @@ async function checkForUpdates(){
 // Isto evita perguntar "quer atualizar?" — a atualização já aconteceu
 // sozinha; o utilizador só fica a saber depois, de forma discreta.
 // ---------------------------------------------------------------
-async function checkForUpdatesOnStartup(){
+// Lê a versão publicada. Pede só o início do ficheiro (meta app-version); se não houver, lê a página completa.
+async function lerVersaoRemota(url, signal){
+  const r1 = await fetch(url, { cache: 'no-store', signal: signal, headers: { Range: 'bytes=0-4095' } });
+  if(!r1.ok && r1.status !== 206) throw new Error('http');
+  const inicio = await r1.text();
+  const m1 = inicio.match(/<meta name="app-version" content="([^"]+)"/);
+  if(m1) return m1[1];
+  const r2 = await fetch(url, { cache: 'no-store', signal: signal });
+  if(!r2.ok) throw new Error('http');
+  const html = await r2.text();
+  const m2 = html.match(/const APP_VERSION\s*=\s*'([^']+)'/);
+  return m2 ? m2[1] : null;
+}
+async function checkForUpdatesOnStartup(limiteMs){
   // Devolve true se vai recarregar para a versão nova. Tempo limite curto: sem rede, a app abre logo.
   const ctrl = new AbortController();
-  const limite = setTimeout(() => ctrl.abort(), 2500);
+  const limite = setTimeout(() => ctrl.abort(), limiteMs || 2500);
   try{
     const url  = location.href.split('?')[0] + '?v=' + Date.now();
-    const resp = await fetch(url, { cache: 'no-store', signal: ctrl.signal });
+    const remoteVersion = await lerVersaoRemota(url, ctrl.signal);
     clearTimeout(limite);
-    if(!resp.ok) return false;
-    const html = await resp.text();
-    const match = html.match(/const APP_VERSION\s*=\s*'([^']+)'/);
-    const remoteVersion = match ? match[1] : null;
     if(!remoteVersion || remoteVersion === APP_VERSION) return false;
     // Sem sessão: não recarrega sozinho. Mostra o alerta, com a opção de entrar (mais tarde, quando a app abrir).
-    if(basicMode()){ pendingUpdateSheet = remoteVersion; return false; }
+    if(!localStorage.getItem('corrida:contaLigada')){ pendingUpdateSheet = remoteVersion; return false; }
     const splashMsg = document.getElementById('splashMsg');
     trocarTextoSplash(`⬇️ A atualizar para v${remoteVersion}…`);
     try{ await window.storage.set('pendingUpdateNotice', remoteVersion); }catch(e){}
@@ -9222,11 +9240,8 @@ if(window.matchMedia){
 // em 3 s, a app arranca em modo local. Quando o Firebase chegar, a sessão só é usada na abertura seguinte.
 let __appArrancou = false;
 function arrancarApp(){ if(__appArrancou) return; __appArrancou = true; loadAll(); }
-if(window.__fbReady){ arrancarApp(); }
-else {
-  window.addEventListener('firebase-ready', arrancarApp, { once:true });
-  setTimeout(arrancarApp, 3000);
-}
+// A app arranca já com os dados locais. O Firebase é ligado em segundo plano (ver arrancarConta).
+arrancarApp();
 </script>
 </body>
 </html>
