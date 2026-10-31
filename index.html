@@ -2294,7 +2294,9 @@ const I18N = {
     rn_qualquer_banco:"Pode pagar com qualquer cartão ou banco.",
     rn_nota1:"Pode pagar com qualquer cartão ou banco, pelo botão abaixo ou por transferência.",
     rn_nota2:"Depois, envie o comprovativo para o email indicado. No comentário do pagamento, indique o seu email.",
-    m_voltar:"Voltar"
+    m_voltar:"Voltar",
+    gastos_distrib:"Gastos por semana em pizza",
+    gastos_semana_sub:"Fixas, variáveis e combustível de cada semana do mês"
   }
 };
 // Corrida+ — lógica do app.
@@ -7076,22 +7078,21 @@ function renderStatsMonth(){
     ]));
   }
 
+  // Cada mês é contado uma só vez (o mês atual já está em monthKeys).
   const categoryTotals = {};
-  monthKeys.forEach(k => {
+  [...new Set([...monthKeys, currentMonthKey])].forEach(k => {
     const e = ensureMonthEntry(k);
     e.variableExpenses.forEach(exp => { categoryTotals[exp.category] = (categoryTotals[exp.category]||0) + (exp.amount||0); });
   });
-  entry.variableExpenses.forEach(exp => { categoryTotals[exp.category] = (categoryTotals[exp.category]||0) + (exp.amount||0); });
   const categoryItems = Object.entries(categoryTotals).filter(([,v])=>v>0).map(([cat,val]) => {
     const found = EXPENSE_CATEGORIES.find(c => c.key === cat);
     return { label: found ? `${found.emoji} ${found.label}` : cat, value: val, color: corCategoria(cat) };
   });
   if(categoryItems.length){ html += chartBoxWrap(tr('despesas_categoria'), tr('totais_acumulados'), horizontalBarsHTML(categoryItems)); html += chartBoxWrap(tr('despesas_distrib'), tr('totais_acumulados'), pieSVG(categoryItems)); }
-  const fatiasLucro = weekApps.map((a,i) => {
-    const liq = (a - ivaAmount(a) - comissaoAmount(a)) - weekComb[i] + weekPart[i];
-    return { label: weekLabels[i], value: Math.max(0, liq - weekFixed[i] - weekVar[i]) };
-  }).filter(f => f.value > 0).map((f,i) => ({ ...f, color: PALETA_PIZZA[i % PALETA_PIZZA.length] }));
-  if(fatiasLucro.length){ html += chartBoxWrap(tr('lucro_distrib'), tr('lucro_por_semana'), pieSVG(fatiasLucro)); }
+  // Pizza: gastos de cada semana (fixos + variáveis + combustível + IVA e comissão), a mesma base das barras "Despesas".
+  const fatiasGastos = weekDespesas.map((v,i) => ({ label: weekLabels[i], value: v }))
+    .filter(f => f.value > 0).map((f,i) => ({ ...f, color: PALETA_PIZZA[i % PALETA_PIZZA.length] }));
+  if(fatiasGastos.length){ html += chartBoxWrap(tr('gastos_distrib'), tr('gastos_semana_sub'), pieSVG(fatiasGastos)); }
   html += kmStatsHTML(entry.earnings, lucroMes) + turnoBreakdownHTML(entry.earnings) + topDaysHTML(entry.earnings);
 
   html += monthAnalysisHTML(entry.earnings, entry.variableExpenses, currentMonthKey, true);
