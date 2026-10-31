@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8" />
-<meta name="app-version" content="1.0.2b" />
+<meta name="app-version" content="1.0.2c" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
 <title>Corrida+</title>
 <script>
@@ -1277,6 +1277,13 @@ body.glass.dark .sheet { background: rgba(26,26,33, 0.96); }
     </div>
     <div id="goalsFieldsRow" style="display:none;">
       <div class="field" style="margin-top:8px;">
+        <label><span data-i18n="meta_base">Base da meta</span></label>
+        <div class="seg" id="goalBaseSeg">
+          <div class="seg-opt" data-b="lucro" onclick="setGoalBase('lucro')"><span data-i18n="base_lucro">Lucro</span></div>
+          <div class="seg-opt" data-b="bruto" onclick="setGoalBase('bruto')"><span data-i18n="base_bruto">Bruto</span></div>
+        </div>
+      </div>
+      <div class="field" style="margin-top:8px;">
         <label><span data-i18n="m_meta_min_mensal">Meta mínima mensal (€)</span></label>
         <div class="field-money"><input type="number" id="monthlyMinInput" placeholder="0,00" inputmode="decimal" onchange="updateMonthlyMin(this.value)" /></div>
       </div>
@@ -1937,7 +1944,12 @@ const I18N = {
     liga_so_usas:"Liga só o que usas. Cada opção aparece nos ecrãs e nos cálculos apenas quando estiver ativa.",
     desc_iva:"Desconta o IVA do bruto das apps (Uber/Bolt). Desligado, o IVA não entra nos cálculos nem aparece nos ecrãs.",
     desc_comissao:"Desconta a comissão cobrada pela Uber/Bolt sobre o bruto, depois do IVA. Desligada, a comissão não entra nos cálculos.",
-    desc_metas:"Define um objetivo de LUCRO (não faturamento) por semana e/ou por mês. Quando ativo, aparece um gráfico de progresso no topo de Estatísticas.",
+    desc_metas:"Define um objetivo de lucro ou de bruto por semana e/ou por mês, à tua escolha. Quando ativo, aparece um gráfico de progresso no topo de Estatísticas.",
+    meta_base:"Base da meta",
+    base_lucro:"Lucro",
+    base_bruto:"Bruto",
+    meta_mensal_bruto:"Meta de bruto mensal",
+    meta_semanal_bruto:"Meta de bruto semanal",
     desc_turno:"Mostra o seletor de turno ao registar ganhos e o gráfico \"Ganhos por turno\" nas Estatísticas.",
     desc_km:"Campo opcional de km ao registar ganhos. Se preenchido, aparece nas Estatísticas (km totais e lucro por km).",
     desc_outras:"Ativa o registo de apps extra (ex: 99, InDrive, Free Now). Entram no balde \"pessoal\", sem IVA nem comissão.",
@@ -2305,7 +2317,7 @@ const I18N = {
 // Esquema de versão: de volta ao pré-1.0 (0.x.x) — a v1.0.0 fica
 // reservada para o lançamento com assinatura paga completa. A numeração
 // 4.x.x usada temporariamente para a integração Firebase foi abandonada.
-const APP_VERSION = '1.0.2b';
+const APP_VERSION = '1.0.2c';
 
 // ---------------------------------------------------------------
 // IDIOMA — português (pt) e inglês (en). Escolha guardada neste aparelho (localSettings.lang).
@@ -5695,6 +5707,7 @@ function renderSettings(){
   if(swGlass) swGlass.className = 'switch' + (localSettings.liquidGlass === true ? ' on' : '');
   const swDaily = document.getElementById('swDailySummary');
   if(swDaily) swDaily.className = 'switch' + (featureOn('dailySummaryEnabled') ? ' on' : '');
+  document.querySelectorAll('#goalBaseSeg .seg-opt').forEach(el => el.classList.toggle('active', el.dataset.b === goalBase()));
   const goalsSw = document.getElementById('goalsEnabledSwitch');
   if(goalsSw) goalsSw.className = 'switch' + (profile.goalsEnabled ? ' on' : '');
   const goalsFieldsRow = document.getElementById('goalsFieldsRow');
@@ -5773,6 +5786,15 @@ function updateComissaoRate(value){
 // --- METAS (semanal/mensal) — configuráveis em "Você", exibidas como
 // gráfico de progresso em Estatísticas (ver renderStatsMonth/renderStatsWeek
 // e goalProgressHTML). Guardadas em profile, sincronizadas normalmente.
+// Base da meta: 'lucro' (padrão) ou 'bruto'. Guardada no perfil (sincronizada).
+function goalBase(){ return profile.goalBase === 'bruto' ? 'bruto' : 'lucro'; }
+async function setGoalBase(v){
+  if(readOnlyGuard()) return;
+  profile.goalBase = v === 'bruto' ? 'bruto' : 'lucro';
+  await persistProfile();
+  renderSettings();
+  showToast(profile.goalBase === 'bruto' ? 'Meta sobre o bruto' : 'Meta sobre o lucro');
+}
 async function toggleGoalsEnabled(){
   if(readOnlyGuard()) return;
   profile.goalsEnabled = !profile.goalsEnabled;
@@ -6865,8 +6887,10 @@ function renderStatsWeek(){
     // Sem meta semanal definida, a meta mínima passa a ser as próprias
     // despesas fixas diárias/semanais da semana (mesmo valor já descontado
     // do lucro acima) — não há rateio de despesas mensais aqui.
-    const minSemanal = profile.weeklyMin > 0 ? profile.weeklyMin : fixasSemanaReal;
-    html += goalProgressHTML(lucro, minSemanal, profile.weeklyGoal, tr('meta_semanal'));
+    const emBruto = goalBase() === 'bruto';
+    const minSemanal = emBruto ? (profile.weeklyMin || 0) : (profile.weeklyMin > 0 ? profile.weeklyMin : fixasSemanaReal);
+    html += goalProgressHTML(emBruto ? (brutoTVDE + brutoPart) : lucro, minSemanal, profile.weeklyGoal,
+      tr(emBruto ? 'meta_semanal_bruto' : 'meta_semanal'));
   }
   html += `<div class="stat-cards">
     ${brutoTVDE>0?`<div class="stat-card"><div class="stat-card-label">${tr('m_bruto_tvde_emoji')}</div><div class="stat-card-value">${fmt(brutoTVDE)}</div></div>`:''}
@@ -6955,8 +6979,10 @@ function renderStatsMonth(){
   if(profile.goalsEnabled){
     // Sem meta mensal definida, a meta mínima passa a ser as despesas fixas
     // do mês — cobrir os custos fixos é o objetivo mais básico possível.
-    const minMensal = profile.monthlyMin > 0 ? profile.monthlyMin : fixasMes;
-    html += goalProgressHTML(lucroMes, minMensal, profile.monthlyGoal, tr('meta_mensal'));
+    const emBrutoM = goalBase() === 'bruto';
+    const minMensal = emBrutoM ? (profile.monthlyMin || 0) : (profile.monthlyMin > 0 ? profile.monthlyMin : fixasMes);
+    html += goalProgressHTML(emBrutoM ? bruto : lucroMes, minMensal, profile.monthlyGoal,
+      tr(emBrutoM ? 'meta_mensal_bruto' : 'meta_mensal'));
   }
   html += `
   <div class="chart-box" style="margin-bottom:14px;">
