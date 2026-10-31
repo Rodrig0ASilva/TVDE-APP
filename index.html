@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8" />
-<meta name="app-version" content="1.0.2a" />
+<meta name="app-version" content="1.0.2b" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
 <title>Corrida+</title>
 <script>
@@ -2305,7 +2305,7 @@ const I18N = {
 // Esquema de versão: de volta ao pré-1.0 (0.x.x) — a v1.0.0 fica
 // reservada para o lançamento com assinatura paga completa. A numeração
 // 4.x.x usada temporariamente para a integração Firebase foi abandonada.
-const APP_VERSION = '1.0.2a';
+const APP_VERSION = '1.0.2b';
 
 // ---------------------------------------------------------------
 // IDIOMA — português (pt) e inglês (en). Escolha guardada neste aparelho (localSettings.lang).
@@ -7089,6 +7089,11 @@ function renderStatsMonth(){
     return { label: found ? `${found.emoji} ${found.label}` : cat, value: val, color: corCategoria(cat) };
   });
   if(categoryItems.length){ html += chartBoxWrap(tr('despesas_categoria'), tr('totais_acumulados'), horizontalBarsHTML(categoryItems)); html += chartBoxWrap(tr('despesas_distrib'), tr('totais_acumulados'), pieSVG(categoryItems)); }
+  const fatiasLucro = weekApps.map((a,i) => {
+    const liq = (a - ivaAmount(a) - comissaoAmount(a)) - weekComb[i] + weekPart[i];
+    return { label: weekLabels[i], value: Math.max(0, liq - weekFixed[i] - weekVar[i]) };
+  }).filter(f => f.value > 0).map((f,i) => ({ ...f, color: PALETA_PIZZA[i % PALETA_PIZZA.length] }));
+  if(fatiasLucro.length){ html += chartBoxWrap(tr('lucro_distrib'), tr('lucro_por_semana'), pieSVG(fatiasLucro)); }
   // Pizza: gastos de cada semana (fixos + variáveis + combustível + IVA e comissão), a mesma base das barras "Despesas".
   const fatiasGastos = weekDespesas.map((v,i) => ({ label: weekLabels[i], value: v }))
     .filter(f => f.value > 0).map((f,i) => ({ ...f, color: PALETA_PIZZA[i % PALETA_PIZZA.length] }));
