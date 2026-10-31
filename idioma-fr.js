@@ -581,5 +581,12 @@ window.I18N_LANGS.fr = {
     "rn_qualquer_banco": "Vous pouvez payer avec n’importe quelle carte ou banque.",
     "rn_nota1": "Vous pouvez payer avec n’importe quelle carte ou banque, avec le bouton ci-dessous ou par virement.",
     "rn_nota2": "Envoyez ensuite le justificatif à l’adresse ci-dessous. Dans le commentaire du paiement, indiquez votre email.",
-    "m_voltar": "Retour"
+    "m_voltar": "Retour",
+    "meta_base": "Base de l’objectif",
+    "base_lucro": "Bénéfice",
+    "base_bruto": "Brut",
+    "meta_mensal_bruto": "Objectif de brut mensuel",
+    "meta_semanal_bruto": "Objectif de brut hebdomadaire",
+    "gastos_distrib": "Dépenses par semaine en camembert",
+    "gastos_semana_sub": "Fixes, variables et carburant de chaque semaine du mois"
 };
