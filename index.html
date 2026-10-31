@@ -2303,7 +2303,7 @@ const I18N = {
 // Esquema de versão: de volta ao pré-1.0 (0.x.x) — a v1.0.0 fica
 // reservada para o lançamento com assinatura paga completa. A numeração
 // 4.x.x usada temporariamente para a integração Firebase foi abandonada.
-const APP_VERSION = '1.0.8';
+const APP_VERSION = '1.0.2a';
 
 // ---------------------------------------------------------------
 // IDIOMA — português (pt) e inglês (en). Escolha guardada neste aparelho (localSettings.lang).
@@ -4021,6 +4021,7 @@ async function checkUpdateNow(){
     if(!remoteVersion){ showToast(tr('versao_nao_verificada')); return; }
     if(remoteVersion === APP_VERSION){ showToast(`✅ Já estás na versão mais recente (v${APP_VERSION})`); return; }
     try{ await window.storage.set('pendingUpdateNotice', remoteVersion); }catch(e){}
+    if(!podeAtualizarPara(remoteVersion)){ showToast(tr('versao_nao_verificada')); return; }
     showToast(`⬇️ A atualizar para v${remoteVersion}…`);
     setTimeout(() => location.replace(location.href.split('?')[0] + '?v=' + Date.now()), 800);
   }catch(e){
@@ -9092,6 +9093,12 @@ async function checkForUpdates(){
 // Isto evita perguntar "quer atualizar?" — a atualização já aconteceu
 // sozinha; o utilizador só fica a saber depois, de forma discreta.
 // ---------------------------------------------------------------
+// Proteção contra ciclos: a mesma versão remota não é tentada duas vezes seguidas na mesma aba.
+function podeAtualizarPara(versao){
+  if(sessionStorage.getItem('corrida:updTentativa') === versao) return false;
+  sessionStorage.setItem('corrida:updTentativa', versao);
+  return true;
+}
 // Lê a versão publicada. Pede só o início do ficheiro (meta app-version); se não houver, lê a página completa.
 async function lerVersaoRemota(url, signal){
   const r1 = await fetch(url, { cache: 'no-store', signal: signal, headers: { Range: 'bytes=0-4095' } });
@@ -9117,6 +9124,7 @@ async function checkForUpdatesOnStartup(limiteMs){
     // Sem sessão: não recarrega sozinho. Mostra o alerta, com a opção de entrar (mais tarde, quando a app abrir).
     if(!localStorage.getItem('corrida:contaLigada')){ pendingUpdateSheet = remoteVersion; return false; }
     const splashMsg = document.getElementById('splashMsg');
+    if(!podeAtualizarPara(remoteVersion)) return false;
     trocarTextoSplash(`⬇️ A atualizar para v${remoteVersion}…`);
     try{ await window.storage.set('pendingUpdateNotice', remoteVersion); }catch(e){}
     location.replace(location.href.split('?')[0] + '?v=' + Date.now());
