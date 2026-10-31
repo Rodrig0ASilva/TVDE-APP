@@ -3,7 +3,7 @@
 Este ficheiro reúne a documentação de arquitetura e o histórico de alterações da app `corridaplus.html`.
 O HTML principal mantém apenas comentários curtos, apontando para aqui quando for preciso mais contexto.
 
-**Versão atual: 0.104.** A última secção deste documento é a versão atual.
+**Versão atual: 1.0.2a.** A última secção deste documento é a versão atual.
 
 ## Índice
 - **Parte I — Documentação técnica**: sincronização, IVA e lucro, encriptação, biometria, atualização, armazenamento, Firebase e funcionalidades específicas (secções 1 a 24).
@@ -1684,3 +1684,903 @@ Os cálculos usam os mesmos valores do resto das estatísticas (IVA, comissão, 
   o botão "alterar".
 - "alterar" abre uma folha com as três opções. Também permite voltar à opção padrão.
 - O seletor branco da lista, que ficava ilegível no modo escuro, foi removido.
+
+## Versão 0.105 — Barra de rolagem discreta também nas folhas
+
+- As folhas (Novo ganho, despesas, etc.) e o registo de sincronização tinham a barra de rolagem
+  padrão do navegador. Agora usam o mesmo estilo fino e transparente da área principal.
+
+## Versão 0.106 — Ícone da tela de carregamento com a cor do tema
+
+- O ícone da tela de carregamento e o da tela de login tinham cores fixas (verde e dourado).
+  Agora usam as variáveis do tema: o bloco com `--vault-2` e os detalhes com `--brass-light`.
+- Testado com o tema roxo: o ícone acompanha a cor escolhida.
+- Limitação: o ícone instalado no ecrã inicial (manifest e favicon) continua fixo, porque o
+  sistema só o lê na instalação.
+
+## Versão 0.107 — Ícone do app personalizável (dentro da app)
+
+- Aparência → "Ícone do app": escolhe a cor (igual ao tema ou uma das cores do tema) e liga
+  ou desliga o efeito transparente (bloco translúcido com contorno claro).
+- Aplica-se à tela de carregamento e ao login. Guardado só neste aparelho (`localSettings.iconColor`,
+  `localSettings.iconGlass`).
+- **Limitação:** o ícone instalado no ecrã inicial (manifest e favicon) só muda com nova instalação
+  ao usar o navegador. Numa versão em APK, o ícone pode seguir estas mesmas escolhas.
+
+## Versão 0.108 — Pré-visualização do ícone
+
+- Aparência → "Ícone do app": no topo da secção aparece o ícone em tamanho grande, sobre o mesmo
+  fundo da tela de carregamento. Atualiza logo ao mudar a cor ou o efeito transparente.
+
+## Versão 0.109 — Tela de carregamento com a cor certa desde o início
+
+- **Causa:** a cor do tema e do ícone só eram lidas depois do carregamento, por isso a tela
+  mostrava primeiro as cores por omissão e só depois mudava.
+- **Correção:** um pequeno script no início da página lê as preferências guardadas neste aparelho
+  (`localSettings`) e aplica o tema e o ícone antes da primeira pintura.
+- A tela de carregamento fica visível pelo menos 1,2 s, para o ícone poder ser visto.
+
+## Versão 0.110 — Ícone da tela de carregamento começa cinzento
+
+- O ícone da tela de carregamento começa em cinzento (filtro `grayscale`), e passa para a cor
+  escolhida com transição de 0,9 s quando a sincronização termina.
+- A app espera até 6 s pela sincronização. Se a rede estiver lenta, a cor aparece na mesma
+  ao fim desse tempo. Sem conta (modo básico), a cor aparece logo após carregar os dados locais.
+- A pré-visualização nas Aparências continua a mostrar o ícone a cores.
+
+## Versão 0.111 — Ícone de arranque (manifest) igual ao da app
+
+- A primeira tela que aparece ao abrir a app instalada é a tela de arranque do sistema. O Android
+  cria-a a partir do manifest guardado na instalação, por isso não é a tela de carregamento da app.
+- O ícone do manifest foi atualizado para o mesmo desenho da tela de carregamento (carro preenchido,
+  cores padrão). Este ícone só muda depois de instalar a app de novo pelo navegador.
+- Limitação: como no APK, a cor escolhida em Aparência não se aplica a esta tela de arranque. Para
+  ela seguir o tema, é preciso gerar o ícone no momento da build do APK.
+
+## Versão 0.112 — Mudança de cor do ícone gradual e padrão de seletores
+
+- **Ícone:** ao mudar a cor ou o efeito transparente, a alteração é gradual (`softChange`), e a
+  pré-visualização anima como o resto da app.
+- **Seletor de cores:** só muda a classe `.selected` (com a mesma animação do seletor de tema). A
+  grelha e a pré-visualização não são recriadas, porque isso apagava a transição.
+- **Nota de padrão:** foi escrita no código, junto a `softChange`, para servir de regra em toda a app:
+  mudanças visuais graduais, seletores que só trocam classes, e nada de `innerHTML`/`display:none`
+  em elementos que precisam de animar.
+- Testado: a cor da pré-visualização passa por um tom intermédio antes de chegar à cor final.
+
+## Versão 0.113 — Fundo da tela de carregamento segue o tema
+
+- O fundo da tela de carregamento tinha uma cor fixa no modo escuro do sistema, por isso ignorava o
+  tema escolhido. Agora usa `--splash-bg`: a cor do tema no modo claro e uma versão mais escura da mesma
+  cor no modo escuro (`html.splash-dark`).
+- A marca `splash-dark` é aplicada antes da primeira pintura, a partir das preferências guardadas, e
+  atualizada ao mudar o modo claro/escuro/sistema.
+- A pré-visualização do ícone usa o mesmo fundo.
+
+## Versão 0.114 — Diferença clara entre modo claro e escuro no fundo
+
+- Com o tema verde por omissão, o modo escuro era só um verde ligeiramente mais escuro, e a troca
+  quase não se via na pré-visualização. Agora o modo escuro mistura a cor do tema com quase preto
+  (35% da cor, 65% de preto), por isso a diferença é clara.
+
+## Versão 0.115 — Escolha do fundo da tela de carregamento
+
+- Aparência → "Fundo da tela de carregamento":
+  - **Igual ao tema** (predefinido): a cor do tema no modo claro e uma versão mais escura no modo escuro;
+  - **Fundo do app**: creme no modo claro e escuro no modo escuro;
+  - **Uma cor do tema**: fixa, independente do tema escolhido.
+- O texto da tela de carregamento (título e mensagens) muda para ficar legível sobre o fundo
+  escolhido (`--splash-fg`), e a pré-visualização do ícone usa o mesmo fundo.
+- A regra de fundo fica numa única função (`computeSplash`), partilhada pelo arranque e pela app.
+
+## Versão 0.116 — Ícone da aba do navegador acompanha as configurações
+
+- O favicon (ícone da aba do navegador) era fixo. Agora é gerado com a cor do tema (ou a cor escolhida
+  para o ícone) e com o efeito transparente, como o ícone da app.
+- Os navegadores atualizam o favicon ao vivo, por isso a mudança aparece logo, sem reinstalar.
+- O favicon é aplicado logo no arranque, a partir das preferências guardadas, e atualizado ao mudar
+  o tema ou o ícone.
+
+## Versão 0.117 — Rótulos legíveis no modo escuro
+
+- Os rótulos (por exemplo "MODO ESCURO", "TAXA DE COMISSÃO", "EMOJI" e "NOME") usavam a cor escura de
+  destaque do tema, quase invisível no modo escuro. Agora usam a cor clara do tema
+  (`--vault-text`), como o texto "Conectado com Google".
+
+## Versão 0.118 — Configurações organizadas em blocos
+
+- A secção Configurações tinha todas as opções seguidas e misturadas. Agora cada assunto está num
+  bloco próprio, separado por uma linha:
+  - **Impostos:** IVA e comissão, juntos (são do mesmo tema);
+  - **Turnos:** turno de trabalho e o editor de nomes e emojis;
+  - **Quilómetros**, **Metas de lucro**, **Outras plataformas** e **Resumo de ontem**, cada um sozinho.
+- Os identificadores e o comportamento das opções não mudaram.
+
+## Versão 0.119 — Ordem das opções em Configurações
+
+- Nova ordem: IVA e comissão (Impostos), metas de lucro, turno de trabalho, quilómetros, outras
+  plataformas e resumo de ontem. Só muda a ordem dos blocos; o comportamento não mudou.
+
+## Versão 0.120 — Correção: abas vazias (Lucro, Estatísticas, Dev)
+
+- Ao reorganizar Configurações (0.118/0.119), faltava um `</div>` no último bloco. Assim, o ecrã de
+  Configurações não fechava e os ecrãs seguintes (Estatísticas, Lucro, Dev) ficavam dentro dele.
+  Como Configurações está escondido, esses ecrãs ficavam vazios.
+- Corrigido o fecho do bloco; todos os ecrãs passam a ser filhos diretos da área principal.
+
+## Versão 0.121 — Balão de sincronização alinhado com o título
+
+- Em Você, o balão "sincronizado" ficava acima do nome da aba, porque a coluna da direita (balão + versão)
+  era centrada no conjunto. Agora o balão fica centrado no título, e o número da versão aparece
+  por baixo dele, fora da altura do cabeçalho.
+
+## Versão 0.122 — Primeiros ajustes de Gestalt (figura/fundo, rótulos, separação)
+
+- **Figura e fundo:** no efeito transparente, os cartões passam a ter mais opacidade (78%, 80% no
+  modo escuro) e um contorno claro, para se destacarem da imagem de fundo.
+- **Rótulos:** uma única variável (`--label-color`) define a cor dos rótulos em cada modo, em vez de
+  cores diferentes espalhadas pelo código.
+- **Você:** mais espaço antes de "Configurações" e entre o botão "Aparência" e a secção seguinte.
+- **Ainda por fazer:** destaque único do número principal de cada ecrã (ponto 4 da análise).
+
+## Versão 0.123 — Número principal em destaque e zonas na Você
+
+- **Destaque único por ecrã (ponto 4):** cada ecrã tem agora um número principal no topo, com o mesmo
+  estilo do cartão de lucro:
+  - Estatísticas (mês): lucro do mês (verde, ou terracota se negativo);
+  - Despesas: total do mês, fixas + variáveis (terracota);
+  - Ganhos e Lucro: já tinham o destaque do total bruto e do lucro líquido.
+- **Você (ponto 2):** a secção de aparência tem agora um cabeçalho "Preferências", separado de "Conta"
+  e de "Configurações".
+- Função reutilizável `heroValorHTML(rótulo, valor, subtítulo, cor)`.
+
+## Versão 0.124 e 0.125 — Revisão de todos os ecrãs (Gestalt)
+
+Revisão feita nos sete ecrãs, nos modos claro e escuro, com dados de exemplo.
+
+- **Semelhança:** o Total bruto de Ganhos passa a usar o mesmo destaque colorido (`heroValorHTML`)
+  dos outros ecrãs, em vez de um cartão com contorno.
+- **Contraste (modo escuro):** os títulos dos ecrãs usam a cor clara do tema, com contraste de 9,7:1.
+- **Proximidade:** o lucro do mês deixa de aparecer duas vezes em Estatísticas. Fica só no destaque do topo.
+
+**Ainda por fazer (fora desta revisão):**
+- Modo Dev é muito longo e tem muitas secções seguidas; pede uma reorganização em grupos.
+- O botão "Escolher imagem" em Aparência tem pouco contraste no modo escuro.
+
+## Versão 0.126 — Contraste dos botões da Aparência
+
+- **Escolher imagem:** no modo escuro, o texto ficava na cor escura do tema, por causa da regra dos rótulos.
+  Como este botão é uma etiqueta, agora mantém texto branco nos dois modos.
+- **Remover:** no modo escuro usa o vermelho claro, para ter contraste sobre o fundo.
+- O Modo Dev fica como está, porque é oculto.
+
+## Versão 0.127 — Transição do conteúdo ao trocar Dia/Semana/Mês/Ano e de período
+
+- Em Ganhos, Despesas, Lucro e Estatísticas, o conteúdo agora desliza como na troca de abas
+  (`animarTroca`, com os mesmos keyframes `slideFromRight` e `slideFromLeft`).
+- **Trocar de vista:** a direção segue a ordem Dia → Semana → Mês → Ano (para a frente, entra pela direita).
+- **Navegar com as setas:** para a frente entra pela direita; para trás, pela esquerda.
+- Aplica-se a Ganhos (cartões e lista), Despesas (destaque, fixas e variáveis), Lucro e Estatísticas.
+
+## Versão 0.128 — Rebote nas trocas de aba e de seleção
+
+- As trocas de ecrã (abas) e de conteúdo (Dia/Semana/Mês/Ano e setas) usam agora a mesma curva da gota,
+  com uma pequena ultrapassagem que assenta (`cubic-bezier(.34,1.56,.64,1)`), em 0,42 s.
+
+## Versão 0.129 — Quem nunca pagou fica só para leitura
+
+- Antes, a conta sem assinatura ficava livre, e só expirar bloqueava. Agora segue a mesma regra das
+  regras do Firestore: sem assinatura ativa, a conta fica em modo só leitura.
+- Casos:
+  - **A verificar** (ainda a ler a assinatura): não bloqueia.
+  - **Sem assinatura** (nunca pagou): só leitura, com aviso "Sem assinatura ativa".
+  - **Expirada:** só leitura, com aviso e data de expiração.
+  - **Ativa:** acesso normal.
+  - **Modo básico** (sem login): não se aplica; continua com os limites do modo básico.
+- O cartão de assinatura deixou de dizer que "o acesso é livre".
+
+## Versão 0.130 — Quem nunca pagou tem os direitos do modo básico
+
+- Sem assinatura (nunca pagou), a conta passa a ter os mesmos direitos de quem não tem login:
+  limite de 5 ganhos, 5 despesas variáveis e 5 despesas fixas, e as configurações bloqueadas
+  (exceto IVA e comissão). Não envia dados para a nuvem.
+- Quem tem a assinatura expirada continua só para leitura.
+- Quem tem assinatura ativa tem acesso normal.
+- O aviso de modo básico explica que é preciso ativar a assinatura para desbloquear tudo.
+- Coerência com as regras do Firestore: sem `access/{uid}` as escritas são recusadas, e a app já não tenta escrever nesse caso.
+
+## Versão 0.131 — Transparência 100% no Modo Dev
+
+- Modo Dev → "Transparência 100% (efeito transparente)": quando ligado, cartões, barra e folhas ficam
+  sem fundo próprio (opacidade 0), só com o contorno. Serve para testar o efeito.
+- Só neste aparelho (`localSettings.glassFull`). Não altera o controlo de intensidade de Aparência.
+- Testado: um cartão passa de 78% de opacidade para 0%.
+
+## Versão 0.132 — Schema v1 como único formato de envio
+
+- Todos os envios para a planilha (Apps Script) usam sempre o schema v1. Já não há interruptor
+  "Gravar no formato novo" nem o botão "Converter e enviar agora" no Modo Dev.
+- Nuvem (Firestore), cópia diária e exportação .json já usavam sempre o schema v1.
+- **Ainda não feito:** o armazenamento local do aparelho e o modelo interno da app continuam no formato
+  antigo (`bills`, `monthData`, `profile`). Eliminar a conversão exige reescrever o modelo interno.
+  A leitura do formato antigo mantém-se para compatibilidade com dados já guardados no aparelho.
+
+## Versão 0.133 — Remoção da transparência 100% e início da migração para v1
+
+- Removido o botão "Transparência 100%" do Modo Dev (não era necessário).
+- **Migração para schema v1 — fase 1:** `migrarLocalParaV1()` cria uma cópia v1 dos dados do aparelho em
+  `stateV1` e guarda as chaves antigas em `backup_pre_v1_bills`, `backup_pre_v1_monthData` e
+  `backup_pre_v1_profile`. Só corre uma vez. A app ainda lê o formato antigo nesta fase.
+- Testado: totais de ganhos, contas e nome são iguais na cópia v1, e a migração não se repete.
+- **Próximas fases:** ler sempre a cópia v1 nos cálculos e ecrãs, depois nas edições e na fusão com a nuvem,
+  e só no fim remover a conversão.
+
+## Versão 0.134 — Arranque sem Firebase
+
+- Antes, a app só arrancava quando o Firebase carregava. Sem internet, ou com o Firebase bloqueado,
+  a tela de carregamento ficava parada e a app não abria, mesmo com os dados guardados no aparelho.
+- Agora, se o Firebase não estiver pronto em 3 segundos, a app arranca em modo local. Quando o Firebase
+  chega (em aberturas seguintes), a sessão funciona normalmente.
+- Testado sem rede: a app abre e mostra as abas, sem erros.
+
+## Versão 0.135 — Schema v1 é a fonte de verdade (opção A)
+
+- **Leitura:** na abertura, a app lê `stateV1` e monta a vista em memória (`bills`, `monthData`, `profile`)
+  com `denormalizeFromSchemaV1`. O formato antigo só é lido se o v1 ainda não existir (fallback).
+- **Escrita:** cada alteração grava o v1 (`salvarStateV1`). As chaves antigas (`bills`, `monthData`,
+  `profile`) deixam de ser atualizadas e ficam só como cópia de segurança da migração.
+- **Ordem no arranque:** migração primeiro, depois leitura.
+- **Testado com dados completos:** contas (com dia/semana e override), ganhos com turno e km, despesas com
+  litros, plataformas extra, metas e turnos. Os dados lidos são iguais aos originais, o lucro do mês
+  bate com a conta feita à mão (253 €), uma edição fica gravada e persiste depois de reabrir.
+- **Ainda por fazer:** a vista em memória continua no formato antigo. Só a fonte de verdade é v1.
+  Se quiseres eliminar essa vista, é a opção B, que fica para depois.
+
+## Versão 0.136 — Escolha clara entre dados da nuvem e do aparelho
+
+- A folha "Dados diferentes" mostra dois cartões selecionáveis (nuvem e este aparelho), em vez de três
+  botões com a mesma força visual.
+- Ao tocar num cartão, ele fica destacado com um visto, e só então o botão de confirmar fica ativo,
+  com a ação escrita no próprio botão. Antes de escolher, o botão fica cinzento.
+- "Decidir depois" continua disponível e não altera nada.
+
+## Versão 0.137 — Continuidade das barras do Safari com o efeito transparente
+
+- No Safari (sem estar instalada no ecrã inicial), a barra de cima e a de baixo são pintadas com uma
+  cor sólida, definida por `theme-color`. A app não consegue deixar o gradiente de fundo subir até essas barras.
+- Com o efeito transparente, a cor dessas barras passa a ser o topo do gradiente (creme no claro, escuro no
+  escuro), para ficar o mais próximo possível.
+- **Limite:** no Safari a continuidade total não é possível. Com a app instalada no ecrã inicial, o conteúdo
+  pode passar por baixo da barra de estado (`black-translucent`), e aí a continuidade fica completa.
+
+## Versão 0.138 — Fundo do efeito transparente sob a zona inferior (iOS instalado)
+
+- No iPhone com a app instalada no ecrã inicial, havia uma faixa vazia na parte de baixo, sob o
+  indicador do ecrã. A camada de gradiente de fundo ficava limitada à janela visível.
+- Agora essa camada é estendida 160 px para além da borda inferior, por isso cobre também essa zona.
+- Verificado no navegador que a camada passa a ultrapassar a janela. Não testado no iPhone real.
+
+## Versão 0.139 — As duas opções da folha de conflito têm o mesmo peso
+
+- O botão de confirmar da nuvem usava o estilo de texto vermelho (de perigo), e parecia um erro. Agora
+  as duas opções usam o mesmo botão sólido, com texto neutro: "Usar os dados da nuvem" e "Usar os dados
+  deste aparelho".
+- O texto da folha indica que o outro conjunto é substituído, sem marcar nenhuma opção como errada.
+
+## Versão 0.140 — Ajustes para iOS (ícone, pop-up e barra de abas)
+
+- **Ícone do ecrã inicial:** o ícone do iPhone tinha transparência e aparecia com uma faixa preta. Foi gerado
+  um novo ícone opaco (carro dourado sobre fundo verde), sem zonas transparentes.
+- **Pop-up:** passa a ficar abaixo da barra de estado (`env(safe-area-inset-top)`), e deixa de ficar escondido e
+  desfocado no topo.
+- **Barra de abas:** estendida 240 px para baixo com a cor de fundo, para chegar ao fim do ecrã, incluindo a
+  zona do indicador. No efeito transparente, a extensão fica transparente, e a camada de fundo cobre o resto.
+- **Fundo:** o `html` passa a ter a cor de fundo da app, para não aparecer uma faixa bege.
+- Testado no navegador; não testado num iPhone real.
+
+## Versão 0.141 — Ícones: iOS sem cantos próprios, Android com margem
+
+- **iOS:** o ícone do ecrã inicial passa a ser um quadrado cheio, sem cantos arredondados. O iOS aplica a
+  sua própria máscara; com cantos próprios, apareciam cantos estranhos. O carro fica centrado, com margem.
+- **Android:** o manifest passa a ter dois ícones. O normal (arredondado) e um "maskable" com o carro reduzido
+  para cerca de 60%, dentro da margem de segurança. Assim o carro deixa de parecer muito grande.
+- Ícones gerados e verificados visualmente. Não testados no iPhone nem em Android reais.
+- Ao contrário das alterações na app, o ícone só muda depois de reinstalar a app no ecrã inicial.
+
+## Versão 0.142 — Ícone Android arredondado, com o carro reduzido
+
+- O ícone "maskable" (quadrado, sem cantos) fazia a tela de arranque e o multitarefas do Android aparecerem quadrados.
+- O manifest volta a ter um único ícone arredondado, com o carro reduzido dentro do próprio bloco
+  (cerca de 60%). Mantém os cantos arredondados e o tamanho certo.
+- O ícone do iOS continua quadrado cheio, porque o iOS aplica o seu próprio arredondamento.
+
+## Versão 0.143 — Carro maior no ícone do iOS
+
+- Na tela "Adicionar à Tela de Início" do iPhone, o carro aparecia pequeno e com muita margem.
+  O ícone do iOS passa a ter o carro maior (cerca de 90% da escala anterior de desenho), mantendo o quadrado cheio.
+- O ícone do Android não foi alterado.
+
+## Versão 0.144 — Ícone do iOS com o mesmo desenho da app
+
+- O carro do ícone do iOS tinha sido redesenhado à mão, e as rodas e os retrovisores ficaram com
+  proporções diferentes, o que dava ar de deformação.
+- O ícone do iOS passa a ser gerado com as mesmas coordenadas do ícone SVG da app (teto, corpo,
+  retrovisores e rodas), num quadrado cheio, para ficar igual ao que já está na tela de carregamento.
+
+## Versão 0.145 — Ícone do iOS segue a cor escolhida, antes de instalar
+
+- O preview de "Adicionar à Tela de Início" no iPhone lê o ícone do HTML (apple-touch-icon), que era fixo
+  (verde por omissão).
+- Agora `atualizarIconeIOS()` gera esse ícone num canvas, com a cor escolhida em "Cor do ícone" e o contorno
+  do efeito transparente, e atualiza o link sempre que essas opções mudam.
+- Testado no navegador: roxo e azul com contorno aparecem corretamente.
+- **Limites:** o iOS lê o ícone no momento de adicionar. O Android continua a usar o manifest, que é fixo
+  na instalação, por isso o ícone instalado no Android só muda ao reinstalar.
+
+## Versão 0.146 — Ícone do Android (manifest) segue a cor escolhida
+
+- O ícone do manifest passa a ser atualizado com a cor escolhida em "Cor do ícone" e com o efeito transparente,
+  como já acontece com o ícone do iOS.
+- O Chrome lê o manifest ao oferecer a instalação, por isso o ícone que aparece na instalação deve seguir a escolha.
+- **Limite:** o ícone já instalado no ecrã inicial, e o do multitarefas, só mudam ao reinstalar a app.
+- Testado no navegador: mudar a cor altera o ícone do manifest. Não testado no Android real.
+
+## Versão 0.147 — Uma só linha antes do lucro líquido (Lucro)
+
+- No detalhamento do Lucro, havia duas linhas seguidas antes do total: a linha inferior de "Faturamento bruto"
+  e a linha superior mais grossa do total. Agora fica só uma linha separadora.
+
+## Versão 0.148 — Modo Dev organizado por assunto
+
+- **Sincronização:** Sincronização (URL), Migrar planilha, Encriptação e Log de sincronização.
+- **Dados:** Dados ocultos e limpeza, Importar dados.
+- **Aplicação:** Atualização.
+- **Extras:** Mensagem de aniversário, Brincadeira secreta e Resumo de ontem.
+- Só a ordem mudou; nenhuma opção foi alterada. Estrutura de `<div>` conferida.
+
+## Versão 0.149 — Atualização verificada antes do conteúdo
+
+- **Antes:** a app mostrava o conteúdo e só depois verificava a versão. Quando havia uma versão nova, voltava
+  à tela de carregamento para atualizar, e carregava duas vezes.
+- **Agora:** a verificação acontece no início do arranque, antes de mostrar o conteúdo. Enquanto verifica, a tela
+  de carregamento mostra "A verificar atualização…" com uma barra de progresso. Se houver versão nova, a app
+  recarrega uma única vez e abre já atualizada.
+- Tempo limite de 2,5 s: sem rede, a app abre logo, sem esperar.
+- **Sem sessão (modo básico):** continua a não recarregar sozinha; mostra o alerta depois de abrir, com a opção de entrar.
+- Testado com um servidor local e uma versão simulada: um único recarregamento, sem mostrar o conteúdo antigo.
+
+## Versão 0.150 — Resumo de ontem ativo por omissão e texto da tela de carregamento suave
+
+- **Resumo de ontem:** passa a vir ligado por omissão (`dailySummaryEnabled` → `true`). Quem já tinha escolhido
+  explicitamente continua com a sua escolha, guardada no perfil.
+- **Tela de carregamento:** as mensagens (ex.: "A carregar…", "A verificar atualização…") deixam de piscar. O texto
+  sai com desvanecimento, muda e volta a entrar (`trocarTextoSplash`, 0,25 s por fase). Pedidos seguidos não se atropelam.
+- Testado: resumo ativo por omissão; a meio da troca a opacidade fica intermédia, e no fim o texto novo aparece.
+
+## Versão 0.151 — Criptografia de dados, fase 1 (núcleo, sem ligação à sincronização)
+
+Modelo: uma chave de dados (DEK) de 256 bits, aleatória, cifra os campos. A DEK fica guardada três vezes,
+cada uma embrulhada com AES-GCM, com uma chave derivada de:
+1. a senha (mín. 8 caracteres, com maiúscula e caractere especial);
+2. a chave de recuperação de 24 caracteres (gerada pela app, sem caracteres ambíguos);
+3. as respostas às 4 perguntas de recuperação (normalizadas: sem maiúsculas nem acentos).
+
+Trocar a senha não obriga a recifrar os dados. Quem tiver a chave de recuperação ou as respostas recupera o acesso.
+
+Funções: `criarCofreCripto`, `abrirCofreCripto`, `cifrarCampo`, `decifrarCampo`, `gerarChaveRecuperacao`.
+PBKDF2-SHA256 com 600 000 iterações.
+
+**Riscos:** as respostas funcionam como segunda chave. Respostas comuns podem ser testadas offline se a base de
+dados vazar. A app deve exigir respostas difíceis de adivinhar (mín. 12 caracteres no total) e avisar isto.
+
+Testado no navegador: formato da chave, recuperação pela senha, pela chave e pelas respostas, rejeição de senha
+e respostas erradas, senha fraca recusada, e cifra/decifra de campos.
+Ainda não ligado à interface nem à sincronização.
+
+## Versão 0.152 — Criptografia dos dados, fase 2 (ecrã de configuração)
+
+- **Entrada:** Você → "🔐 Criptografia dos dados", abaixo do cartão de conta.
+- **Passos:** aviso de riscos e responsabilidade (botão só ativa após marcar a caixa) → senha (confirmada duas vezes,
+  mín. 8 caracteres, com maiúscula e caractere especial) → 4 perguntas escritas pelo utilizador, com resposta livre
+  (texto ou data) → chave de recuperação com QR code, guardar imagem ou partilhar.
+- **Respostas livres:** sem tamanho mínimo; só não podem ficar vazias. O aviso sobre respostas fáceis de adivinhar
+  continua no ecrã.
+- **Cofre:** guardado em `cofreCripto` neste aparelho. Não contém chaves em claro.
+- **Apagar dados ou tudo** remove também o cofre, porque deixa de haver dados para proteger.
+- **Imagem:** contém o QR, a chave e o aviso de responsabilidade. Pode ser guardada ou partilhada.
+- **QR code:** carregado de cdnjs (qrcodejs). Sem ligação, a chave aparece escrita, com a mensagem de fallback.
+- **Ainda não feito:** leitura do QR com a câmara ou a galeria (fase 3), lembrar a chave no aparelho (fase 3),
+  remover a criptografia (fase 4) e ligação à sincronização (fase 4).
+- Testado no navegador: aviso, senha, perguntas com texto e data, criação do cofre, imagem gerada e remoção do cofre
+  ao apagar dados. A criação demora alguns segundos, porque a derivação usa 600 000 iterações.
+
+## Versão 0.153 — Criptografia dos dados, fase 3 (aparelhos, QR e recuperação)
+
+- **Lembrar neste aparelho:** ao criar ou desbloquear, a chave de dados (DEK) fica guardada em `dekAparelho`.
+  Por omissão, lembra. Desmarcando "Lembrar neste aparelho", a chave só vale nessa sessão.
+- **Aparelho novo:** ao abrir Criptografia dos dados sem chave neste aparelho, pede uma de quatro formas:
+  senha; chave de recuperação escrita; QR pela câmara (`cripLerQrCamera`); QR escolhido na galeria (`cripLerFicheiro`).
+- **Esqueci a senha:** responde às 4 perguntas (respostas de data aparecem como campo de data). Se conferirem,
+  define uma nova senha. A chave de dados não muda, só volta a ser embrulhada com a nova senha (`trocarSenhaCofre`).
+- **Esquecer a chave neste aparelho:** no ecrã de criptografia ativa, remove `dekAparelho`.
+- **Apagar dados ou tudo:** remove também `dekAparelho`.
+- **Cofre:** passa a guardar o tipo de cada pergunta (texto ou data), para a recuperação mostrar o campo certo.
+- **Leitor de QR:** jsQR, do cdnjs, carregado só quando é preciso.
+- Testado no navegador: senha certa e errada, chave certa e errada, lembrar e não lembrar, QR lido a partir de imagem,
+  recuperação pelas perguntas (com data) e nova senha, e esquecer a chave.
+- **Não testado automaticamente:** a câmara. Precisa de um telemóvel real: abre Criptografia, Desbloquear,
+  "Ler QR com a câmara" e confirma que a câmara abre e lê a imagem guardada.
+
+## Versão 0.154 — Criptografia dos dados, fase 4 (ligação à sincronização)
+
+- **Campos cifrados na nuvem:** valores (ganhos, despesas, despesas fixas e pagamentos), notas, litros, nomes das
+  despesas fixas e nomes das plataformas extra. Ficam dentro de `enc` em cada registo, cifrados com a chave de dados.
+- **Em claro:** datas, identificadores, categorias, tipos, plataformas Uber/Bolt, chaves das plataformas extra
+  (aleatórias, sem o nome), e o bloco público do cofre (`crypto`, com os sais e as chaves embrulhadas).
+- **Plataformas extra:** ao criar o cofre, as chaves passam a ser aleatórias (`custom_` + id), para o nome não aparecer
+  na chave. Os registos antigos são atualizados localmente. Ao criar uma plataforma, dedupe pelo nome.
+- **Escrita:** `prepararParaNuvem` cifra o documento antes de gravar. Sem chave neste aparelho, não grava nada.
+  Nunca se grava em claro com criptografia ativa.
+- **Leitura:** `prepararNuvem` decifra. Se o aparelho não tiver a chave, pede o desbloqueio e a sincronização para.
+  Um aparelho novo guarda o bloco `crypto` da nuvem como cofre local, e depois pede a senha, a chave ou o QR.
+- **Remover criptografia:** pede a senha, grava os dados em claro (com `pushToFirestore(true)`) e apaga o cofre local.
+  Os outros aparelhos vêem a nuvem sem `crypto` e apagam o seu cofre (marca `naNuvem`).
+- **Cópia diária na planilha:** não corre com criptografia ativa, para não enviar dados em claro.
+- **Criar cofre:** se a nuvem já tiver criptografia, não cria outra: abre o desbloqueio (`window.__fbCloudCrypto`).
+- **Regras do Firestore:** `crypto` foi acrescentado à lista de chaves permitidas em `hasValidShape()`.
+  As regras ainda não estão publicadas; devem ser publicadas com este ficheiro.
+- Testado com uma nuvem simulada: nada sensível em claro, aparelho novo pede desbloqueio e recupera os dados, remoção
+  devolve os dados em claro e apaga o cofre local.
+
+## Versão 0.155 — A foto de perfil fica só neste aparelho
+
+- A foto de perfil deixa de ir para a nuvem (e para a cópia de segurança). Antes seguia como texto dentro do documento,
+  o que pesava no limite de tamanho do Firestore.
+- O nome continua a sincronizar normalmente.
+- `applyState` mantém a foto local quando chegam dados da nuvem sem foto.
+- Os documentos antigos que ainda tinham a foto deixam de a ter na próxima gravação.
+- Testado: a foto não entra no documento da nuvem, o nome entra, e aplicar dados da nuvem não apaga a foto local.
+
+## Versão 0.156 — Arquivo compactado na nuvem e aviso de limite
+
+**Arquivo:** os meses com mais de 12 meses saem do documento principal e ficam num bloco único, comprimido com gzip
+(`CompressionStream`). Se houver criptografia, o bloco também é cifrado (AES-GCM com a chave de dados).
+- Escrita: `arquivarAntigos` separa os registos; `empacotarArquivo` comprime (e cifra, se aplicável).
+- Leitura: `prepararNuvem` descompacta o bloco e junta-o aos dados recentes, antes de converter. A fusão entre
+  aparelhos não muda, porque o aparelho continua com o histórico completo.
+- Sem `CompressionStream` (navegadores antigos), nada é arquivado e o documento segue completo.
+- **Limitação:** a descompactação acontece ao sincronizar, e não só quando o utilizador abre um mês antigo. Assim, a
+  fusão não precisa de lógica especial. Um arquivo consultado sob demanda exigiria mudar a forma como a fusão
+  trata meses ausentes.
+
+**Aviso de limite:** antes de gravar, o documento é medido. Acima de 1 000 000 bytes, a gravação não é feita, aparece
+uma folha a explicar o que aconteceu (os dados ficam neste aparelho) e fica registo no log de sincronização.
+Acima de 80% do limite, aparece um aviso de espaço quase cheio, uma vez por sessão. Falhas de gravação passam a
+mostrar uma mensagem, em vez de apenas "offline / sem link".
+
+**Regras:** `arquivo` foi acrescentado à lista de chaves permitidas em `hasValidShape()`, junto de `crypto`.
+
+Testado com uma nuvem simulada (30 meses, 1 200 ganhos):
+- O documento principal fica com 12 meses; o documento total fica com cerca de 65 KB.
+- Ler de volta devolve os mesmos registos, com e sem criptografia.
+- Com dados acima do limite, a gravação é recusada e o aviso aparece.
+
+## Versão 0.157 — Folhas: fundo mais opaco, fecho animado, alça arrastável; resumo com o último dia
+
+- **Efeito transparente:** o fundo das folhas passa de 82% para 96% de opacidade (claro e escuro), para o texto por
+  trás não atrapalhar a leitura.
+- **Fecho animado:** a folha desce e desaparece (260 ms), e o fundo esmaece. Vale para todas as folhas. Abrir outra
+  antes do fim do fecho cancela o fecho pendente (`closeTimer`).
+- **Alça arrastável:** arrastar a alça para baixo acompanha o dedo. Passados 90 px, ou com um gesto rápido, a folha
+  fecha. Se o arrasto for curto, volta ao lugar. A área de toque da alça é maior.
+- **Resumo de ontem sem registos:** mostra "Não houve registos ontem." e, abaixo, o último dia com registos
+  (`ultimoDiaComRegisto`), com os mesmos cartões. Continua a aparecer só uma vez por dia.
+- Testado: fecho animado, arrastar para fechar, arrasto curto que volta ao lugar, resumo sem registos com o último
+  dia, e opacidade de 96% nos dois modos.
+
+## Versão 0.158 — Idioma: português e inglês (primeira parte)
+
+- **Escolha:** em Você → "Idioma" (PT / EN), e na tela de boas-vindas, antes do login, que aparece na primeira
+  abertura. A escolha fica em `localSettings.lang` (neste aparelho, não sincroniza).
+- **Dicionário:** `I18N` (pt/en), com `tr('chave')`. Textos fixos do HTML têm `data-i18n`; `aplicarIdioma()` atualiza-os.
+- **Datas e números:** `LOCALE()` devolve `pt-BR` ou `en-GB`, em todos os formatos de data.
+- **Já traduzido:** separadores, títulos principais, Dia/Semana/Mês/Ano, estado da sincronização, texto do login,
+  boas-vindas, Idioma, Conta, Preferências, Configurações e Aparência.
+- **Ainda em português (segunda parte):** folhas e mensagens (toasts), estatísticas, ecrãs de detalhe, Aparência,
+  e a maioria dos textos de Configurações.
+- Testado: separadores e títulos em inglês, datas em inglês, boas-vindas trocam de idioma, idioma guardado.
+  Corrigida uma recursão no `LOCALE()` causada pela substituição de `'pt-BR'`.
+
+## Versão 0.159 — Idiomas em ficheiros separados
+
+- O português fica em `corridaplus.html` (`I18N.pt`). Cada outro idioma fica num ficheiro próprio, carregado só quando é
+  escolhido: inglês em `idioma-en.js`.
+- `IDIOMA_FICHEIROS` diz qual ficheiro corresponde a cada código. `carregarIdioma(lang)` injeta o script, com `?v=<versão>`
+  para o navegador não usar uma tradução antiga.
+- **Adicionar um idioma:** copiar `idioma-en.js`, mudar o código e traduzir os valores; depois acrescentar o código em
+  `IDIOMA_FICHEIROS` e uma opção no seletor de Você e nas boas-vindas.
+- **Ficheiro em falta:** a app continua em português e mostra "Não foi possível carregar o idioma".
+- **Publicação:** `idioma-en.js` tem de ficar na mesma pasta que `corridaplus.html` (GitHub Pages).
+- Testado: trocar para inglês carrega o ficheiro; ao recarregar com inglês guardado, o ficheiro volta a carregar; com
+  o ficheiro em falta, fica em português.
+
+## Versão 0.160 — Francês
+
+- Novo ficheiro `idioma-fr.js`, com os mesmos textos já traduzidos para inglês. Datas em `fr-FR` (`LOCALES`).
+- Acrescentado às escolhas de Você e das boas-vindas, e a `IDIOMA_FICHEIROS`.
+- Testado: separadores, datas e seletor em francês; o francês continua depois de recarregar.
+
+## Versão 0.161 — Tradução completa, passo 1: Ganhos e Despesas
+
+- Textos de Ganhos e Despesas (títulos, botões, folhas, avisos e mensagens) passam a usar chaves `tr('...')`.
+- O português fica em `I18N.pt` no ficheiro principal. Inglês e francês ficam em `idioma-en.js` e `idioma-fr.js`.
+- Os cabeçalhos das colunas da exportação para Excel não foram alterados (são nomes de colunas do ficheiro).
+- Ainda por traduzir neste passo: "💰 Lucro líquido" e "⚠️ Faltou" (com emoji, dentro de modelos), que ficam para o passo 2.
+- Testado: Ganhos e Despesas em inglês, francês e português; mensagens em inglês.
+
+## Versão 0.162 — Tradução completa, passo 2: Lucro e Estatísticas
+
+- Títulos, cartões, gráficos, legendas, metas, análise do mês e do ano, melhores dias, ganhos por turno e
+  detalhamento do lucro passam a usar chaves `tr('...')`.
+- Frases com valores (ex.: "Faltam X para a meta", "Total no fim do mês: X") montadas com `tr()` à volta do valor.
+- Os textos com emoji (ex.: "🏆 Melhor dia", "📊 Resumo do mês") mantêm o emoji e trocam só o texto.
+- Ficheiros de idioma atualizados: `idioma-en.js` e `idioma-fr.js` (171 chaves cada).
+- Testado: Lucro e Estatísticas em português, inglês e francês, com verificação de que cada idioma mostra as suas palavras.
+- Ainda por traduzir: os dias da semana abreviados (Seg, Ter, …), que estão numa constante carregada antes do idioma;
+  e os textos de Configurações, Aparência, folhas de criptografia e mensagens de sincronização (passos 3 e 4).
+
+## Versão 0.163 — Tradução completa, passo 3 (parte a): Você e Aparência
+
+- Títulos, rótulos, botões e mensagens curtas de Você e Aparência usam chaves `tr('...')` (46 chaves).
+- Cabeçalhos com maiúsculas (ex.: "IMPOSTOS") são estilo visual: o texto guardado continua em maiúsculas/minúsculas normais.
+- Corrigida a tradução de "Impostos" em francês ("Impôts").
+- Testado: Você em português, inglês e francês.
+- **Ainda por traduzir (parte b):** as descrições longas de Configurações (ex.: "Liga só o que usas…", "Desconta o IVA…"),
+  "Repor turnos padrão" e outros textos de turnos, as folhas de criptografia, de exportação e de apagar dados,
+  a lista de sincronização e os textos da Aparência com descrições longas.
+
+## Versão 0.164 — Tradução completa, passo 3 (parte b): descrições e apagar dados
+
+- Descrições longas de Configurações e Aparência, a secção de modo básico, os textos de apagar dados e os textos de turnos
+  passam a usar chaves `tr('...')` (28 chaves novas).
+- Correção: o texto "Modo básico." dentro de uma string com aspas simples passou a concatenação (`+ tr(...) +`), para não
+  quebrar o script.
+- Dicionários: 245 chaves em cada idioma.
+- Testado: a descrição de Configurações nos três idiomas.
+- **Ainda por traduzir (passo 4):** cerca de 220 textos de mensagens, folhas de criptografia (passos, avisos, imagem da chave),
+  exportação, sincronização e avisos de atualização. A lista está em `/tmp/cands.json` na sessão de trabalho.
+
+## Versão 0.165 — Tradução completa, passo 4: mensagens, folhas e avisos
+
+- Mensagens (toasts), folhas de criptografia, exportação, sincronização, atualização, limites da nuvem e botões
+  passam a usar chaves `tr('m_...')` (188 chaves novas, com inglês e francês).
+- Textos com aspas simples que contêm uma chave passam a concatenação (`' + tr('...') + '`), para não quebrar o script.
+- O dicionário `I18N` passa para o início do script. Com isso, o carregamento não depende da ordem das declarações.
+- Correção: o texto "Entrar com Google" também estava dentro do próprio dicionário e foi trocado por `tr()`; foi reposto.
+- Verificação: todas as 426 chaves usadas no código existem nos três dicionários.
+- Testado: ecrãs principais (Ganhos, Despesas, Lucro, Estatísticas, Você) e folhas de criptografia, reset e exportação
+  nos três idiomas, sem erros.
+- **Ficam por traduzir:** os textos com valores variáveis que ainda estão montados à mão (ex.: "Desfoque com granulação:"
+  com o valor depois), e os dias da semana abreviados (Seg, Ter…).
+
+## Versão 0.166 — Tradução: restos (dias da semana e textos com valores)
+
+- Dias da semana abreviados lidos no momento de uso (`weekdaysShort()`), em `wd_seg` … `wd_dom`:
+  Seg/Ter/Qua/Qui/Sex/Sáb/Dom, Mon…Sun, Lun…Dim.
+- Textos com dois-pontos e valor montados à mão (fundo da imagem: véu e desfoque; erro de atualização;
+  versão no email de suporte) passam a usar `tr()`.
+- Verificação: todas as chaves usadas no código existem nos três dicionários.
+- Testado: dias da semana nos três idiomas; ajuste do véu da imagem sem erros.
+
+## Versão 0.167 — Barra de progresso fica na tela de carregamento até ao fim
+
+- **Antes:** a barra aparecia só durante a verificação de atualização, e era escondida logo a seguir, mesmo que a
+  sincronização ainda estivesse a decorrer.
+- **Agora:** a barra começa visível com a tela de carregamento e só desaparece quando a tela sai (no `hideSplash`).
+  Isto cobre a verificação, a sincronização e a mensagem final, sem piscar.
+- Testado: a barra fica visível em todas as amostras do carregamento.
+
+## Versão 0.168 — Tradução: assinatura, conta, totais e metas
+
+- Aviso de assinatura expirada (modo só leitura), cartão da assinatura, mensagens de período de teste, cancelamento e
+  dias restantes, passam a usar chaves `tr('m_...')`.
+- Cartão da conta (conectado com Google, "Sair", mostrar/ocultar, "trocar", "Assinatura"), totais do Ganhos ("Total bruto",
+  "TVDE") e o cabeçalho do Lucro ("Lucro líquido") passam a traduzir.
+- Frase do mês ("recebi em … para usar em …") traduzida.
+- Descrição longa das metas de lucro passa a `data-i18n` (estava no HTML estático).
+- Verificação: 455 chaves usadas, todas presentes nos três dicionários.
+- Testado com assinatura expirada em inglês: aviso, Lucro, Ganhos e Configurações sem palavras em português.
+- Termo mantido: "TVDE" (sigla do regime), com "VTC" em francês.
+
+## Versão 0.169 — Aviso de assinatura no computador
+
+- No ecrã largo, o aviso de assinatura (modo só leitura) era inserido na primeira célula da grelha, ao lado da barra
+  lateral, e ficava por cima do menu. Agora tem `grid-column:2`, e alinha com o conteúdo.
+- No telemóvel, o comportamento não muda (o `grid-column` é ignorado em layout de coluna única).
+- Testado: 1440 px e 390 px, o aviso começa à mesma posição que o conteúdo.
+
+## Versão 0.170 — Aviso de assinatura com fundo sólido
+
+- O aviso de modo só leitura tinha fundo a 14% de opacidade, e o conteúdo por trás aparecia por cima do texto.
+- Agora tem fundo sólido: claro (#F7E6DF) e escuro (#3A2520), com ou sem o efeito transparente.
+- Testado nos quatro modos (normal/transparente × claro/escuro): fundo totalmente opaco.
+
+## Versão 0.171 — Aviso de assinatura atualiza ao mudar de idioma
+
+- O aviso de modo só leitura e o cartão da assinatura eram desenhados uma vez e não eram atualizados ao mudar de idioma.
+  `setIdioma` passa a chamar `renderReadOnlyBanner()` e `renderSubscriptionCard()`.
+- Testado: em inglês o aviso fica "Subscription expired on 13 October 2026…"; ao voltar ao português, volta ao texto anterior.
+
+## Versão 0.172 — Gravação na nuvem sem campos undefined
+
+- **Erro:** `invalid-argument` / "Unsupported field value: undefined". O Firestore recusa qualquer campo com valor
+  `undefined`, e a gravação falhava por inteiro. Sem gravação, as alterações ficavam só no aparelho.
+- **Correção:** antes de gravar, o documento passa por `JSON.parse(JSON.stringify(...))`, que remove os campos `undefined`.
+  Essa versão limpa é a que é medida e enviada.
+- **Diagnóstico:** `caminhosUndefined` lista onde existia o campo, e o registo de sincronização mostra
+  "Campos vazios removidos antes de gravar" com até 5 caminhos. Assim é possível ver a origem.
+- Testado: função encontra os caminhos em amostra com `undefined`; versão limpa fica sem nenhum.
+
+## Versão 0.173 — Folhas mais opacas e mais traduções
+
+- As folhas ficavam transparentes porque a opacidade acompanhava a intensidade do efeito transparente
+  (com "Mais transparente" caía para cerca de 38%). Agora é fixa em 96%, claro e escuro.
+- Traduzidas as telas visíveis nas capturas: nova receita (período e IVA), nova despesa fixa (nome, frequência e texto),
+  turnos (Emoji e Nome), Aparência (intensidade, transparente/padrão/opaco e imagem de fundo) e a folha de criptografia
+  (os sete parágrafos).
+- Testado em inglês: receita, despesa fixa, Aparência e criptografia sem palavras em português.
+- Ainda por fazer: varredura completa dos textos restantes do código.
+
+## Versão 0.174 — Varredura de traduções
+
+- Textos restantes do script passam a usar chaves: avisos de assinatura e de limite, conflito de dados, QR e chave
+  de recuperação, exportação em JSON, reposição (dados, configurações, apagar tudo), migração, falhas de nuvem e de
+  biblioteca de exportação, e o aviso de espaço na nuvem.
+- Corrigida uma chave dentro de aspas simples (`' + tr(...) + '`) que partia o script.
+- Dicionários: 506 chaves, todas presentes em pt, en e fr.
+- Testado em inglês e francês: cripto, exportação, limite e dados sem palavras em português.
+- **Login Google:** a chave de API tem de aceitar pedidos do domínio de autenticação do Firebase
+  (`tvdecorridas.firebaseapp.com`) e a app tem de estar em "Domínios autorizados" no Firebase Authentication.
+
+## Versão 0.175 — Botão "Renovar assinatura" acessível
+
+- **Causa:** com a assinatura expirada, a folha do resumo de ontem abria por cima do aviso e cobria o botão. O primeiro
+  toque caía na folha (que a fechava), e o botão parecia não fazer nada.
+- **Correção:** a folha do resumo é marcada (`window._sheetKind`). Quando o aviso de expiração é desenhado, essa folha
+  fecha-se sozinha. O resumo de ontem já não abre por si quando a assinatura está expirada.
+- Testado: resumo aberto, assinatura expira, resumo fecha, e o botão leva às Configurações.
+- **Ainda não faz pagamento:** o botão só leva às Configurações. O checkout do Stripe depende do plano Blaze (ver roteiro).
+
+## Versão 0.176 — Renovação P2P (provisória, até ao plano Blaze)
+
+- O botão "Renovar assinatura" (aviso de modo só leitura) abre a folha de planos: 1 mês 10 €, 3 meses 25 €,
+  6 meses 50 € (`PLANOS_RENOVACAO`).
+- Ao escolher um plano, aparecem os dados de pagamento (`PAGAMENTO_P2P`: MB WAY, IBAN e titular) e um botão que
+  envia o comprovativo por email, com plano, valor, email e UID já preenchidos.
+- **Dados de pagamento por preencher** em `PAGAMENTO_P2P` antes de publicar.
+- **Ativação manual:** a app só desbloqueia quando existe `customers/{uid}/subscriptions/{id}` com `status`
+  `active` (ou `trialing`) e `current_period_end` no futuro. Até ao Blaze, essa escrita é feita à mão na consola do Firebase.
+- Testado: três planos, valor de 3 meses (25 €), dados de pagamento e email com UID e valor.
+
+## Versão 0.177 — Gráficos de pizza
+
+- Nova função `pieSVG(fatias)`: fatias em SVG, com legenda que mostra percentagem e valor. Cores em `PALETA_PIZZA`.
+- Estatísticas do mês: "Despesas por categoria em pizza" (logo abaixo das barras) e "Distribuição do lucro por semana"
+  (só semanas com lucro positivo).
+- Estatísticas do ano: "Despesas por categoria em pizza".
+- Títulos novos em pt, en e fr (`lucro_distrib`, `despesas_distrib`).
+- Testado em inglês: as fatias das despesas aparecem e os títulos estão traduzidos.
+
+## Versão 0.178 — Meta mínima e meta alvo
+
+- Nas Configurações, cada período (mensal e semanal) tem agora duas metas: **mínima** (`monthlyMin`, `weeklyMin`)
+  e **alvo** (`monthlyGoal`, `weeklyGoal`, a meta de lucro que já existia).
+- Sem meta mínima definida, o mínimo continua a ser as despesas fixas do período.
+- Sem meta alvo, o alvo passa a ser o mínimo.
+- A barra de progresso mostra um traço no ponto do mínimo. A cor muda: vermelho abaixo do mínimo, dourado entre o
+  mínimo e o alvo, verde ao atingir o alvo. O texto diz quanto falta para o próximo objetivo.
+- Traduzido em pt, en e fr.
+- Testado: lucro de 40 € com mínimo de 50 € e alvo de 200 € mostra "abaixo do mínimo · faltam 10 € para o mínimo".
+
+## Versão 0.179 — Aviso de assinatura na área segura do iPhone
+
+- No iPhone, o aviso de modo só leitura ficava colado ao topo (`top: 0`), por baixo da barra de estado (hora, bateria).
+  O conteúdo que passava por trás aparecia desfocado por cima do aviso.
+- Agora o aviso fica em `top: env(safe-area-inset-top)`, logo abaixo da barra de estado.
+- Uma faixa fixa (`body::after`) com a cor do fundo cobre a área da barra de estado, para o conteúdo não aparecer por trás.
+- Não testado num iPhone real: no teste de computador a área segura é zero.
+
+## Versão 0.180 — Cores das categorias nos gráficos
+
+- As despesas por categoria tinham a mesma cor fixa (vermelho), por isso a pizza ficava toda da mesma cor.
+- Agora cada categoria tem a sua cor, fixa pela ordem em `EXPENSE_CATEGORIES` (`corCategoria`), nas barras e na pizza.
+- Testado: três categorias com três cores diferentes na pizza.
+
+## Versão 0.181 — Espaço acima do aviso de assinatura
+
+- O aviso de modo só leitura encostava ao topo do ecrã, logo abaixo da barra de estado do iPhone.
+- Agora tem 14 px de margem acima, somados à área segura (`env(safe-area-inset-top)`), também no `top` quando o ecrã rola.
+- Testado: 14 px de folga acima do aviso no teste de computador. No iPhone, a folga é a área segura mais 14 px.
+
+## Versão 0.182 — Banner para instalar a app (modo web)
+
+- Quando a app está no navegador (não instalada), aparece um banner no topo com "Instalar a app".
+- **Android:** o botão "Instalar" chama o pedido de instalação do navegador (`beforeinstallprompt`).
+- **iPhone:** não existe esse pedido. O botão "Como instalar" abre um passo a passo: Partilhar → Adicionar ao ecrã
+  principal → Adicionar. O mesmo guia tem a versão de Android (menu ⋮ → Instalar app).
+- Os ícones dos passos são desenhos simples em SVG, não capturas de ecrã reais.
+- O banner pode ser dispensado: não volta durante 14 dias (`instalarDispensadoEm`).
+- Traduzido em pt, en e fr.
+- Testado: banner na versão web, três passos com ícones, botão "Instalar" com o evento do Android, dispensa do banner.
+
+## Versão 0.183 — Remove a faixa de cor no topo (iPhone)
+
+- A faixa `body::after` (versão 0.179), com cor sólida, tapava a área da barra de estado. No iPhone aparecia como uma
+  faixa de cor diferente do fundo do ecrã, sobretudo com o efeito transparente.
+- Removida. O fundo segue a tela até ao topo, como no resto do ecrã. O conteúdo que passa por baixo da barra de estado
+  continua a ser o comportamento normal do iOS.
+- Testado: a faixa deixou de existir no CSS.
+
+## Versão 0.184 — Tutorial de instalação legível no modo escuro
+
+- Os ícones dos passos usavam a cor escura do tema (`--vault`) sobre um fundo escuro, por isso ficavam invisíveis.
+  Agora usam `--ink`, que é clara no modo escuro e escura no claro.
+- Testado: no modo escuro, o ícone fica claro sobre o fundo escuro.
+
+## Versão 0.185 — Barra de estado igual à tela de carregamento
+
+- No iPhone, a barra de estado toma a cor da tag `theme-color`. No arranque, essa tag ainda tinha a cor de tema por
+  omissão, por isso aparecia uma faixa de outra cor no topo, que só mudava depois de a app aplicar o tema.
+- Agora a tag `theme-color` (claro e escuro) recebe a mesma cor da tela de carregamento logo ao carregar a página.
+- A cor é calculada pelo navegador (o fundo pode ser uma expressão `color-mix`) e convertida para hexadecimal.
+- Testado: no modo escuro, `theme-color` fica `#121b19`, igual ao fundo da tela de carregamento.
+
+## Versão 0.186 — Renovação só com o plano de 1 mês
+
+- `PLANOS_RENOVACAO` tem agora só o plano de 1 mês (10 €). A folha de renovação mostra logo os dados de pagamento,
+  sem lista de planos.
+- O email de destino (`EMAIL_COMPROVATIVO`) aparece escrito no ecrã, e o botão abre o email com o assunto, o plano,
+  o valor, o email e o UID já preenchidos.
+- Testado: sem botões de plano, 10 € visível, email de destino visível e o link `mailto:` com o UID e o valor.
+
+## Versão 0.187 — Aviso de renovação antecipada (5 dias)
+
+- Com a assinatura ativa e 5 dias ou menos até ao fim, aparece um aviso no topo: "Faltam N dias da assinatura" com o
+  botão "Renovar assinatura", que abre a folha de renovação de 1 mês (10 €).
+- `renderRenovarAviso()` é chamada por `renderReadOnlyBanner()`, que já é atualizada quando a assinatura muda e a cada minuto.
+- Com 6 dias ou mais, ou depois de expirar, o aviso não aparece (depois de expirar, vale o aviso de modo só leitura).
+- Testado: 3 e 5 dias mostram o aviso; 6 dias e expirada não; o botão abre a renovação.
+- Nota: a renovação continua manual (P2P). A extensão da assinatura é escrita à mão em `customers/{uid}/subscriptions` até ao Blaze.
+
+## Versão 0.188 — Pagamento da renovação por Revolut
+
+- `PAGAMENTO_P2P.revolut` = `https://revolut.me/rodrig0almeida`. A folha de renovação mostra um botão azul
+  "Pagar com Revolut · 10 €" que abre o link numa nova janela.
+- MB WAY, IBAN e titular só aparecem quando estiverem preenchidos (valores que não começam por "(").
+- Traduzido em pt, en e fr.
+- Testado: botão com o link da Revolut, MB WAY e IBAN escondidos enquanto são marcadores, texto em inglês.
+- Nota: o link `revolut.me` não permite definir o valor. O utilizador tem de escrever os 10 € no ecrã da Revolut.
+
+## Versão 0.189 — Prazo de ativação na renovação
+
+- A folha de renovação indica que a ativação pode levar entre 1 hora e 24 horas após a receção do pagamento.
+- Traduzido em pt, en e fr.
+- Testado: o prazo aparece em português e em inglês.
+- O texto sobre cancelamento e devolução de valores não está no código. Se for para a folha de renovação, deve ser enviado
+  para ser incluído.
+
+## Versão 0.190 — Informação de cobrança na renovação
+
+- A folha de renovação informa que será cobrado o valor referente ao período de utilização: "Será cobrado o valor
+  referente ao período de utilização: 10 € (1 mês)".
+- Traduzido em pt, en e fr. Testado em português e em inglês.
+
+## Versões 0.191 e 0.192 — Condições de renovação
+
+- 0.191: folha "Condições de renovação", com ligação a partir da renovação. Contém compra pontual, ativação, direito de desistência (14 dias, DL 24/2014), início antes do fim do prazo, reembolso, cancelamento e reclamações. Traduzida em pt, en e fr.
+- 0.192: o cálculo proporcional do início antecipado tem exemplo: após 7 dias de um período de 30, paga 7/30 de 10 €, ou seja, 2,33 €.
+- O texto é informativo e deve ser validado por jurista ou pela Direção-Geral do Consumidor antes de publicar.
+
+## Versão 0.194 — Compra de acesso para quem não tem assinatura
+
+- Botão "Comprar acesso" no cartão de Assinatura (quando não há assinatura), no aviso do modo básico e na folha de limite.
+  Abre a folha de renovação com os dados de pagamento.
+- O botão de pagamento diz só "Pagar · 10 €". Indica-se que qualquer cartão ou banco serve, não só a Revolut.
+- Testado: o botão aparece sem assinatura, a nota do banco aparece e o texto do botão não menciona a Revolut.
+
+## Versão 0.195 — Avisos no ecrã Você, abaixo da conta
+
+- Os avisos (renovação, só leitura, instalação da app e modo básico) deixam de aparecer no topo de todos os ecrãs.
+  Ficam agora no ecrã Você, logo abaixo do cartão da conta (contentor `avisosConta`, função `contaAvisos()`).
+- Consequência: fora do ecrã Você estes avisos deixam de aparecer. Se for preciso, um aviso curto pode voltar noutros ecrãs.
+- Testado: o aviso de renovação fica no contentor, logo abaixo do cartão da conta, e não no topo da app.
+
+## Versão 0.196
+
+- Retirada a frase "Não é preciso ter conta Revolut." da nota de pagamento (pt, en, fr). Fica só "Pode pagar com qualquer cartão ou banco."
+
+## Versão 0.197
+
+- Texto de pagamento na renovação reescrito como texto corrido: forma de pagamento, envio do comprovativo, valor cobrado, prazo de ativação. Traduzido em pt, en e fr.
+- Removida a nota repetida "Pode pagar com qualquer cartão ou banco." por cima do botão.
+
+## Versão 0.198
+
+- A chave `m_voltar` não existia nos dicionários, e o botão Voltar da folha de condições mostrava o nome técnico. Definida em pt (Voltar), en (Back) e fr (Retour).
+
+## Versão 1.0.0 — Atualizações betas (Modo Dev)
+
+- Versão de lançamento: `APP_VERSION = '1.0.0'`.
+- Modo Dev → Atualização → "Atualizações betas". Só neste aparelho (`localSettings.betaUpdates`).
+- Com a opção ligada, a app usa `indexb.html` no mesmo servidor. O `index.html` continua a ser a versão estável.
+  - Ao abrir `index.html` com a opção ligada, a app passa para `indexb.html`.
+  - Ao abrir `indexb.html` com a opção desligada, passa para `index.html`.
+  - A função `redirecionarBeta()` faz esta verificação no primeiro carregamento. Cada página só redireciona se a opção não bater com a página atual, por isso não há ciclos.
+- Para testar uma versão: publica o ficheiro novo como `indexb.html`. Os aparelhos com a opção ligada atualizam-se pela verificação normal de versão.
+- Atenção: se `indexb.html` tiver um erro grave, a opção fica ligada e a app não volta sozinha ao `index.html`. Para sair, é preciso abrir a app com a opção desligada ou apagar `localSettings` no armazenamento do site.
+
+## Versão 1.0.1 — Chaves do armazenamento com prefixo "corrida:"
+
+- O domínio github.io é partilhado com outras páginas, por isso todas as chaves do localStorage passam a ter o prefixo `corrida:` (ex.: `corrida:bills`, `corrida:localSettings`). A constante `CHAVE_PREFIXO` aplica-o no armazenamento de fallback.
+- As leituras diretas (no `<head>` e em `LANG`) usam já a chave prefixada.
+- Migração única (no `<head>`, antes de qualquer leitura): copia para `corrida:<chave>` os valores antigos sem prefixo que passam uma validação de formato. Não apaga nada. Marca a migração com `corrida:ns`.
+- Só é copiado o que passa a validação. O `profile` de outra página, por exemplo, não é copiado se não tiver `name` ou `photo`.
+- Chaves citadas no pedido que não existem no código: `pendingCloudPush`, `appSettings`. Não foram criadas.
+- Testado: dados válidos copiados, `profile` de outra página fora da migração, chaves antigas mantidas, app a ler os dados migrados.
+- A nuvem não é afetada. Se algum valor local ficar errado, a sincronização repõe-no.
+
+## Versão 1.0.2 — Modo demonstração (Modo Dev)
+
+- Modo Dev → "Modo demonstração". Guardado neste aparelho (`corrida:demoMode`). Ativar ou desativar recarrega a página.
+- Usa um armazenamento separado (`corrida-demo:`). A constante `CHAVE_PREFIXO` escolhe o prefixo ao arrancar. Os dados reais não são lidos nem alterados.
+- Começa limpo. Conta de demonstração (`DEMO_USER`) e assinatura ativa de demonstração (`demoSubscription()`), para não aparecerem avisos de limite nem de renovação.
+- Nada vai para a nuvem: `pushToFirestore`, `pushToCloud`, `scheduleCloudPush` e `_doCloudSync` saem logo em demonstração. A sincronização do Firestore não é ligada.
+- "Limpar dados da demonstração" apaga só as chaves `corrida-demo:*`.
+- Aviso "Modo demonstração" no ecrã Você. Sair da conta de demonstração desativa o modo.
+- Testado: utilizador e assinatura de demonstração, perfil gravado só no armazenamento de demonstração, dados reais intactos, sem gravação na nuvem, regresso aos dados reais ao desativar.
+
+## Versão 1.0.3 — Correção do ciclo com demonstração e betas
+
+- Problema: com o modo demonstração ativo, a opção de atualizações betas era lida da área de demonstração (`corrida-demo:`), onde não existe. Isso fazia o redirecionamento comportar-se de forma errada e a tela de carregamento ficava a repetir.
+- Correção: a opção de betas é do aparelho. `betaLigada()` e `setBetaLigada()` leem e gravam sempre `corrida:localSettings`.
+- Proteção contra ciclos: `redirecionarBeta()` não redireciona outra vez nos 20 segundos seguintes (`sessionStorage` `corrida:redir`).
+- Testado num servidor local com `index.html` e `indexb.html`: com betas ligadas, a sequência é index → indexb, uma vez. Com demonstração ativa, indexb não volta a redirecionar.
+
+## Versão 1.0.4
+
+- Email da conta de demonstração: `corridaplus@corridaplus.app` (antes `demo@corridaplus.app`).
+
+## Versão 1.0.5
+
+- Removido o aviso "Modo demonstração" no ecrã Você e o rótulo "Conta de demonstração". A conta de demonstração aparece como uma conta normal, para captura de ecrãs. O interruptor continua no Modo Dev.
+
+## Versão 1.0.6
+
+- `apple-mobile-web-app-status-bar-style` passa de `black-translucent` para `black`. A barra de estado do iPhone fica sólida, sem mostrar a página ou o ecrã de arranque por baixo nos primeiros segundos. O conteúdo começa abaixo da barra (a app já usa `env(safe-area-inset-top)`).
+- Com `black`, a barra fica preta no iPhone e não segue a cor do tema, porque o iOS ignora `theme-color` nesse modo.
+
+## Versão 1.0.7 — Arranque em fases
+
+1. **Dados locais primeiro.** A app lê e desenha o conteúdo do armazenamento local sem esperar pela rede.
+2. **Atualização limitada a 1,2 s.** `checkForUpdatesOnStartup(1200)` corre antes de mostrar o conteúdo. Se houver versão nova, recarrega. Sem resposta a tempo, a app abre normalmente. Sem sessão, mostra o alerta depois de abrir. A decisão usa `corrida:contaLigada` (sinal local), porque a conta ainda não é conhecida nessa fase.
+3. **Conta e Firebase em segundo plano.** `arrancarConta()` espera até 5 s pela confirmação da conta, sem bloquear a abertura. Com conta, `ligarConta()` liga os listeners e a primeira sincronização. A pastilha mostra "sincronizando…" (`setSyncBusy()`) e depois "sincronizado" ou "offline".
+4. **Ecrã de carregamento mais curto.** Tempo mínimo 0,4 s (antes 1,2 s). Pausa antes do desvanecimento 0,35 s (antes 0,9 s).
+- A app arranca logo (`arrancarApp()`), sem esperar pelo evento `firebase-ready` nem pelo limite de 3 s. O Firebase é esperado só dentro de `arrancarConta()`.
+- Testado num servidor local sem Firebase: o ecrã de carregamento sai aos 0,9 s, com os dados locais desenhados e sem erros.
+
+## Versão 1.0.8 — Abertura mais rápida
+
+- **SheetJS fora do arranque.** Deixou de ser um `<script>` no `<head>` (cerca de 900 KB, que bloqueava a primeira pintura). Passa a ser carregada por `carregarXlsx()` só quando o utilizador exporta para Excel.
+- **Verificação de versão sem descarregar a página inteira.** Há um `<meta name="app-version">` no início do `<head>`. `lerVersaoRemota()` pede só os primeiros 4 KB (`Range: bytes=0-4095`) e lê essa meta. Se a meta não existir, lê a página completa como antes.
+  - Atenção: a meta `app-version` e `const APP_VERSION` têm de ser atualizadas sempre juntas.
+  - O ganho depende de o servidor responder a pedidos `Range`. Se não responder, a leitura continua correta, só não fica mais rápida.
+- Testado: a versão remota é lida (1.0.8), a biblioteca não é pedida no arranque e o ecrã de carregamento sai aos ~1 s, sem erros.
+- Ainda no caminho de arranque: o tempo mínimo do ecrã de carregamento (0,4 s + 0,35 s + 0,4 s de desvanecimento) e a verificação de atualização (até 1,2 s) na primeira abertura de cada sessão.
+
+## Versão 1.0.2a — Correção do ciclo ao atualizar
+
+- Causa: a app lia a versão publicada pela meta `app-version` do início do ficheiro. Se `APP_VERSION` e essa meta não coincidirem, o aparelho vê sempre uma versão diferente, recarrega e repete.
+- Correção 1: `podeAtualizarPara(versao)` (sessionStorage `corrida:updTentativa`). A mesma versão remota não é tentada duas vezes seguidas na mesma aba. Aplica-se à atualização automática e à manual.
+- Correção 2: `APP_VERSION` e a meta `app-version` estão ambas em `1.0.2a`. Ao mudar a versão, muda sempre as duas.
+- Versão 1.0.2a é menor que 1.0.8. Como a verificação é "diferente de", o aparelho com 1.0.8 passa para 1.0.2a (é um retrocesso, aceite de propósito).
+- Testado: (A) aparelho 1.0.2a com servidor 1.0.8: atualiza uma vez. (B) meta 1.0.8 com versão 1.0.2a: recarrega uma vez e para, sem ciclo.
