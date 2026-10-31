@@ -224,7 +224,7 @@ window.I18N_LANGS.en = {
     "liga_so_usas": "Turn on only what you use. Each option appears on screens and in calculations only when it is on.",
     "desc_iva": "Deducts VAT from the gross of the apps (Uber/Bolt). When off, VAT is not used in calculations or shown on screens.",
     "desc_comissao": "Deducts the commission charged by Uber/Bolt on the gross, after VAT. When off, the commission is not used in calculations.",
-    "desc_metas": "Set a PROFIT target (not revenue) per week and/or per month. When on, a progress chart appears at the top of Statistics.",
+    "desc_metas": "Set a profit or gross target per week and/or per month, your choice. When on, a progress chart appears at the top of Statistics.",
     "desc_turno": "Shows the shift selector when recording earnings and the \"Earnings by shift\" chart in Statistics.",
     "desc_km": "Optional km field when recording earnings. If filled in, it appears in Statistics (total km and profit per km).",
     "desc_outras": "Enables recording of extra apps (e.g. 99, InDrive, Free Now). They go into the \"personal\" group, without VAT or commission.",
@@ -581,5 +581,12 @@ window.I18N_LANGS.en = {
     "rn_qualquer_banco": "You can pay with any card or bank.",
     "rn_nota1": "You can pay with any card or bank, using the button below or by bank transfer.",
     "rn_nota2": "Then send the receipt to the email below. In the payment comment, write your email.",
-    "m_voltar": "Back"
+    "m_voltar": "Back",
+    "meta_base": "Target base",
+    "base_lucro": "Profit",
+    "base_bruto": "Gross",
+    "meta_mensal_bruto": "Monthly gross target",
+    "meta_semanal_bruto": "Weekly gross target",
+    "gastos_distrib": "Expenses by week as a pie",
+    "gastos_semana_sub": "Fixed, variable and fuel for each week of the month"
 };
