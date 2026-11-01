@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8" />
-<meta name="app-version" content="1.0.3B" />
+<meta name="app-version" content="1.0.3c" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
 <title>Corrida+</title>
 <script>
@@ -972,6 +972,18 @@ body.glass.dark .sheet { background: rgba(26,26,33, 0.96); }
 }
 .sheet-handle { touch-action: none; cursor: grab; position: relative; }
 .sheet-handle::after { content: ''; position: absolute; left: -40px; right: -40px; top: -14px; bottom: -14px; }
+.cat-botoes { display:flex; gap:10px; margin:10px 0 6px; }
+.cat-btn { flex:1; padding:12px 14px; border-radius:var(--r-full); border:none; background:var(--vault); color:#fff; font-weight:700; font-size:13px; cursor:pointer; box-shadow:var(--shadow-sm); transition:transform .12s ease, opacity .15s ease; }
+.cat-btn:active { transform:scale(.97); opacity:.9; }
+.cat-btn-ghost { background:transparent; color:var(--vault-2); border:1.5px solid var(--line); box-shadow:none; }
+body.dark .cat-btn-ghost { color:var(--vault-text, var(--vault-light)); }
+.cat-cab { cursor:pointer; user-select:none; display:flex; justify-content:space-between; align-items:center; gap:8px; margin:14px 0 4px; font-weight:700; font-size:13px; }
+.cat-total { font-family:'JetBrains Mono',monospace; color:var(--terracotta); }
+.cat-seta { display:inline-block; transition:transform .38s cubic-bezier(.4,0,.2,1); }
+.cat-grupo.fechado .cat-seta { transform:rotate(-90deg); }
+.cat-corpo { display:grid; grid-template-rows:1fr; opacity:1; transition:grid-template-rows .38s cubic-bezier(.4,0,.2,1), opacity .3s ease; }
+.cat-corpo > .cat-corpo-in { min-height:0; overflow:hidden; }
+.cat-grupo.fechado .cat-corpo { grid-template-rows:0fr; opacity:0; }
 </style>
 </head>
 <body>
@@ -2319,7 +2331,7 @@ const I18N = {
 // Esquema de versão: de volta ao pré-1.0 (0.x.x) — a v1.0.0 fica
 // reservada para o lançamento com assinatura paga completa. A numeração
 // 4.x.x usada temporariamente para a integração Firebase foi abandonada.
-const APP_VERSION = '1.0.3B';
+const APP_VERSION = '1.0.3c';
 
 // ---------------------------------------------------------------
 // IDIOMA — português (pt) e inglês (en). Escolha guardada neste aparelho (localSettings.lang).
@@ -8329,13 +8341,16 @@ function renderDespesas(){
   const grupos = EXPENSE_CATEGORIES.map(cat => ({ cat: cat, itens: items.filter(x => x.category === cat.key) })).filter(g => g.itens.length);
   const semCategoria = items.filter(x => !EXPENSE_CATEGORIES.some(c => c.key === x.category));
   if(semCategoria.length) grupos.push({ cat: { key: 'outro', label: 'Outro', emoji: '📦' }, itens: semCategoria });
-  // Grupos abertos ou fechados (preferência deste aparelho, não sincroniza).
+  // Grupos abertos ou fechados (preferência deste aparelho, não sincroniza). Animados por classe, sem reconstruir.
   const fechadas = catDespesasFechadas();
   const rows = grupos.map(g => {
     const fechada = fechadas.indexOf(g.cat.key) >= 0;
-    return `<div onclick="toggleCatDespesa('${g.cat.key}')" style="cursor:pointer;user-select:none;display:flex;justify-content:space-between;align-items:center;margin:14px 0 4px;font-weight:700;font-size:13px;"><span>${fechada ? '▸' : '▾'} ${g.cat.emoji} ${escapeHtml(g.cat.label)} · ${g.itens.length} ${g.itens.length === 1 ? 'registo' : 'registos'}</span><span style="font-family:'JetBrains Mono',monospace;color:var(--terracotta);">${fmt(sumAmount(g.itens))}</span></div>` + (fechada ? '' : g.itens.map(linhaDespesa).join(''));
+    return `<div class="cat-grupo${fechada ? ' fechado' : ''}" data-cat="${g.cat.key}">` +
+      `<div class="cat-cab" onclick="toggleCatDespesa('${g.cat.key}')"><span><span class="cat-seta">▾</span> ${g.cat.emoji} ${escapeHtml(g.cat.label)} · ${g.itens.length} ${g.itens.length === 1 ? 'registo' : 'registos'}</span><span class="cat-total">${fmt(sumAmount(g.itens))}</span></div>` +
+      `<div class="cat-corpo"><div class="cat-corpo-in">${g.itens.map(linhaDespesa).join('')}</div></div>` +
+      `</div>`;
   }).join('');
-  const controlo = grupos.length ? `<div style="display:flex;justify-content:flex-end;gap:14px;font-size:12px;font-weight:700;color:var(--vault-2);margin-bottom:2px;"><span style="cursor:pointer;" onclick="setTodasCatDespesas(false)">Expandir tudo</span><span style="cursor:pointer;" onclick="setTodasCatDespesas(true)">Esconder tudo</span></div>` : '';
+  const controlo = grupos.length ? `<div class="cat-botoes"><button class="cat-btn cat-btn-ghost" onclick="setTodasCatDespesas(false)">▾ Expandir tudo</button><button class="cat-btn" onclick="setTodasCatDespesas(true)">▸ Esconder tudo</button></div>` : '';
   document.getElementById('variableExpensesContent').innerHTML =
     controlo + (rows || '<div class="empty-note">' + tr('m_sem_variavel_mes') + '</div>') +
     `<div class="add-dashed-btn" style="border-style:solid;margin-top: 8px;margin-bottom:20px;" onclick="openNewExpenseSheet()">${tr('m_add_variavel')}</div>`;
@@ -8352,12 +8367,13 @@ function toggleCatDespesa(key){
   const i = s.indexOf(key);
   if(i >= 0) s.splice(i, 1); else s.push(key);
   localStorage.setItem('corrida:catFechadas', JSON.stringify(s));
-  renderDespesas();
+  const g = document.querySelector('.cat-grupo[data-cat="' + key + '"]');
+  if(g) g.classList.toggle('fechado', i < 0);
 }
 function setTodasCatDespesas(fechar){
   const todas = EXPENSE_CATEGORIES.map(c => c.key).concat(['outro']);
   localStorage.setItem('corrida:catFechadas', JSON.stringify(fechar ? todas : []));
-  renderDespesas();
+  document.querySelectorAll('.cat-grupo').forEach(g => g.classList.toggle('fechado', fechar));
 }
 // Sheet único para criar OU editar uma despesa variável — quando chamado
 // sem argumento (ou null), abre em modo "nova"; quando recebe o objeto da
