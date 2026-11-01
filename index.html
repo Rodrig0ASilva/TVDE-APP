@@ -8329,13 +8329,36 @@ function renderDespesas(){
   const grupos = EXPENSE_CATEGORIES.map(cat => ({ cat: cat, itens: items.filter(x => x.category === cat.key) })).filter(g => g.itens.length);
   const semCategoria = items.filter(x => !EXPENSE_CATEGORIES.some(c => c.key === x.category));
   if(semCategoria.length) grupos.push({ cat: { key: 'outro', label: 'Outro', emoji: '📦' }, itens: semCategoria });
-  const rows = grupos.map(g => `<div style="display:flex;justify-content:space-between;align-items:center;margin:14px 0 4px;font-weight:700;font-size:13px;"><span>${g.cat.emoji} ${escapeHtml(g.cat.label)} · ${g.itens.length} ${g.itens.length === 1 ? 'registo' : 'registos'}</span><span style="font-family:'JetBrains Mono',monospace;color:var(--terracotta);">${fmt(sumAmount(g.itens))}</span></div>` + g.itens.map(linhaDespesa).join('')).join('');
+  // Grupos abertos ou fechados (preferência deste aparelho, não sincroniza).
+  const fechadas = catDespesasFechadas();
+  const rows = grupos.map(g => {
+    const fechada = fechadas.indexOf(g.cat.key) >= 0;
+    return `<div onclick="toggleCatDespesa('${g.cat.key}')" style="cursor:pointer;user-select:none;display:flex;justify-content:space-between;align-items:center;margin:14px 0 4px;font-weight:700;font-size:13px;"><span>${fechada ? '▸' : '▾'} ${g.cat.emoji} ${escapeHtml(g.cat.label)} · ${g.itens.length} ${g.itens.length === 1 ? 'registo' : 'registos'}</span><span style="font-family:'JetBrains Mono',monospace;color:var(--terracotta);">${fmt(sumAmount(g.itens))}</span></div>` + (fechada ? '' : g.itens.map(linhaDespesa).join(''));
+  }).join('');
+  const controlo = grupos.length ? `<div style="display:flex;justify-content:flex-end;gap:14px;font-size:12px;font-weight:700;color:var(--vault-2);margin-bottom:2px;"><span style="cursor:pointer;" onclick="setTodasCatDespesas(false)">Expandir tudo</span><span style="cursor:pointer;" onclick="setTodasCatDespesas(true)">Esconder tudo</span></div>` : '';
   document.getElementById('variableExpensesContent').innerHTML =
-    (rows || '<div class="empty-note">' + tr('m_sem_variavel_mes') + '</div>') +
+    controlo + (rows || '<div class="empty-note">' + tr('m_sem_variavel_mes') + '</div>') +
     `<div class="add-dashed-btn" style="border-style:solid;margin-top: 8px;margin-bottom:20px;" onclick="openNewExpenseSheet()">${tr('m_add_variavel')}</div>`;
   renderMonthSummary(entry);
 }
 
+// Grupos de despesas variáveis fechados (guardado neste aparelho em corrida:catFechadas).
+function catDespesasFechadas(){
+  try{ const v = JSON.parse(localStorage.getItem('corrida:catFechadas') || '[]'); return Array.isArray(v) ? v : []; }
+  catch(e){ return []; }
+}
+function toggleCatDespesa(key){
+  const s = catDespesasFechadas();
+  const i = s.indexOf(key);
+  if(i >= 0) s.splice(i, 1); else s.push(key);
+  localStorage.setItem('corrida:catFechadas', JSON.stringify(s));
+  renderDespesas();
+}
+function setTodasCatDespesas(fechar){
+  const todas = EXPENSE_CATEGORIES.map(c => c.key).concat(['outro']);
+  localStorage.setItem('corrida:catFechadas', JSON.stringify(fechar ? todas : []));
+  renderDespesas();
+}
 // Sheet único para criar OU editar uma despesa variável — quando chamado
 // sem argumento (ou null), abre em modo "nova"; quando recebe o objeto da
 // despesa existente, pré-preenche os campos e muda para modo "editar".
