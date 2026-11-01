@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8" />
-<meta name="app-version" content="1.0.3" />
+<meta name="app-version" content="1.0.3A" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
 <title>Corrida+</title>
 <script>
@@ -2319,7 +2319,7 @@ const I18N = {
 // Esquema de versão: de volta ao pré-1.0 (0.x.x) — a v1.0.0 fica
 // reservada para o lançamento com assinatura paga completa. A numeração
 // 4.x.x usada temporariamente para a integração Firebase foi abandonada.
-const APP_VERSION = '1.0.3';
+const APP_VERSION = '1.0.3A';
 
 // ---------------------------------------------------------------
 // IDIOMA — português (pt) e inglês (en). Escolha guardada neste aparelho (localSettings.lang).
@@ -6710,7 +6710,7 @@ function monthAnalysisHTML(earnings, expenses, mKey, isMes){
   }
   return html;
 }
-function turnoBreakdownHTML(items){
+function turnoTotalHTML(items){
   if(!showTurno()) return '';
   const withTurno = items.filter(e => e.turno);
   if(withTurno.length === 0) return '';
@@ -6720,14 +6720,12 @@ function turnoBreakdownHTML(items){
   const dias = {};
   const vistos = new Set();
   withTurno.forEach(e => { const k = e.turno + '|' + e.date; if(!vistos.has(k)){ vistos.add(k); dias[e.turno] = (dias[e.turno] || 0) + 1; } });
-  // Barras e "melhor turno" pela média por dia trabalhado (não pelo total, que favorece quem tem mais dias).
-  const media = k => (dias[k] ? totals[k] / dias[k] : 0);
   const bars = Object.keys(totals)
     .filter(k => totals[k] > 0)
-    .map(k => { const t = getTurnos().find(x => x.key === k) || TURNOS_ANTIGOS[k] || { emoji:'', label:k }; return { label: `${t.emoji} ${t.label} · média/dia`.trim(), value: media(k), color: '#B8862B' }; });
+    .map(k => { const t = getTurnos().find(x => x.key === k) || TURNOS_ANTIGOS[k] || { emoji:'', label:k }; return { label: `${t.emoji} ${t.label}`.trim(), value: totals[k], color: '#B8862B' }; });
   if(bars.length === 0) return '';
   const best = bars.reduce((a, b) => (b.value > a.value ? b : a));
-  const melhorKey = Object.keys(totals).filter(k => totals[k] > 0).reduce((a, b) => (media(b) > media(a) ? b : a));
+  const melhorKey = Object.keys(totals).filter(k => totals[k] > 0).reduce((a, b) => (totals[b] > totals[a] ? b : a));
   const nDias = dias[melhorKey] || 0;
   // Lista: por período, quantos dias e quais datas (dd/mm).
   const datasPor = {};
@@ -6743,8 +6741,34 @@ function turnoBreakdownHTML(items){
       <div class="section-sub" style="font-size:11px;margin-top:4px;line-height:1.6;">${escapeHtml(txt)}</div>
     </div>`;
   }).join('');
-  return chartBoxWrap(tr('ganhos_turno'), `Melhor média por dia: ${best.label.replace(' · média/dia','')} · ${fmt(best.value)} (${nDias} ${nDias === 1 ? tr('dia') : tr('dias')})`, horizontalBarsHTML(bars) + lista);
+  return chartBoxWrap(tr('ganhos_turno'), `Melhor turno: ${best.label} · ${nDias} ${nDias === 1 ? tr('dia') : tr('dias')}`, horizontalBarsHTML(bars) + lista);
 }
+// Média por dia trabalhado de cada turno (total ÷ dias com registo). Mostra-se junto do gráfico de totais.
+function turnoMediaHTML(items){
+  if(!showTurno()) return '';
+  const withTurno = items.filter(e => e.turno);
+  if(withTurno.length === 0) return '';
+  const totals = {};
+  withTurno.forEach(e => { totals[e.turno] = (totals[e.turno] || 0) + (e.amount || 0); });
+  const dias = {};
+  const vistos = new Set();
+  withTurno.forEach(e => { const k = e.turno + '|' + e.date; if(!vistos.has(k)){ vistos.add(k); dias[e.turno] = (dias[e.turno] || 0) + 1; } });
+  const media = k => (dias[k] ? totals[k] / dias[k] : 0);
+  const chaves = Object.keys(totals).filter(k => totals[k] > 0);
+  if(chaves.length === 0) return '';
+  const bars = chaves.map(k => {
+    const t = getTurnos().find(x => x.key === k) || TURNOS_ANTIGOS[k] || { emoji:'', label:k };
+    return { label: `${t.emoji} ${t.label} · ${dias[k]} ${dias[k] === 1 ? tr('dia') : tr('dias')}`.trim(), value: media(k), color: '#3E6650' };
+  });
+  const melhorKey = chaves.reduce((a, b) => (media(b) > media(a) ? b : a));
+  const tm = getTurnos().find(x => x.key === melhorKey) || TURNOS_ANTIGOS[melhorKey] || { emoji:'', label:melhorKey };
+  return chartBoxWrap('Média por dia por turno', `Melhor média: ${tm.emoji} ${tm.label} · ${fmt(media(melhorKey))} por dia`, horizontalBarsHTML(bars));
+}
+// Gráficos de turnos: totais (como antes) e média por dia (novo).
+function turnoBreakdownHTML(items){
+  return turnoTotalHTML(items) + turnoMediaHTML(items);
+}
+
 function weekOfMonthFromDateStr(dateStr){
   const day = parseInt(dateStr.split('-')[2], 10);
   return Math.min(5, Math.ceil(day / 7));
@@ -8284,7 +8308,7 @@ function renderDespesas(){
   const heroDesp = document.getElementById('despesasHero');
   if(heroDesp) heroDesp.innerHTML = heroValorHTML(tr('total_despesas_mes'), totalDespMes, tr('fixas_variaveis'), 'var(--terracotta)');
   const items = [...entry.variableExpenses].sort((a,b)=>b.ts-a.ts);
-  const rows = items.map(exp => {
+  const linhaDespesa = exp => {
     const cat = EXPENSE_CATEGORIES.find(c => c.key === exp.category) || EXPENSE_CATEGORIES[EXPENSE_CATEGORIES.length-1];
     const dateDisplay = exp.date ? formatDateStr(exp.date) : formatDate(exp.ts);
     const litersDisplay = exp.liters ? ` · ${exp.liters}L` : '';
@@ -8300,7 +8324,12 @@ function renderDespesas(){
           <div class="bill-delete" onclick="deleteVariableExpense('${exp.id}')" title="Apagar despesa">✕</div>
         </div>
       </div>`;
-  }).join('');
+  };
+  // Agrupar por categoria: cabeçalho com nº de registos e total, e depois as despesas de cada categoria.
+  const grupos = EXPENSE_CATEGORIES.map(cat => ({ cat: cat, itens: items.filter(x => x.category === cat.key) })).filter(g => g.itens.length);
+  const semCategoria = items.filter(x => !EXPENSE_CATEGORIES.some(c => c.key === x.category));
+  if(semCategoria.length) grupos.push({ cat: { key: 'outro', label: 'Outro', emoji: '📦' }, itens: semCategoria });
+  const rows = grupos.map(g => `<div style="display:flex;justify-content:space-between;align-items:center;margin:14px 0 4px;font-weight:700;font-size:13px;"><span>${g.cat.emoji} ${escapeHtml(g.cat.label)} · ${g.itens.length} ${g.itens.length === 1 ? 'registo' : 'registos'}</span><span style="font-family:'JetBrains Mono',monospace;color:var(--terracotta);">${fmt(sumAmount(g.itens))}</span></div>` + g.itens.map(linhaDespesa).join('')).join('');
   document.getElementById('variableExpensesContent').innerHTML =
     (rows || '<div class="empty-note">' + tr('m_sem_variavel_mes') + '</div>') +
     `<div class="add-dashed-btn" style="border-style:solid;margin-top: 8px;margin-bottom:20px;" onclick="openNewExpenseSheet()">${tr('m_add_variavel')}</div>`;
