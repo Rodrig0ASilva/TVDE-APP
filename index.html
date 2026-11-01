@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8" />
-<meta name="app-version" content="1.0.2D" />
+<meta name="app-version" content="1.0.3" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
 <title>Corrida+</title>
 <script>
@@ -1540,6 +1540,8 @@ body.glass.dark .sheet { background: rgba(26,26,33, 0.96); }
 
       <div class="section-head" style="margin-top:20px;"><div class="section-title">📥 Importar dados</div></div>
       <div class="section-sub" style="margin-bottom:10px;">Se a sincronização automática não funcionar, cole aqui o JSON copiado do Google Sheets para importar os seus dados.</div>
+      <input type="file" id="importJsonFile" accept=".json,application/json" style="display:none;" onchange="importarFicheiroJson(this)" />
+      <button onclick="document.getElementById('importJsonFile').click()" style="width:100%;margin-bottom:10px;padding:13px;border-radius:var(--r-md);border:1.5px solid var(--line);background:transparent;color:var(--ink);font-weight:700;font-size:14px;cursor:pointer;">📂 Importar ficheiro .json</button>
       <textarea id="importJsonInput" placeholder='Cole o JSON aqui… {"bills":[…],"monthData":{…},"profile":{…}}' style="width:100%;min-height:90px;border:1.5px solid var(--line);border-radius:var(--r-md);padding:12px;font-size:12px;font-family:'JetBrains Mono',monospace;background:#fff;color:var(--ink);resize:vertical;" oninput="this.style.borderColor=''"></textarea>
       <button onclick="importFromJson()" style="width:100%;margin-top:8px;padding:13px;border-radius:var(--r-md);border:none;background:var(--vault);color:#fff;font-weight:700;font-size:14px;cursor:pointer;">Importar dados</button>
 
@@ -2317,7 +2319,7 @@ const I18N = {
 // Esquema de versão: de volta ao pré-1.0 (0.x.x) — a v1.0.0 fica
 // reservada para o lançamento com assinatura paga completa. A numeração
 // 4.x.x usada temporariamente para a integração Firebase foi abandonada.
-const APP_VERSION = '1.0.2D';
+const APP_VERSION = '1.0.3';
 
 // ---------------------------------------------------------------
 // IDIOMA — português (pt) e inglês (en). Escolha guardada neste aparelho (localSettings.lang).
@@ -6176,6 +6178,22 @@ async function scheduleMigrationUrl(){
   renderSettings();
 }
 
+// Importa um ficheiro .json (exportado pela app ou de outra cópia). Substitui os dados deste aparelho.
+function importarFicheiroJson(input){
+  const file = input.files && input.files[0];
+  input.value = '';
+  if(!file) return;
+  if(readOnlyGuard()) return;
+  const reader = new FileReader();
+  reader.onload = () => {
+    const ta = document.getElementById('importJsonInput');
+    if(ta) ta.value = reader.result;
+    if(!confirm('Importar "' + file.name + '"? Os dados deste aparelho vão ser substituídos pelos do ficheiro.')) return;
+    importFromJson();
+  };
+  reader.onerror = () => showToast(tr('m_erro_ler_arquivo'));
+  reader.readAsText(file, 'utf-8');
+}
 async function importFromJson(){
   if(readOnlyGuard()) return;
   let raw = (document.getElementById('importJsonInput')?.value || '').trim();
