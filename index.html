@@ -6720,12 +6720,14 @@ function turnoBreakdownHTML(items){
   const dias = {};
   const vistos = new Set();
   withTurno.forEach(e => { const k = e.turno + '|' + e.date; if(!vistos.has(k)){ vistos.add(k); dias[e.turno] = (dias[e.turno] || 0) + 1; } });
+  // Barras e "melhor turno" pela média por dia trabalhado (não pelo total, que favorece quem tem mais dias).
+  const media = k => (dias[k] ? totals[k] / dias[k] : 0);
   const bars = Object.keys(totals)
     .filter(k => totals[k] > 0)
-    .map(k => { const t = getTurnos().find(x => x.key === k) || TURNOS_ANTIGOS[k] || { emoji:'', label:k }; return { label: `${t.emoji} ${t.label}`.trim(), value: totals[k], color: '#B8862B' }; });
+    .map(k => { const t = getTurnos().find(x => x.key === k) || TURNOS_ANTIGOS[k] || { emoji:'', label:k }; return { label: `${t.emoji} ${t.label} · média/dia`.trim(), value: media(k), color: '#B8862B' }; });
   if(bars.length === 0) return '';
   const best = bars.reduce((a, b) => (b.value > a.value ? b : a));
-  const melhorKey = Object.keys(totals).filter(k => totals[k] > 0).reduce((a, b) => (totals[b] > totals[a] ? b : a));
+  const melhorKey = Object.keys(totals).filter(k => totals[k] > 0).reduce((a, b) => (media(b) > media(a) ? b : a));
   const nDias = dias[melhorKey] || 0;
   // Lista: por período, quantos dias e quais datas (dd/mm).
   const datasPor = {};
@@ -6741,7 +6743,7 @@ function turnoBreakdownHTML(items){
       <div class="section-sub" style="font-size:11px;margin-top:4px;line-height:1.6;">${escapeHtml(txt)}</div>
     </div>`;
   }).join('');
-  return chartBoxWrap(tr('ganhos_turno'), `Melhor turno: ${best.label} · ${nDias} ${nDias === 1 ? tr('dia') : tr('dias')}`, horizontalBarsHTML(bars) + lista);
+  return chartBoxWrap(tr('ganhos_turno'), `Melhor média por dia: ${best.label.replace(' · média/dia','')} · ${fmt(best.value)} (${nDias} ${nDias === 1 ? tr('dia') : tr('dias')})`, horizontalBarsHTML(bars) + lista);
 }
 function weekOfMonthFromDateStr(dateStr){
   const day = parseInt(dateStr.split('-')[2], 10);
