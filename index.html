@@ -6989,6 +6989,8 @@ function renderStatsWeek(){
 
 // Categorias de despesa de um conjunto de meses: variáveis (por categoria), fixas (por conta),
 // IVA e comissão. Cada mês é contado uma só vez. A soma bate com as barras "Despesas".
+// Paleta própria das categorias de despesa (16 cores distintas, sem repetir até 16 fatias).
+const PALETA_CATEGORIAS = ['#3E6650','#B8862B','#C97259','#5A6B8A','#8A6B5A','#6B5A8A','#2C4F3D','#D9A949','#C0544A','#4A90C4','#9B6FC4','#34D17B','#E07A5F','#3D405B','#81B29A','#F2CC8F'];
 function billMesTotal(entry, mKey, b){
   const a = billAmount(entry, b);
   const f = b.frequency || 'mensal';
@@ -7017,8 +7019,10 @@ function categoriasDespesa(keys){
     add('iva', 'IVA', ivaAmount(apps), corExtra(100));
     add('comissao', 'Comissão da plataforma', comissaoAmount(apps), corExtra(101));
   });
-  return Object.keys(tot).map(k => ({ label: tot[k].label, value: tot[k].value, color: tot[k].cor }))
-    .filter(x => x.value > 0);
+  // Cada fatia tem uma cor própria (paleta de 16), atribuída pela ordem das fatias.
+  return Object.keys(tot).map(k => ({ label: tot[k].label, value: tot[k].value }))
+    .filter(x => x.value > 0)
+    .map((x, i) => ({ ...x, color: PALETA_CATEGORIAS[i % PALETA_CATEGORIAS.length] }));
 }
 function renderStatsMonth(){
   const [curY, curM] = currentMonthKey.split('-').map(Number);
