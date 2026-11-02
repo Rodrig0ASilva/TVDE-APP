@@ -6991,6 +6991,11 @@ function renderStatsWeek(){
 // IVA e comissão. Cada mês é contado uma só vez. A soma bate com as barras "Despesas".
 // Paleta própria das categorias de despesa (16 cores distintas, sem repetir até 16 fatias).
 const PALETA_CATEGORIAS = ['#3E6650','#B8862B','#C97259','#5A6B8A','#8A6B5A','#6B5A8A','#2C4F3D','#D9A949','#C0544A','#4A90C4','#9B6FC4','#34D17B','#E07A5F','#3D405B','#81B29A','#F2CC8F'];
+// Despesas fixas de um mês, só para meses que já começaram. Meses futuros contam 0 nos totais e gráficos.
+function fixasAteHoje(entry, mKey){
+  if(mKey > monthKeyFor(new Date())) return 0;
+  return totalFixedBills(entry, mKey);
+}
 function billMesTotal(entry, mKey, b){
   const a = billAmount(entry, b);
   const f = b.frequency || 'mensal';
@@ -7180,7 +7185,7 @@ function renderStatsMonth(){
       const apps = e.earnings.filter(x=>isTvdePlatform(x.platform)).reduce((s,x)=>s+(x.amount||0),0);
       const comb = e.variableExpenses.filter(x=>x.category==='combustivel').reduce((s,x)=>s+(x.amount||0),0);
       const varO = e.variableExpenses.filter(x=>x.category!=='combustivel').reduce((s,x)=>s+(x.amount||0),0);
-      return comb + ivaAmount(apps) + comissaoAmount(apps) + totalFixedBills(e, k) + varO;
+      return comb + ivaAmount(apps) + comissaoAmount(apps) + fixasAteHoje(e, k) + varO;
     });
     const ganhosVals = monthKeys.map(k => {
       const e = ensureMonthEntry(k);
@@ -7236,7 +7241,7 @@ function renderStatsYear(){
     taxedAno += e.earnings.filter(x=>isTvdePlatform(x.platform) && x.platform!=='uber' && x.platform!=='bolt').reduce((s,x)=>s+(x.amount||0),0);
     combAno     += e.variableExpenses.filter(x=>x.category==='combustivel').reduce((s,x)=>s+(x.amount||0),0);
     varOtherAno += e.variableExpenses.filter(x=>x.category!=='combustivel').reduce((s,x)=>s+(x.amount||0),0);
-    fixasAno    += totalFixedBills(e, monthKeysInYear[entries.indexOf(e)]);
+    fixasAno    += fixasAteHoje(e, monthKeysInYear[entries.indexOf(e)]);
   });
   const brutoTVDE = totalUber + totalBolt + taxedAno;
   const brutoPart = totalPart + totalOut + totalCustomAno;
@@ -7316,7 +7321,7 @@ function renderStatsYear(){
     const apps = e.earnings.filter(x=>isTvdePlatform(x.platform)).reduce((s,x)=>s+(x.amount||0),0);
     const comb = e.variableExpenses.filter(x=>x.category==='combustivel').reduce((s,x)=>s+(x.amount||0),0);
     const varO = e.variableExpenses.filter(x=>x.category!=='combustivel').reduce((s,x)=>s+(x.amount||0),0);
-    return comb + ivaAmount(apps) + comissaoAmount(apps) + totalFixedBills(e, monthKeysInYear[idx]) + varO;
+    return comb + ivaAmount(apps) + comissaoAmount(apps) + fixasAteHoje(e, monthKeysInYear[idx]) + varO;
   });
   html += chartBoxWrap(tr('gan_vs_desp_mes'), tr('legenda'), groupedBarSVG(monthLabels, [
     { name:'Ganhos',   color:'#3E6650', values: monthGanhos },
@@ -7561,7 +7566,7 @@ function renderLucroMonth(){
       const comb = e.variableExpenses.filter(x=>x.category==='combustivel').reduce((s,x)=>s+(x.amount||0),0);
       const varO = e.variableExpenses.filter(x=>x.category!=='combustivel').reduce((s,x)=>s+(x.amount||0),0);
       const liq  = (apps - ivaAmount(apps) - comissaoAmount(apps)) - comb + part;
-      return Math.max(0, liq - totalFixedBills(e, k) - varO);
+      return Math.max(0, liq - fixasAteHoje(e, k) - varO);
     });
     html += chartBoxWrap(tr('evolucao_lucro'), tr('lucro_ultimos_meses'), groupedBarSVG(mLabels, [{ name:'Lucro', color:'#3E6650', values: mLucros }]));
   }
