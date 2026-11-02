@@ -7180,7 +7180,7 @@ function renderStatsMonth(){
       const apps = e.earnings.filter(x=>isTvdePlatform(x.platform)).reduce((s,x)=>s+(x.amount||0),0);
       const comb = e.variableExpenses.filter(x=>x.category==='combustivel').reduce((s,x)=>s+(x.amount||0),0);
       const varO = e.variableExpenses.filter(x=>x.category!=='combustivel').reduce((s,x)=>s+(x.amount||0),0);
-      return comb + ivaAmount(apps) + comissaoAmount(apps) + totalFixedBills(e) + varO;
+      return comb + ivaAmount(apps) + comissaoAmount(apps) + totalFixedBills(e, k) + varO;
     });
     const ganhosVals = monthKeys.map(k => {
       const e = ensureMonthEntry(k);
@@ -7236,7 +7236,7 @@ function renderStatsYear(){
     taxedAno += e.earnings.filter(x=>isTvdePlatform(x.platform) && x.platform!=='uber' && x.platform!=='bolt').reduce((s,x)=>s+(x.amount||0),0);
     combAno     += e.variableExpenses.filter(x=>x.category==='combustivel').reduce((s,x)=>s+(x.amount||0),0);
     varOtherAno += e.variableExpenses.filter(x=>x.category!=='combustivel').reduce((s,x)=>s+(x.amount||0),0);
-    fixasAno    += totalFixedBills(e);
+    fixasAno    += totalFixedBills(e, monthKeysInYear[entries.indexOf(e)]);
   });
   const brutoTVDE = totalUber + totalBolt + taxedAno;
   const brutoPart = totalPart + totalOut + totalCustomAno;
@@ -7312,11 +7312,11 @@ function renderStatsYear(){
     return new Date(y,m-1,1).toLocaleDateString(LOCALE(),{month:'short'}).replace('.','');
   });
   const monthGanhos = entries.map(e => e.earnings.reduce((s,x)=>s+(x.amount||0),0));
-  const monthDespesas = entries.map(e => {
+  const monthDespesas = entries.map((e, idx) => {
     const apps = e.earnings.filter(x=>isTvdePlatform(x.platform)).reduce((s,x)=>s+(x.amount||0),0);
     const comb = e.variableExpenses.filter(x=>x.category==='combustivel').reduce((s,x)=>s+(x.amount||0),0);
     const varO = e.variableExpenses.filter(x=>x.category!=='combustivel').reduce((s,x)=>s+(x.amount||0),0);
-    return comb + ivaAmount(apps) + comissaoAmount(apps) + totalFixedBills(e) + varO;
+    return comb + ivaAmount(apps) + comissaoAmount(apps) + totalFixedBills(e, monthKeysInYear[idx]) + varO;
   });
   html += chartBoxWrap(tr('gan_vs_desp_mes'), tr('legenda'), groupedBarSVG(monthLabels, [
     { name:'Ganhos',   color:'#3E6650', values: monthGanhos },
@@ -7561,7 +7561,7 @@ function renderLucroMonth(){
       const comb = e.variableExpenses.filter(x=>x.category==='combustivel').reduce((s,x)=>s+(x.amount||0),0);
       const varO = e.variableExpenses.filter(x=>x.category!=='combustivel').reduce((s,x)=>s+(x.amount||0),0);
       const liq  = (apps - ivaAmount(apps) - comissaoAmount(apps)) - comb + part;
-      return Math.max(0, liq - totalFixedBills(e) - varO);
+      return Math.max(0, liq - totalFixedBills(e, k) - varO);
     });
     html += chartBoxWrap(tr('evolucao_lucro'), tr('lucro_ultimos_meses'), groupedBarSVG(mLabels, [{ name:'Lucro', color:'#3E6650', values: mLucros }]));
   }
