@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8" />
-<meta name="app-version" content="1.0.4" />
+<meta name="app-version" content="1.0.1" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
 <title>Corrida+</title>
 <script>
@@ -2332,7 +2332,7 @@ const I18N = {
 // Esquema de versão: de volta ao pré-1.0 (0.x.x) — a v1.0.0 fica
 // reservada para o lançamento com assinatura paga completa. A numeração
 // 4.x.x usada temporariamente para a integração Firebase foi abandonada.
-const APP_VERSION = '1.0.4';
+const APP_VERSION = '1.0.1';
 
 // ---------------------------------------------------------------
 // IDIOMA — português (pt) e inglês (en). Escolha guardada neste aparelho (localSettings.lang).
@@ -2956,6 +2956,79 @@ function cripGuardarRisco(){
     <button class="btn btn-primary" id="cripContinuar" disabled onclick="cripIrSenha()" style="opacity:0.4;">Continuar</button>
     <button class="btn btn-ghost" onclick="closeSheet()">${tr('cancelar')}</button>`;
 }
+// ---------------------------------------------------------------
+// PASSKEY (Face ID / Touch ID / PIN do aparelho) para desbloquear a criptografia.
+// Opcional, nas Configurações. Usa a extensão WebAuthn PRF: o aparelho devolve um segredo de 32 bytes
+// ligado à passkey (a chave privada nunca sai do aparelho). Esse segredo cifra a chave de dados (DEK).
+// Requer iOS 18+ / Android com Chrome recente. Sem suporte, a app mostra a mensagem e não muda nada.
+// ---------------------------------------------------------------
+const PASSKEY_PRF_SALT = new TextEncoder().encode('corridaplus-prf-v1');
+async function lerLocal(k){
+  try{ const r = await window.storage.get(k); return r && r.value ? r.value : null; }catch(e){ return null; }
+}
+async function passkeySegredo(credIdBuf){
+  const a = await navigator.credentials.get({ publicKey: {
+    challenge: criptoBytes(32),
+    allowCredentials: [{ type: 'public-key', id: credIdBuf }],
+    userVerification: 'required',
+    extensions: { prf: { eval: { first: PASSKEY_PRF_SALT } } }
+  } });
+  const ext = a.getClientExtensionResults();
+  const r = ext && ext.prf && ext.prf.results && ext.prf.results.first;
+  if(!r) throw new Error('prf-sem-resultado');
+  return new Uint8Array(r);
+}
+async function passkeyAtivar(){
+  const dekB64 = await lerLocal('dekAparelho');
+  if(!dekB64){ showToast('Desbloqueia a criptografia primeiro'); return false; }
+  const cred = await navigator.credentials.create({ publicKey: {
+    challenge: criptoBytes(32),
+    rp: { name: 'Corrida+' },
+    user: { id: criptoBytes(16), name: 'corridaplus', displayName: 'Corrida+' },
+    pubKeyCredParams: [{ type: 'public-key', alg: -7 }],
+    authenticatorSelection: { authenticatorAttachment: 'platform', residentKey: 'required', userVerification: 'required' },
+    extensions: { prf: {} }
+  } });
+  const ext = cred.getClientExtensionResults();
+  if(!ext || !ext.prf || !ext.prf.enabled){ throw new Error('prf-nao-suportado'); }
+  const segredo = await passkeySegredo(cred.rawId);
+  const chave = await crypto.subtle.importKey('raw', segredo, { name: 'AES-GCM' }, false, ['encrypt', 'decrypt']);
+  const emb = await criptoCifrar(chave, criptoDeB64(dekB64));
+  await window.storage.set('passkeyCredId', criptoB64(new Uint8Array(cred.rawId)));
+  await window.storage.set('passkeyCofre', JSON.stringify(emb));
+  return true;
+}
+async function passkeyDesbloquear(){
+  const idB64 = await lerLocal('passkeyCredId');
+  const cof = await lerLocal('passkeyCofre');
+  if(!idB64 || !cof) return false;
+  const seg = await passkeySegredo(criptoDeB64(idB64).buffer);
+  const chave = await crypto.subtle.importKey('raw', seg, { name: 'AES-GCM' }, false, ['encrypt', 'decrypt']);
+  const dek = await criptoDecifrar(chave, JSON.parse(cof));
+  await cripConcluirDesbloqueio(dek);
+  return true;
+}
+async function passkeyRemover(){
+  try{ await window.storage.delete('passkeyCredId'); }catch(e){}
+  try{ await window.storage.delete('passkeyCofre'); }catch(e){}
+}
+async function cripTogglePasskey(){
+  const ativa = !!(await lerLocal('passkeyCofre'));
+  if(ativa){
+    if(!confirm('Remover o desbloqueio por Face ID / passkey deste aparelho? Continua a ser possível usar a chave de recuperação.')) return;
+    await passkeyRemover();
+    showToast('Passkey removida');
+    openCriptografiaSheet();
+    return;
+  }
+  try{
+    const ok = await passkeyAtivar();
+    if(ok){ showToast('Face ID / passkey ativada neste aparelho'); openCriptografiaSheet(); }
+  }catch(e){
+    console.warn('Falha ao ativar passkey:', e);
+    showToast('Este aparelho não suporta desbloqueio por passkey (PRF) ou foi cancelado.');
+  }
+}
 async function openCriptografiaSheet(){
   const cofre = await lerCofreLocal();
   if(cofre && !(await lerDekLocal())){ cripAbrirDesbloqueio(); return; }
@@ -2967,6 +3040,7 @@ async function openCriptografiaSheet(){
       <div class="sheet-title">${tr('m_cripto_ativa')}</div>
       <div class="sheet-sub">${data ? 'Ativada em ' + escapeHtml(data) : tr('ativa_aparelho')}</div>
       <div style="font-size:13px;line-height:1.6;margin-bottom:14px;">${tr('m_campos_cifrados')}</div>
+      <button class="btn theme-card" onclick="cripTogglePasskey()" style="border:1.5px solid var(--line);color:var(--ink);">${(await lerLocal('passkeyCofre')) ? '🔑 Remover Face ID / passkey deste aparelho' : '🔑 Ativar Face ID / passkey neste aparelho'}</button>
       <button class="btn theme-card" onclick="cripEsquecerAqui()" style="border:1.5px solid var(--line);color:var(--ink);">${tr('m_esquecer_chave')}</button>
       <button class="btn theme-card" onclick="cripPedirRemocao()" style="border:1.5px solid var(--line);color:var(--terracotta);">${tr('m_remover_cripto')}</button>
       <button class="btn btn-ghost" onclick="closeSheet()">${tr('fechar')}</button>`);
@@ -3202,6 +3276,7 @@ function cripAbrirDesbloqueio(){
     <div class="section-sub" style="text-align:center;margin:12px 0;">ou</div>
     <div class="field"><label>${tr('m_chave_recuperacao')}</label><input type="text" id="cripUChave" placeholder="XXXX-XXXX-XXXX-XXXX-XXXX-XXXX" autocomplete="off" autocapitalize="characters" /></div>
     <button class="btn theme-card" onclick="cripDesbloquearChave()" style="border:1.5px solid var(--line);color:var(--ink);">${tr('m_desbloq_chave')}</button>
+    <button class="btn theme-card" onclick="passkeyDesbloquear().then(ok => { if(!ok) showToast('Sem passkey neste aparelho'); }).catch(() => showToast('Não foi possível usar o Face ID'))" style="border:1.5px solid var(--line);color:var(--ink);">🔑 Desbloquear com Face ID / passkey</button>
     <button class="btn theme-card" onclick="cripLerQrCamera()" style="border:1.5px solid var(--line);color:var(--ink);">${tr('m_ler_qr_camera')}</button>
     <button class="btn theme-card" onclick="cripLerQrGaleria()" style="border:1.5px solid var(--line);color:var(--ink);">${tr('m_qr_galeria')}</button>
     <button class="btn theme-card" onclick="cripEsqueciSenha()" style="border:1.5px solid var(--line);color:var(--ink);">Esqueci a senha (perguntas)</button>
