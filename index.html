@@ -8508,6 +8508,10 @@ function devQrAbrir(){
     <canvas id="devQrCanvas" style="display:none;"></canvas>
     <div style="font-size:12px;margin-top:10px;">Resultado da leitura:</div>
     <div id="devQrResultado" style="font-family:'JetBrains Mono',monospace;font-size:13px;word-break:break-all;min-height:20px;padding:8px;background:var(--cream-2);border-radius:var(--r-md);margin-top:4px;">—</div>
+    <button class="btn theme-card" onclick="devChaveAparelhoTestar()" style="border:1.5px solid var(--line);color:var(--ink);">📱 Testar chave deste aparelho</button>
+    <div id="devChaveAparelhoResultado" style="font-size:12px;line-height:1.7;margin-top:8px;word-break:break-all;"></div>
+    <button class="btn theme-card" onclick="devChaveTestar()" style="border:1.5px solid var(--line);color:var(--ink);">🔐 Testar chave de recuperação</button>
+    <div id="devChaveResultado" style="font-size:12px;line-height:1.7;margin-top:8px;word-break:break-all;"></div>
     <button class="btn btn-ghost" onclick="devQrPararCamara(); closeSheet();">Fechar</button>`);
 }
 async function devQrGerar(){
@@ -8522,6 +8526,75 @@ async function devQrGerar(){
   img.style.height = '200px';
   img.src = gerarQrDataUrl('CORRIDA-TESTE-QR');
   box.appendChild(img);
+}
+// Testa a chave de dados guardada neste aparelho (dekAparelho). Não mostra a chave; mostra uma impressão digital
+// (SHA-256, 8 caracteres) para comparar entre aparelhos sem expor a chave.
+async function devChaveAparelhoTestar(){
+  const out = document.getElementById('devChaveAparelhoResultado');
+  if(!out) return;
+  const dekB64 = await lerLocal('dekAparelho');
+  if(!dekB64){ out.textContent = 'Nenhuma chave neste aparelho. Desbloqueia a criptografia primeiro.'; return; }
+  try{
+    const dek = criptoDeB64(dekB64);
+    const tamanhoOk = dek.length === 32;
+    const hash = new Uint8Array(await crypto.subtle.digest('SHA-256', dek));
+    const impressao = Array.from(hash.slice(0, 4)).map(b => b.toString(16).padStart(2, '0')).join('').toUpperCase();
+    const chave = await crypto.subtle.importKey('raw', dek, { name: 'AES-GCM' }, false, ['encrypt', 'decrypt']);
+    const amostra = new TextEncoder().encode('teste-' + Date.now());
+    const emb = await criptoCifrar(chave, amostra);
+    const volta = await criptoDecifrar(chave, emb);
+    const roundtrip = volta.length === amostra.length && volta.every((b, i) => b === amostra[i]);
+    const marca = v => v ? '✅' : '❌';
+    const cofre = await lerCofreLocal();
+    const passkey = !!(await lerLocal('passkeyCofre'));
+    out.innerHTML = 'Tamanho da chave (32 bytes): ' + marca(tamanhoOk)
+      + '<br>Cifra e decifra com esta chave: ' + marca(roundtrip)
+      + '<br>Impressão digital: <strong style="font-family:\'JetBrains Mono\',monospace;">' + impressao + '</strong>'
+      + '<br>Cofre local: ' + (cofre ? '✅ presente' : '❌ ausente')
+      + '<br>Passkey neste aparelho: ' + (passkey ? '✅ ativa' : '— não ativa')
+      + '<br><span style="opacity:.8;">Para confirmar que é a mesma chave da nuvem, compara a impressão digital noutro aparelho.</span>';
+  }catch(e){
+    out.textContent = 'Erro no teste: ' + (e.message || e);
+  }
+}
+// Teste da chave de recuperação (Modo Dev). Usa um cofre temporário só em memória; não grava nada.
+async function devChaveTestar(){
+  const out = document.getElementById('devChaveResultado');
+  if(!out) return;
+  out.textContent = 'A testar… (pode demorar alguns segundos)';
+  try{
+    const perguntas = [
+      { pergunta: 'Teste 1', resposta: 'a', tipo: 'texto' },
+      { pergunta: 'Teste 2', resposta: 'b', tipo: 'texto' },
+      { pergunta: 'Teste 3', resposta: 'c', tipo: 'texto' },
+      { pergunta: 'Teste 4', resposta: 'd', tipo: 'texto' }
+    ];
+    const { cofre, chaveRecuperacao, dek } = await criarCofreCripto('Teste123!', perguntas);
+    const ok1 = criptoB64(await abrirCofreCripto(cofre, 'recuperacao', chaveRecuperacao)) === dek;
+    const ultimo = chaveRecuperacao.slice(-1);
+    const alterada = chaveRecuperacao.slice(0, -1) + (ultimo === 'A' ? 'B' : 'A');
+    let ok2 = false;
+    try{ await abrirCofreCripto(cofre, 'recuperacao', alterada); }catch(e){ ok2 = true; }
+    const ok3 = criptoB64(await abrirCofreCripto(cofre, 'senha', 'Teste123!')) === dek;
+    const ok4 = criptoB64(await abrirCofreCripto(cofre, 'respostas', ['a', 'b', 'c', 'd'])) === dek;
+    const marca = v => v ? '✅' : '❌';
+    out.innerHTML = 'Chave gerada: <strong style="font-family:\'JetBrains Mono\',monospace;">' + escapeHtml(chaveRecuperacao) + '</strong>'
+      + '<br>Desbloqueio com a chave: ' + marca(ok1)
+      + '<br>Chave errada recusada: ' + marca(ok2)
+      + '<br>Desbloqueio com a senha: ' + marca(ok3)
+      + '<br>Desbloqueio com as respostas: ' + marca(ok4);
+    const qrOk = await carregarQrLib();
+    if(qrOk){
+      const img = new Image();
+      img.style.cssText = 'width:160px;height:160px;background:#fff;padding:6px;border-radius:8px;margin-top:8px;';
+      img.src = gerarQrDataUrl(chaveRecuperacao);
+      out.appendChild(img);
+    } else {
+      out.innerHTML += '<br>QR: biblioteca não carregou (a chave acima continua válida).';
+    }
+  }catch(e){
+    out.textContent = 'Erro no teste: ' + (e.message || e);
+  }
 }
 function devQrMostrarResultado(texto){
   const r = document.getElementById('devQrResultado');
