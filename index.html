@@ -3068,29 +3068,51 @@ function cripMostrarChave(chave){
   cripDesenharQr(chave);
 }
 let qrLibPromise = null;
+// Biblioteca de geração do QR (qrcode-generator). Tenta vários CDN por ordem.
+const QR_GERADOR_URLS = [
+  'https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js',
+  'https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.js',
+  'https://unpkg.com/qrcode-generator@1.4.4/qrcode.js'
+];
+window._qrErro = '';
 function carregarQrLib(){
-  if(window.QRCode && window.QRCode.toCanvas) return Promise.resolve(true);
+  if(typeof window.qrcode === 'function') return Promise.resolve(true);
   if(!qrLibPromise){
-    qrLibPromise = new Promise((resolve) => {
-      const s = document.createElement('script');
-      s.src = 'https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js';
-      s.onload = () => resolve(true);
-      s.onerror = () => resolve(false);
-      document.head.appendChild(s);
-    });
+    qrLibPromise = (async () => {
+      for(const url of QR_GERADOR_URLS){
+        const ok = await new Promise((resolve) => {
+          const s = document.createElement('script');
+          s.src = url;
+          s.onload = () => resolve(typeof window.qrcode === 'function');
+          s.onerror = () => resolve(false);
+          document.head.appendChild(s);
+        });
+        if(ok){ window._qrErro = ''; return true; }
+        window._qrErro = 'Não carregou: ' + url;
+      }
+      return false;
+    })();
   }
   return qrLibPromise;
+}
+// Gera o QR como imagem (data URL) com a biblioteca carregada. Lança erro se não houver biblioteca.
+function gerarQrDataUrl(texto){
+  const qr = window.qrcode(0, 'H');
+  qr.addData(texto);
+  qr.make();
+  return qr.createDataURL(6, 2);
 }
 async function cripDesenharQr(chave){
   const box = document.getElementById('cripQr');
   if(!box) return;
   const ok = await carregarQrLib();
-  const falha = () => { box.innerHTML = '<div style="font-size:12px;color:#444;text-align:center;">' + tr('m_qr_indisp_usa') + '</div>'; };
-  if(!ok || !window.QRCode || !window.QRCode.toCanvas){ falha(); return; }
+  if(!ok){ box.innerHTML = '<div style="font-size:12px;color:#444;text-align:center;">' + tr('m_qr_indisp_usa') + '</div>'; return; }
   box.innerHTML = '';
-  const c = document.createElement('canvas');
-  box.appendChild(c);
-  window.QRCode.toCanvas(c, chave, { width: 200, margin: 1, errorCorrectionLevel: 'H' }, (err) => { if(err){ falha(); } });
+  const img = new Image();
+  img.style.width = '200px';
+  img.style.height = '200px';
+  img.src = gerarQrDataUrl(chave);
+  box.appendChild(img);
 }
 function cripQrCanvas(){
   const box = document.getElementById('cripQr');
@@ -8393,9 +8415,9 @@ function setTodasCatDespesas(fechar){
 // Mostra o texto lido. Não desbloqueia nada.
 // ---------------------------------------------------------------
 function devQrEstado(){
-  const g = !!(window.QRCode && window.QRCode.toCanvas);
+  const g = typeof window.qrcode === 'function';
   const l = !!window.jsQR;
-  return 'Geração (qrcode): ' + (g ? '✅ carregada' : '❌ não carregada') + '<br>Leitura (jsQR): ' + (l ? '✅ carregada' : '⏳ ainda não carregada (carrega ao ler)');
+  return 'Geração (qrcode-generator): ' + (g ? '✅ carregada' : '❌ não carregada' + (window._qrErro ? ' — ' + window._qrErro : '')) + '<br>Leitura (jsQR): ' + (l ? '✅ carregada' : '⏳ ainda não carregada (carrega ao ler)');
 }
 function devQrAbrir(){
   devQrPararCamara();
@@ -8418,13 +8440,13 @@ async function devQrGerar(){
   if(!box) return;
   const ok = await carregarQrLib();
   document.getElementById('devQrEstado').innerHTML = devQrEstado();
-  if(!ok || !window.QRCode || !window.QRCode.toCanvas){ box.textContent = 'Biblioteca de geração não carregou (ver a internet ou o endereço do CDN).'; return; }
+  if(!ok){ box.textContent = 'Biblioteca de geração não carregou. ' + (window._qrErro || ''); return; }
   box.innerHTML = '';
-  const c = document.createElement('canvas');
-  box.appendChild(c);
-  window.QRCode.toCanvas(c, 'CORRIDA-TESTE-QR', { width: 200, margin: 1, errorCorrectionLevel: 'H' }, (err) => {
-    if(err) box.textContent = 'Erro ao gerar: ' + (err.message || err);
-  });
+  const img = new Image();
+  img.style.width = '200px';
+  img.style.height = '200px';
+  img.src = gerarQrDataUrl('CORRIDA-TESTE-QR');
+  box.appendChild(img);
 }
 function devQrMostrarResultado(texto){
   const r = document.getElementById('devQrResultado');
