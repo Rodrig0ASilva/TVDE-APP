@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8" />
-<meta name="app-version" content="1.0.3c" />
+<meta name="app-version" content="1.0.4" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
 <title>Corrida+</title>
 <script>
@@ -1475,6 +1475,7 @@ body.dark .cat-btn-ghost { color:var(--vault-text, var(--vault-light)); }
         <div class="switch" id="demoSwitch" onclick="toggleDemoMode()"></div>
       </div>
       <button id="demoClearBtn" onclick="limparDemo()" style="display:none;width:100%;padding:12px;border-radius:var(--r-md);border:1.5px solid var(--line);background:transparent;color:var(--terracotta);font-weight:700;font-size:13px;cursor:pointer;margin-bottom:14px;">🧹 Limpar dados da demonstração</button>
+      <button onclick="devQrAbrir()" style="width:100%;margin-bottom:14px;padding:12px;border-radius:var(--r-md);border:1.5px solid var(--line);background:transparent;color:var(--ink);font-weight:700;font-size:13px;cursor:pointer;">🧪 Testar QR code</button>
       <div class="section-head" style="margin-top:0;"><div class="section-title">🔗 Sincronização</div></div>
     <div id="syncUrlLockedView" style="background:rgba(31,58,46,0.06);border-radius:var(--r-md);padding:14px;margin-top:8px;display:flex;align-items:center;gap:12px;">
       <div style="font-size:22px;">🔒</div>
@@ -2331,7 +2332,7 @@ const I18N = {
 // Esquema de versão: de volta ao pré-1.0 (0.x.x) — a v1.0.0 fica
 // reservada para o lançamento com assinatura paga completa. A numeração
 // 4.x.x usada temporariamente para a integração Firebase foi abandonada.
-const APP_VERSION = '1.0.3c';
+const APP_VERSION = '1.0.4';
 
 // ---------------------------------------------------------------
 // IDIOMA — português (pt) e inglês (en). Escolha guardada neste aparelho (localSettings.lang).
@@ -2949,7 +2950,7 @@ function cripGuardarRisco(){
       <p style="margin:0;"><strong>${tr('m_p7a')}:</strong> ${tr('m_p7b')}</p>
     </div>
     <label style="display:flex;gap:10px;align-items:flex-start;font-size:13px;line-height:1.5;margin-bottom:16px;cursor:pointer;">
-      <input type="checkbox" id="cripAceito" onchange="document.getElementById('cripContinuar').disabled = !this.checked" style="margin-top:3px;" />
+      <input type="checkbox" id="cripAceito" onchange="const b=document.getElementById('cripContinuar'); b.disabled = !this.checked; b.style.opacity = this.checked ? '1' : '0.4';" style="margin-top:3px;" />
       <span>${tr('m_li_aceito')}</span>
     </label>
     <button class="btn btn-primary" id="cripContinuar" disabled onclick="cripIrSenha()" style="opacity:0.4;">Continuar</button>
@@ -3068,11 +3069,11 @@ function cripMostrarChave(chave){
 }
 let qrLibPromise = null;
 function carregarQrLib(){
-  if(window.QRCode) return Promise.resolve(true);
+  if(window.QRCode && window.QRCode.toCanvas) return Promise.resolve(true);
   if(!qrLibPromise){
     qrLibPromise = new Promise((resolve) => {
       const s = document.createElement('script');
-      s.src = 'https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js';
+      s.src = 'https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js';
       s.onload = () => resolve(true);
       s.onerror = () => resolve(false);
       document.head.appendChild(s);
@@ -3084,9 +3085,12 @@ async function cripDesenharQr(chave){
   const box = document.getElementById('cripQr');
   if(!box) return;
   const ok = await carregarQrLib();
-  if(!ok || !window.QRCode){ box.innerHTML = '<div style="font-size:12px;color:#444;text-align:center;">' + tr('m_qr_indisp_usa') + '</div>'; return; }
+  const falha = () => { box.innerHTML = '<div style="font-size:12px;color:#444;text-align:center;">' + tr('m_qr_indisp_usa') + '</div>'; };
+  if(!ok || !window.QRCode || !window.QRCode.toCanvas){ falha(); return; }
   box.innerHTML = '';
-  new QRCode(box, { text: chave, width: 200, height: 200, correctLevel: QRCode.CorrectLevel.H });
+  const c = document.createElement('canvas');
+  box.appendChild(c);
+  window.QRCode.toCanvas(c, chave, { width: 200, margin: 1, errorCorrectionLevel: 'H' }, (err) => { if(err){ falha(); } });
 }
 function cripQrCanvas(){
   const box = document.getElementById('cripQr');
@@ -8383,6 +8387,111 @@ function setTodasCatDespesas(fechar){
   const todas = EXPENSE_CATEGORIES.map(c => c.key).concat(['outro']);
   localStorage.setItem('corrida:catFechadas', JSON.stringify(fechar ? todas : []));
   document.querySelectorAll('.cat-grupo').forEach(g => g.classList.toggle('fechado', fechar));
+}
+// ---------------------------------------------------------------
+// TESTE DO QR CODE (Modo Dev): gera um QR de teste e lê QR pela câmara ou pela galeria.
+// Mostra o texto lido. Não desbloqueia nada.
+// ---------------------------------------------------------------
+function devQrEstado(){
+  const g = !!(window.QRCode && window.QRCode.toCanvas);
+  const l = !!window.jsQR;
+  return 'Geração (qrcode): ' + (g ? '✅ carregada' : '❌ não carregada') + '<br>Leitura (jsQR): ' + (l ? '✅ carregada' : '⏳ ainda não carregada (carrega ao ler)');
+}
+function devQrAbrir(){
+  devQrPararCamara();
+  openSheet(`
+    <div class="sheet-handle"></div>
+    <div class="sheet-title">Testar QR code</div>
+    <div id="devQrEstado" style="font-size:12px;line-height:1.7;margin-bottom:12px;">${devQrEstado()}</div>
+    <button class="btn btn-primary" onclick="devQrGerar()">Gerar QR de teste</button>
+    <div id="devQrBox" style="display:flex;justify-content:center;align-items:center;min-height:180px;margin:10px 0;background:#fff;border-radius:var(--r-md);padding:10px;color:#444;font-size:12px;text-align:center;">QR de teste aparece aqui</div>
+    <button class="btn theme-card" onclick="devQrLerCamara()" style="border:1.5px solid var(--line);color:var(--ink);">📷 Ler QR com a câmara</button>
+    <button class="btn theme-card" onclick="devQrLerGaleria()" style="border:1.5px solid var(--line);color:var(--ink);">🖼️ Ler QR de uma imagem</button>
+    <video id="devQrVideo" playsinline muted style="display:none;width:100%;border-radius:var(--r-md);background:#000;margin-top:8px;"></video>
+    <canvas id="devQrCanvas" style="display:none;"></canvas>
+    <div style="font-size:12px;margin-top:10px;">Resultado da leitura:</div>
+    <div id="devQrResultado" style="font-family:'JetBrains Mono',monospace;font-size:13px;word-break:break-all;min-height:20px;padding:8px;background:var(--cream-2);border-radius:var(--r-md);margin-top:4px;">—</div>
+    <button class="btn btn-ghost" onclick="devQrPararCamara(); closeSheet();">Fechar</button>`);
+}
+async function devQrGerar(){
+  const box = document.getElementById('devQrBox');
+  if(!box) return;
+  const ok = await carregarQrLib();
+  document.getElementById('devQrEstado').innerHTML = devQrEstado();
+  if(!ok || !window.QRCode || !window.QRCode.toCanvas){ box.textContent = 'Biblioteca de geração não carregou (ver a internet ou o endereço do CDN).'; return; }
+  box.innerHTML = '';
+  const c = document.createElement('canvas');
+  box.appendChild(c);
+  window.QRCode.toCanvas(c, 'CORRIDA-TESTE-QR', { width: 200, margin: 1, errorCorrectionLevel: 'H' }, (err) => {
+    if(err) box.textContent = 'Erro ao gerar: ' + (err.message || err);
+  });
+}
+function devQrMostrarResultado(texto){
+  const r = document.getElementById('devQrResultado');
+  if(r) r.textContent = texto;
+}
+function devQrPararCamara(){
+  if(window._devQrRaf) cancelAnimationFrame(window._devQrRaf);
+  window._devQrRaf = null;
+  if(window._devQrStream){ window._devQrStream.getTracks().forEach(x => x.stop()); window._devQrStream = null; }
+}
+async function devQrLerCamara(){
+  devQrPararCamara();
+  const ok = await carregarJsQR();
+  document.getElementById('devQrEstado').innerHTML = devQrEstado();
+  if(!ok || !window.jsQR){ devQrMostrarResultado('Biblioteca de leitura não carregou.'); return; }
+  if(!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia){ devQrMostrarResultado('Câmara indisponível (precisa de HTTPS).'); return; }
+  let stream;
+  try{ stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } }); }
+  catch(e){ devQrMostrarResultado('Sem permissão para a câmara: ' + (e.name || e)); return; }
+  window._devQrStream = stream;
+  const v = document.getElementById('devQrVideo');
+  const cv = document.getElementById('devQrCanvas');
+  if(!v || !cv){ devQrPararCamara(); return; }
+  v.style.display = 'block';
+  v.srcObject = stream;
+  try{ await v.play(); }catch(e){}
+  devQrMostrarResultado('A procurar um QR…');
+  const ctx = cv.getContext('2d');
+  const ciclo = () => {
+    if(!window._devQrStream) return;
+    if(v.readyState === v.HAVE_ENOUGH_DATA && v.videoWidth){
+      cv.width = v.videoWidth; cv.height = v.videoHeight;
+      ctx.drawImage(v, 0, 0, cv.width, cv.height);
+      const img = ctx.getImageData(0, 0, cv.width, cv.height);
+      const r = window.jsQR(img.data, img.width, img.height);
+      if(r && r.data){ devQrPararCamara(); v.style.display = 'none'; devQrMostrarResultado(r.data); return; }
+    }
+    window._devQrRaf = requestAnimationFrame(ciclo);
+  };
+  ciclo();
+}
+function devQrLerGaleria(){
+  const inp = document.createElement('input');
+  inp.type = 'file';
+  inp.accept = 'image/*';
+  inp.onchange = async () => {
+    const file = inp.files && inp.files[0];
+    if(!file) return;
+    const ok = await carregarJsQR();
+    document.getElementById('devQrEstado').innerHTML = devQrEstado();
+    if(!ok || !window.jsQR){ devQrMostrarResultado('Biblioteca de leitura não carregou.'); return; }
+    const url = URL.createObjectURL(file);
+    const img = new Image();
+    img.onload = () => {
+      const cv = document.createElement('canvas');
+      cv.width = img.naturalWidth; cv.height = img.naturalHeight;
+      const ctx = cv.getContext('2d');
+      ctx.drawImage(img, 0, 0);
+      const d = ctx.getImageData(0, 0, cv.width, cv.height);
+      const r = window.jsQR(d.data, d.width, d.height);
+      URL.revokeObjectURL(url);
+      devQrMostrarResultado(r && r.data ? r.data : 'Nenhum QR encontrado nessa imagem.');
+    };
+    img.onerror = () => { URL.revokeObjectURL(url); devQrMostrarResultado('Não consegui abrir a imagem.'); };
+    img.src = url;
+  };
+  inp.click();
 }
 // Sheet único para criar OU editar uma despesa variável — quando chamado
 // sem argumento (ou null), abre em modo "nova"; quando recebe o objeto da
